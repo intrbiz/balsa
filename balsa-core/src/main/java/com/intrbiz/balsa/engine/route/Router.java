@@ -5,7 +5,7 @@ import static com.intrbiz.balsa.BalsaContext.Balsa;
 import java.io.IOException;
 
 import com.intrbiz.balsa.BalsaException;
-import com.intrbiz.balsa.listener.BalsaResponse.Status;
+import com.intrbiz.balsa.scgi.SCGIResponse.Status;
 
 /**
  * A router routes requests

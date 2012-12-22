@@ -2,9 +2,7 @@ package com.intrbiz.balsa;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -28,16 +26,8 @@ import com.intrbiz.balsa.engine.view.impl.BalsaViewEngine;
 import com.intrbiz.balsa.event.BalsaEventListener;
 import com.intrbiz.balsa.event.BalsaSessionEvent;
 import com.intrbiz.balsa.listener.BalsaListener;
-import com.intrbiz.balsa.listener.BalsaMiddleware;
-import com.intrbiz.balsa.listener.BalsaProcessor;
-import com.intrbiz.balsa.listener.middleware.CookieMiddleware;
-import com.intrbiz.balsa.listener.middleware.JSONBodyMiddleware;
-import com.intrbiz.balsa.listener.middleware.LoggingMiddleware;
-import com.intrbiz.balsa.listener.middleware.MiddlewareProcessor;
-import com.intrbiz.balsa.listener.middleware.QueryStringMiddleware;
-import com.intrbiz.balsa.listener.middleware.SessionMiddleware;
 import com.intrbiz.balsa.listener.processor.RouteProcessor;
-import com.intrbiz.balsa.listener.scgi.SCGIListener;
+import com.intrbiz.balsa.listener.scgi.BalsaSCGIListener;
 import com.intrbiz.balsa.view.loader.FileLoader;
 import com.intrbiz.express.action.ActionHandler;
 import com.intrbiz.express.action.MethodActionHandler;
@@ -59,7 +49,7 @@ public abstract class BalsaApplication
      * Bean providers
      */
     private final Map<String, BeanProvider<?>> models = new HashMap<String, BeanProvider<?>>();
-    
+
     /**
      * Actions
      */
@@ -69,11 +59,6 @@ public abstract class BalsaApplication
      * The listener
      */
     private BalsaListener listener;
-
-    /**
-     * Middleware defined by the application
-     */
-    private final List<BalsaMiddleware> middleware = new LinkedList<BalsaMiddleware>();
 
     /**
      * The routing engine
@@ -94,7 +79,7 @@ public abstract class BalsaApplication
     {
         super();
         /* defaults */
-        this.listener(new SCGIListener());
+        this.listener(new BalsaSCGIListener());
         this.executor(new VoidExecutor());
         this.executor(new ParameterExecutor());
         this.executor(new JSONExecutor());
@@ -204,45 +189,6 @@ public abstract class BalsaApplication
     }
 
     /**
-     * Get the middleware used in this application
-     * 
-     * @return returns List<BalsaMiddleware>
-     */
-    public List<BalsaMiddleware> getMiddleware()
-    {
-        return middleware;
-    }
-
-    /**
-     * Set the middleware of the application
-     * 
-     * @param middleware
-     *            returns void
-     */
-    public void middleware(List<BalsaMiddleware> middleware)
-    {
-        this.middleware.clear();
-        if (middleware != null)
-        {
-            for (BalsaMiddleware m : middleware)
-            {
-                this.middleware(m);
-            }
-        }
-    }
-
-    /**
-     * Add middleware to the application
-     * 
-     * @param middleware
-     *            returns void
-     */
-    public void middleware(BalsaMiddleware middleware)
-    {
-        this.middleware.add(middleware);
-    }
-
-    /**
      * Get the routing engine used by this application
      * 
      * @return returns balsaRoutingEngine
@@ -308,9 +254,10 @@ public abstract class BalsaApplication
         this.sessionEngine = engine;
         if (this.sessionEngine != null) this.sessionEngine.setBalsaApplication(this);
     }
-    
+
     /**
      * Listen to events from the session engine
+     * 
      * @param listener
      */
     public void sessionEventListener(BalsaEventListener<BalsaSessionEvent> listener)
@@ -412,8 +359,9 @@ public abstract class BalsaApplication
 
     /**
      * Register a model provider
+     * 
      * @param provider
-     * returns void
+     *            returns void
      */
     public <E> void model(BeanProvider<E> provider)
     {
@@ -427,12 +375,12 @@ public abstract class BalsaApplication
             }
         }
     }
-    
+
     /**
      * Get the provider for the given model
+     * 
      * @param type
-     * @return
-     * returns BeanProvider<E>
+     * @return returns BeanProvider<E>
      */
     @SuppressWarnings("unchecked")
     public <E> BeanProvider<E> provider(Class<E> type)
@@ -440,7 +388,7 @@ public abstract class BalsaApplication
         if (type == null) return null;
         return (BeanProvider<E>) this.models.get(type.getName());
     }
-    
+
     /**
      * Register the given actions
      * 
@@ -454,11 +402,12 @@ public abstract class BalsaApplication
             this.action(handler);
         }
     }
-    
+
     /**
      * Register the given action handler
+     * 
      * @param action
-     * returns void
+     *            returns void
      */
     public void action(ActionHandler action)
     {
@@ -468,12 +417,13 @@ public abstract class BalsaApplication
             this.actions.put(action.getName(), action);
         }
     }
-    
+
     /**
      * Get the action handler for the given name
-     * @param name the action name
-     * @return
-     * returns ActionHandler
+     * 
+     * @param name
+     *            the action name
+     * @return returns ActionHandler
      */
     public ActionHandler action(String name)
     {
@@ -549,7 +499,7 @@ public abstract class BalsaApplication
             this.viewEngine.cacheOff();
         }
         // Construct the processor chain
-        this.getListener().setProcessor(this.constructProcessingChain());
+        this.getListener().setProcessor(new RouteProcessor(this.getRoutingEngine()));
         // Start the session engine
         this.getSessionEngine().start();
         // Start the view engine
@@ -574,37 +524,5 @@ public abstract class BalsaApplication
         this.getViewEngine().stop();
         this.getSessionEngine().stop();
         this.shutdown();
-    }
-
-    private BalsaProcessor constructProcessingChain()
-    {
-        return this.constructHeadMiddlewareChain(this.constructMiddlewareChain(this.getMiddleware(), this.constructTailMiddlewareChain(new RouteProcessor(this.getRoutingEngine()))));
-    }
-
-    private BalsaProcessor constructHeadMiddlewareChain(BalsaProcessor processor)
-    {
-        BalsaProcessor head = processor;
-        head = new MiddlewareProcessor(new LoggingMiddleware(), head);
-        head = new MiddlewareProcessor(new SessionMiddleware(), head);
-        head = new MiddlewareProcessor(new CookieMiddleware(), head);
-        head = new MiddlewareProcessor(new JSONBodyMiddleware(), head);
-        head = new MiddlewareProcessor(new QueryStringMiddleware(), head);
-        return head;
-    }
-
-    private BalsaProcessor constructTailMiddlewareChain(BalsaProcessor processor)
-    {
-        return processor;
-    }
-
-    private BalsaProcessor constructMiddlewareChain(List<BalsaMiddleware> middleware, BalsaProcessor processor)
-    {
-        BalsaProcessor head = processor;
-        ListIterator<BalsaMiddleware> i = middleware.listIterator();
-        while (i.hasPrevious())
-        {
-            head = new MiddlewareProcessor(i.previous(), head);
-        }
-        return head;
     }
 }

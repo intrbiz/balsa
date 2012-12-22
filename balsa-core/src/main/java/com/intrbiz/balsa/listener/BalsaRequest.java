@@ -11,23 +11,7 @@ import com.intrbiz.balsa.parameter.Parameter;
  * The current request
  */
 public interface BalsaRequest
-{
-    /*
-     * Set context information
-     */
-    
-    /**
-     * Reset the request
-     */
-    public void deactivate();
-    public void activate();
-    
-    /**
-     * Set the incoming stream
-     * @param input the request input stream
-     */
-    public void stream(InputStream input);
-    
+{   
     /**
      * Set the value of a request variable
      * @param name The variable name

@@ -9,9 +9,9 @@ import com.intrbiz.balsa.engine.session.BalsaSession;
 import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.listener.BalsaResponse;
-import com.intrbiz.balsa.listener.BalsaResponse.Status;
 import com.intrbiz.balsa.parameter.Parameter;
 import com.intrbiz.balsa.parameter.StringParameter;
+import com.intrbiz.balsa.scgi.SCGIResponse.Status;
 import com.intrbiz.balsa.util.BalsaELContext;
 import com.intrbiz.express.ELContext;
 import com.intrbiz.express.action.ActionHandler;
@@ -159,8 +159,6 @@ public class BalsaContext
      */
     public void deactivate()
     {
-        this.request.deactivate();
-        this.response.deactivate();
         // return all beans to the providers
         for (Object bean : this.models.values())
         {
@@ -172,8 +170,6 @@ public class BalsaContext
 
     public void activate()
     {
-        this.request.activate();
-        this.response.activate();
     }
     
     // Timing
