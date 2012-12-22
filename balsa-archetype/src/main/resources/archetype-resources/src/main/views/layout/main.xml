@@ -1,0 +1,19 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary ${groupId}.balsa?>
+<!-- A template view, applied to all views -->
+<html xmlns="${groupId}.balsa">
+	<head>
+		<title>Test</title>
+		<link href='http://fonts.googleapis.com/css?family=Erica+One' rel='stylesheet' type='text/css' />
+		<style>
+			h1 { font-family: 'Erica One', cursive; font-weight: normal; font-size: 50px; }
+		</style>
+	</head>
+	<body>
+		<h1>Hello World</h1>
+		<content/>
+	</body>
+</html>

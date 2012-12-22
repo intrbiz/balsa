@@ -1,0 +1,13 @@
+<render-library name="com.intrbiz.balsa" license="">
+	<description></description>
+	<info></info>
+	<!-- Renderers -->
+	<renderer component="com.intrbiz.balsa.view.core.generic.GenericComponent"   classname="com.intrbiz.balsa.view.core.generic.GenericRenderer" />
+	<renderer component="com.intrbiz.balsa.view.core.template.ContentComponent"  classname="com.intrbiz.balsa.view.core.template.ContentRenderer" />
+	<renderer component="com.intrbiz.balsa.view.core.fragment.FragmentComponent" classname="com.intrbiz.balsa.view.core.fragment.FragmentRenderer" />
+	<renderer component="com.intrbiz.balsa.view.core.html.HTMLComponent"         classname="com.intrbiz.balsa.view.core.html.HTMLRenderer" />
+	<renderer component="com.intrbiz.balsa.view.core.html.AComponent"            classname="com.intrbiz.balsa.view.core.html.ARenderer" />
+	<renderer component="com.intrbiz.balsa.view.core.html.StyleComponent"        classname="com.intrbiz.balsa.view.core.html.StyleRenderer" />
+	<renderer component="com.intrbiz.balsa.view.core.html.ScriptComponent"       classname="com.intrbiz.balsa.view.core.html.ScriptRenderer" />
+	<renderer component="com.intrbiz.balsa.view.core.html.PreComponent"          classname="com.intrbiz.balsa.view.core.html.PreRenderer" />
+</render-library>

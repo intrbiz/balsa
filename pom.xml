@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	
+	<modelVersion>4.0.0</modelVersion>
+	
+	<groupId>com.intrbiz.balsa</groupId>
+	<artifactId>balsa</artifactId>
+	<version>4.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	
+	<name>Balsa Web Framework</name>
+	<url>http://balsa-framework.org/</url>
+	
+	<organization>
+		<name>Intrbiz</name>
+		<url>http://intrbiz.com</url>
+	</organization>
+	
+	<scm>
+		<url>http://github.com/intrbiz/balsa</url>
+	</scm>
+	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.intrbiz.core</groupId>
+				<artifactId>core</artifactId>
+				<version>1.0.0-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>com.intrbiz.express</groupId>
+				<artifactId>express</artifactId>
+				<version>4.0.0-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>log4j</groupId>
+				<artifactId>log4j</artifactId>
+				<version>1.2.13</version>
+				<type>jar</type>
+				<scope>compile</scope>
+			</dependency>
+			<dependency>
+				<groupId>commons-pool</groupId>
+				<artifactId>commons-pool</artifactId>
+				<version>1.5.5</version>
+				<type>jar</type>
+				<scope>compile</scope>
+			</dependency>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.10</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.intrbiz.balsa</groupId>
+				<artifactId>balsa-core</artifactId>
+				<version>4.0.0-SNAPSHOT</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.0.2</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>package-source</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+						<configuration>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>package-javadocs</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+  <modules>
+    <module>balsa-core</module>
+	<module>balsa-archetype</module>
+	<module>balsa-apt</module>
+    <module>balsa-metrics</module>
+  </modules>
+
+	<repositories>
+		<repository>
+			<id>snapshots</id>
+			<url>http://build.intrbiz.net/nexus/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>intrbiz</id>
+			<name>Intrbiz</name>
+			<url>http://build.intrbiz.net/nexus/content/repositories/releases</url>
+		</repository>
+	</repositories>
+	
+	<distributionManagement>
+		<snapshotRepository>
+			<id>snapshots</id>
+			<url>http://build.intrbiz.net/nexus/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>intrbiz</id>
+			<name>Intrbiz</name>
+			<url>http://build.intrbiz.net/nexus/content/repositories/releases</url>
+		</repository>
+	</distributionManagement>	
+</project>

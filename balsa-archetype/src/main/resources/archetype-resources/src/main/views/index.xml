@@ -1,0 +1,11 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
+<!DOCTYPE balsa SYSTEM "http://balsa.intrbiz.net/balsa.dtd">
+<?RenderLibrary ${groupId}.balsa?>
+<!-- The index view -->
+<fragment xmlns="${groupId}.balsa">
+	<p>
+		It lives!
+	</p>
+</fragment>

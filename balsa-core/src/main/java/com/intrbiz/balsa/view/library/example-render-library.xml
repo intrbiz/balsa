@@ -1,0 +1,8 @@
+<render-library name="test" license="GNU GPL V3">
+	<description></description>
+	<info></info>
+	<!-- Renderers -->
+	<renderer component="" classname=""/>
+	<!-- Resources -->
+	<resource name="resname" version="1.0.0" classpath="/com/intrbiz/res/test.css" type="text/css" compress="true|false" max-age="3600" last-modified="30-12-2009"/>
+</render-library>

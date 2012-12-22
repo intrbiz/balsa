@@ -1,0 +1,7 @@
+<component-library name="test" license="">
+	<description></description>
+	<info></info>
+	<!-- Components -->
+	<java-component name="testing" classname="one.two.Three"/>
+	<!-- Post Processors -->
+</component-library>

@@ -1,0 +1,14 @@
+<component-library name="com.intrbiz.balsa" license="">
+	<description>Core components of Balsa view engine</description>
+	<info></info>
+	<!-- Functions -->
+	<!-- Components -->
+	<java-component name="*"        classname="com.intrbiz.balsa.view.core.generic.GenericComponent" />
+	<java-component name="content"  classname="com.intrbiz.balsa.view.core.template.ContentComponent" />
+	<java-component name="fragment" classname="com.intrbiz.balsa.view.core.fragment.FragmentComponent" />
+	<java-component name="html"     classname="com.intrbiz.balsa.view.core.html.HTMLComponent" />
+	<java-component name="a"        classname="com.intrbiz.balsa.view.core.html.AComponent" />
+	<java-component name="style"    classname="com.intrbiz.balsa.view.core.html.StyleComponent" />
+	<java-component name="script"   classname="com.intrbiz.balsa.view.core.html.ScriptComponent" />
+	<java-component name="pre"      classname="com.intrbiz.balsa.view.core.html.PreComponent" />
+</component-library>
