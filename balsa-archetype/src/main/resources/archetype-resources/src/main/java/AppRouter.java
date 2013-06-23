@@ -6,20 +6,13 @@ package ${package};
 import com.intrbiz.balsa.engine.route.Router;
 import com.intrbiz.metadata.Any;
 import com.intrbiz.metadata.Prefix;
+import com.intrbiz.metadata.Template;
 
 // Routes for the URL root
 @Prefix("/")
+@Template("layout/main")
 public class AppRouter extends Router
-{    
-    public void before()
-    {
-    }
-    
-    public void after()
-    {
-    }
-    
-    // Match requests for root
+{
     @Any("/")
     public void index()
     {
