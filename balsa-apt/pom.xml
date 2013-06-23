@@ -43,6 +43,11 @@
 			<groupId>com.intrbiz.core</groupId>
 			<artifactId>core</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.maven.doxia</groupId>
+			<artifactId>doxia-module-markdown</artifactId>
+			<version>1.4</version>
+		</dependency>
 	</dependencies>
 
 </project>
