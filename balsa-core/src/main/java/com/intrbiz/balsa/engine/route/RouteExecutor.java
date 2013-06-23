@@ -2,7 +2,15 @@ package com.intrbiz.balsa.engine.route;
 
 import com.intrbiz.balsa.BalsaContext;
 
-public interface RouteExecutor
+public abstract class RouteExecutor<R extends Router>
 {
-    public void execute(BalsaContext context) throws Throwable;
+    protected final R router;
+    
+    public RouteExecutor(R router)
+    {
+        super();
+        this.router = router;
+    }
+    
+    public abstract void execute(BalsaContext context) throws Throwable;
 }

@@ -10,22 +10,21 @@ import org.xml.sax.helpers.XMLReaderFactory;
 
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
+import com.intrbiz.balsa.engine.view.BalsaView;
 import com.intrbiz.balsa.view.component.Component;
-import com.intrbiz.balsa.view.component.View;
-import com.intrbiz.balsa.view.loader.Loader;
 
 public final class Parser
 {
-    public static Component parse(BalsaContext context, Loader ldr, String idPrefix, View view, Reader reader) throws BalsaException
+    public static Component parse(BalsaContext context, BalsaView view, Reader reader) throws BalsaException
     {
-        return parse(context, ldr, idPrefix, view, new ComponentLibraryRegister(), new RenderLibraryRegister(), reader);
+        return parse(context, view, new ComponentLibraryRegister(), new RenderLibraryRegister(), reader);
     }
     
-    public static Component parse(BalsaContext context, Loader ldr, String idPrefix, View view, ComponentLibraryRegister clr, RenderLibraryRegister rlr, Reader reader) throws BalsaException
+    public static Component parse(BalsaContext context, BalsaView view, ComponentLibraryRegister clr, RenderLibraryRegister rlr, Reader reader) throws BalsaException
     {
         try
         {
-            BalsaSAXHandler handler = new BalsaSAXHandler(ldr, idPrefix, view, clr, rlr, context);
+            BalsaSAXHandler handler = new BalsaSAXHandler(view, clr, rlr, context);
             // use sax to parse the xml document
             XMLReader xr = XMLReaderFactory.createXMLReader();
             xr.setContentHandler(handler);

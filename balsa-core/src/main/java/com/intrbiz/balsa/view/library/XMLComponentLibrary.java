@@ -158,7 +158,7 @@ public class XMLComponentLibrary extends Configuration implements ComponentLibra
     }
 
     @Override
-    public Component load(String name, String id) throws BalsaException
+    public Component load(String name) throws BalsaException
     {
         ComponentConfiguration fact = null;
         for (ComponentConfiguration cf : this.components)
@@ -184,7 +184,7 @@ public class XMLComponentLibrary extends Configuration implements ComponentLibra
         {
             try
             {
-                Component c = (Component) fact.load(id, name, this.getName());
+                Component c = (Component) fact.load(name, this.getName());
                 return c;
             }
             catch (BalsaException e)

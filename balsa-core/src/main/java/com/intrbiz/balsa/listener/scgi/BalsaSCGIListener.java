@@ -1,5 +1,11 @@
 package com.intrbiz.balsa.listener.scgi;
 
+import java.util.concurrent.TimeUnit;
+
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+
+import com.fasterxml.jackson.core.JsonFactory;
 import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
@@ -16,11 +22,30 @@ import com.intrbiz.balsa.scgi.middleware.CookieMiddleware;
 import com.intrbiz.balsa.scgi.middleware.LoggingMiddleware;
 import com.intrbiz.balsa.scgi.middleware.MiddlewareProcessor;
 import com.intrbiz.balsa.scgi.middleware.QueryStringMiddleware;
+import com.yammer.metrics.Metrics;
+import com.yammer.metrics.core.Counter;
+import com.yammer.metrics.core.Meter;
+import com.yammer.metrics.core.Timer;
+import com.yammer.metrics.core.TimerContext;
 
 public class BalsaSCGIListener extends BalsaListener
 {
     private SCGIListener listener;
     
+    private final Counter totalRequests = Metrics.newCounter(BalsaListener.class, "total-requests");
+    
+    private final Counter activeRequests = Metrics.newCounter(BalsaListener.class, "active-requests");
+    
+    private final Meter requests = Metrics.newMeter(BalsaListener.class, "requests", "requests", TimeUnit.SECONDS);
+    
+    private final Timer duration = Metrics.newTimer(BalsaListener.class, "request-duration", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    
+    private JsonFactory jsonFactory = new JsonFactory();
+    
+    private XMLOutputFactory xmlOutFactory = XMLOutputFactory.newFactory();
+    
+    private XMLInputFactory xmlInFactory = XMLInputFactory.newFactory();
+
     public BalsaSCGIListener()
     {
         super();
@@ -36,6 +61,11 @@ public class BalsaSCGIListener extends BalsaListener
         super(port);
     }
 
+    public String getEngineName()
+    {
+        return "Balsa-SCGI-Listener";
+    }
+
     @Override
     public void start() throws BalsaException
     {
@@ -44,19 +74,31 @@ public class BalsaSCGIListener extends BalsaListener
         final BalsaApplication app = this.getBalsaApplication();
         final BalsaProcessor proc = this.getProcessor();
         // the processor
-        SCGIProcessor processor = new SCGIProcessor() {
+        SCGIProcessor processor = new SCGIProcessor()
+        {
             @Override
             public void process(SCGIRequest request, SCGIResponse response) throws Throwable
             {
                 // bridge
-                BalsaRequest req = new BalsaSCGIRequest(request);
-                BalsaResponse res = new BalsaSCGIResponse(response);
+                BalsaRequest req = new BalsaSCGIRequest(request, jsonFactory, xmlInFactory);
+                BalsaResponse res = new BalsaSCGIResponse(response, req, jsonFactory, xmlOutFactory);
                 //
                 BalsaContext ctx = new BalsaContext(app, req, res);
                 BalsaContext.set(ctx);
                 //
-                proc.process(ctx);
-                //
+                TimerContext tctx = duration.time();
+                totalRequests.inc();
+                activeRequests.inc();
+                requests.mark();
+                try
+                {
+                    proc.process(ctx);
+                }
+                finally
+                {
+                    tctx.stop();
+                    activeRequests.dec();
+                }
             }
         };
         // middleware chain

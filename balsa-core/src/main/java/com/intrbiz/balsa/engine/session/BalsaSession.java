@@ -1,7 +1,11 @@
 package com.intrbiz.balsa.engine.session;
 
+import java.security.Principal;
+
 public interface BalsaSession
 {   
+    public static final String COOKIE_NAME = "BalsaSession";
+    
     /**
      * The session id
      * @return
@@ -69,4 +73,22 @@ public interface BalsaSession
      * returns void
      */
     void deactivate();
+    
+    // security stuff
+    
+    /**
+     * Get the currently authenticated principal for this session
+     * @return
+     */
+    Principal currentPrincipal();
+    
+    /**
+     * Store the currently authenticated principal
+     * 
+     * Note: This should only be called by BalsaContext.authenticate().
+     * If your using this method directly, your doing it wrong.
+     * 
+     * @param principal
+     */
+    void setCurrentPrincipal(Principal principal);
 }

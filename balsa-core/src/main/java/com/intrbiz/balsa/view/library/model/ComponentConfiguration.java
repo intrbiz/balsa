@@ -26,5 +26,5 @@ public abstract class ComponentConfiguration extends Configuration
         this.name = name;
     }
 
-    public abstract Component load(String id, String name, String library) throws BalsaException;
+    public abstract Component load(String name, String library) throws BalsaException;
 }

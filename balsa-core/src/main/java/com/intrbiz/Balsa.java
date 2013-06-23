@@ -109,7 +109,7 @@ public class Balsa
         System.err.println("");
         System.err.println("\tCommon arguments:");
         System.err.println("\t\t'--dev'                            Development mode (disables view caching)");
-        System.err.println("\t\t'--port'             '8090'        The port to tart SCGI Listenerlisten on");
+        System.err.println("\t\t'--port'             '8090'        The port to listen on");
         System.err.println("\t\t'--workers'          '16'          The number of worker threads to use");
         System.err.println("\t\t'--views'            'views'       The view base path");
         System.err.println("\t\t'--session-lifetime' '30'          The session lifetime in minutes");

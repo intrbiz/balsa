@@ -1,9 +1,13 @@
 package com.intrbiz.balsa;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.log4j.Logger;
 
@@ -11,26 +15,35 @@ import com.intrbiz.balsa.bean.BeanFactory;
 import com.intrbiz.balsa.bean.BeanProvider;
 import com.intrbiz.balsa.bean.impl.NonPooledBean;
 import com.intrbiz.balsa.bean.impl.PooledBean;
+import com.intrbiz.balsa.engine.PublicResourceEngine;
 import com.intrbiz.balsa.engine.RouteEngine;
+import com.intrbiz.balsa.engine.SecurityEngine;
 import com.intrbiz.balsa.engine.SessionEngine;
 import com.intrbiz.balsa.engine.ViewEngine;
-import com.intrbiz.balsa.engine.route.RouteExecutorFactory;
+import com.intrbiz.balsa.engine.impl.publicresource.PublicResourceEngineImpl;
+import com.intrbiz.balsa.engine.impl.route.RouteEngineImpl;
+import com.intrbiz.balsa.engine.impl.security.DummySecurityEngine;
+import com.intrbiz.balsa.engine.impl.session.SimpleSessionEngine;
+import com.intrbiz.balsa.engine.impl.view.BalsaViewEngineImpl;
+import com.intrbiz.balsa.engine.impl.view.FileViewSource;
 import com.intrbiz.balsa.engine.route.Router;
-import com.intrbiz.balsa.engine.route.impl.RouteEngineImpl;
-import com.intrbiz.balsa.engine.route.impl.executor.JSONExecutor;
-import com.intrbiz.balsa.engine.route.impl.executor.JSONInExecutor;
-import com.intrbiz.balsa.engine.route.impl.executor.ParameterExecutor;
-import com.intrbiz.balsa.engine.route.impl.executor.VoidExecutor;
-import com.intrbiz.balsa.engine.session.impl.SimpleSessionEngine;
-import com.intrbiz.balsa.engine.view.impl.BalsaViewEngine;
-import com.intrbiz.balsa.event.BalsaEventListener;
-import com.intrbiz.balsa.event.BalsaSessionEvent;
+import com.intrbiz.balsa.express.BalsaFunction;
+import com.intrbiz.balsa.express.PathFunction;
+import com.intrbiz.balsa.express.PathInfoFunction;
+import com.intrbiz.balsa.express.PublicFunction;
+import com.intrbiz.balsa.express.TitleFunction;
+import com.intrbiz.balsa.listener.BalsaFilter;
 import com.intrbiz.balsa.listener.BalsaListener;
+import com.intrbiz.balsa.listener.BalsaProcessor;
+import com.intrbiz.balsa.listener.filter.SessionFilter;
+import com.intrbiz.balsa.listener.processor.FilterProcessor;
 import com.intrbiz.balsa.listener.processor.RouteProcessor;
 import com.intrbiz.balsa.listener.scgi.BalsaSCGIListener;
-import com.intrbiz.balsa.view.loader.FileLoader;
+import com.intrbiz.express.ExpressExtensionRegistry;
 import com.intrbiz.express.action.ActionHandler;
 import com.intrbiz.express.action.MethodActionHandler;
+import com.intrbiz.express.operator.Decorator;
+import com.intrbiz.express.operator.Function;
 import com.intrbiz.metadata.Pooled;
 
 /**
@@ -74,18 +87,57 @@ public abstract class BalsaApplication
      * The view engine
      */
     private ViewEngine viewEngine;
+    
+    /**
+     * The security engine
+     */
+    private SecurityEngine securityEngine;
+    
+    /**
+     * The public resource Engine
+     */
+    private PublicResourceEngine publicResourceEngine;
+    
+    /**
+     * Where to load views from
+     */
+    private final List<File> viewPath = new CopyOnWriteArrayList<File>();
+
+    /**
+     * Filters for this application
+     */
+    private final List<BalsaFilter> filters = new LinkedList<BalsaFilter>();
+    
+
+    /**
+     * The ExpressExtensionRegistry where Balsa stores its extensions
+     */
+    private final ExpressExtensionRegistry expressExtensions = new ExpressExtensionRegistry("balsa").addSubRegistry(ExpressExtensionRegistry.getDefaultRegistry());
+    
+    private final String[] templates = this.myTemplates();
+    
+    private final String[] myTemplates()
+    {
+        return new String[0];
+    }
 
     public BalsaApplication()
     {
         super();
-        /* defaults */
+        /* Default Functions */
+        // immutable
+        this.expressExtensions.addFunction(new BalsaFunction());
+        this.expressExtensions.addFunction(new PathInfoFunction());
+        this.expressExtensions.addFunction(new TitleFunction());
+        //
+        this.expressExtensions.addFunction("path", PathFunction.class);
+        this.expressExtensions.addFunction("public", PublicFunction.class);
+        /* Default Engines */
         this.listener(new BalsaSCGIListener());
-        this.executor(new VoidExecutor());
-        this.executor(new ParameterExecutor());
-        this.executor(new JSONExecutor());
-        this.executor(new JSONInExecutor());
         this.sessionEngine(new SimpleSessionEngine());
-        this.viewEngine(new BalsaViewEngine());
+        this.viewEngine(new BalsaViewEngineImpl());
+        this.securityEngine(new DummySecurityEngine());
+        this.publicResourceEngine(new PublicResourceEngineImpl());
     }
 
     /**
@@ -223,17 +275,6 @@ public abstract class BalsaApplication
     }
 
     /**
-     * Add a route handler executor to the application
-     * 
-     * @param executor
-     *            returns void
-     */
-    public void executor(RouteExecutorFactory executor)
-    {
-        this.getRoutingEngine().executor(executor);
-    }
-
-    /**
      * Get the session engine
      * 
      * @return returns SessionEngine
@@ -253,16 +294,6 @@ public abstract class BalsaApplication
     {
         this.sessionEngine = engine;
         if (this.sessionEngine != null) this.sessionEngine.setBalsaApplication(this);
-    }
-
-    /**
-     * Listen to events from the session engine
-     * 
-     * @param listener
-     */
-    public void sessionEventListener(BalsaEventListener<BalsaSessionEvent> listener)
-    {
-        this.getSessionEngine().listen(listener);
     }
 
     /**
@@ -286,27 +317,90 @@ public abstract class BalsaApplication
         this.viewEngine = engine;
         if (this.viewEngine != null) this.viewEngine.setBalsaApplication(this);
     }
-
-    /**
-     * Add a template to be used by this application
-     * 
-     * @param template
-     *            returns void
-     */
-    public void template(String template)
+    
+    
+    
+    public List<File> getViewPath()
     {
-        if (this.viewEngine != null) this.viewEngine.template(template);
+        return Collections.unmodifiableList(this.viewPath);
+    }
+    
+    public void viewPath(File path)
+    {
+        this.viewPath.add(path);
+    }
+    
+    public String[] templates()
+    {
+        return this.templates;
+    }
+    
+    public String[] getTemplates()
+    {
+        return this.templates;
+    }
+    
+    /**
+     * Get the engine responsible for handling authentication and authorisation
+     */
+    public SecurityEngine getSecurityEngine()
+    {
+        return this.securityEngine;
+    }
+    
+    /**
+     * Set the engine responsible for handling authentication and authorisation
+     */
+    public void securityEngine(SecurityEngine securityEngine)
+    {
+        this.securityEngine = securityEngine;
+        if (securityEngine != null) securityEngine.setBalsaApplication(this);
+    }
+    
+    /**
+     * Get the engine responsible for handling all public resource URLs
+     */
+    public PublicResourceEngine getPublicResourceEngine()
+    {
+        return this.publicResourceEngine;
+    }
+    
+    /**
+     * Set the engine responsible for handling all public resource URLs
+     */
+    public void publicResourceEngine(PublicResourceEngine publicResourceEngine)
+    {
+        this.publicResourceEngine = publicResourceEngine;
+        if (publicResourceEngine != null) publicResourceEngine.setBalsaApplication(this);
     }
 
     /**
-     * Set the templates used by this application
+     * Get the filters this application is using
      * 
-     * @param templates
-     *            returns void@param name
+     * @return the List<BalsaFilter> of filters
      */
-    public void templates(String[] templates)
+    public List<BalsaFilter> filters()
     {
-        if (this.viewEngine != null) this.viewEngine.templates(templates);
+        return this.filters;
+    }
+
+    /**
+     * Add a filter to this application
+     * 
+     * @param filter
+     *            the BalsaFilter to add
+     */
+    public void filter(BalsaFilter filter)
+    {
+        this.filters.add(filter);
+    }
+
+    /**
+     * Remove all filters from this application
+     */
+    public void clearFilters()
+    {
+        this.filters.clear();
     }
 
     /*
@@ -460,6 +554,25 @@ public abstract class BalsaApplication
             if (provider != null) provider.deactivate(bean);
         }
     }
+    
+    /**
+     * Get the Express extensions for this Balsa application
+     * @return
+     */
+    public ExpressExtensionRegistry expressExtensions()
+    {
+        return this.expressExtensions;
+    }
+
+    public ExpressExtensionRegistry function(String name, Class<? extends Function> functionClass)
+    {
+        return expressExtensions.addFunction(name, functionClass);
+    }
+
+    public ExpressExtensionRegistry decorator(String name, Class<?> entityType, Class<? extends Decorator> decoratorClass)
+    {
+        return expressExtensions.addDecorator(name, entityType, decoratorClass);
+    }
 
     /*
      * Life cycle
@@ -468,30 +581,32 @@ public abstract class BalsaApplication
     /**
      * Setup the Balsa application
      * 
-     * @throws BalsaException
+     * @throws Exception
      */
-    protected abstract void setup() throws BalsaException;
+    protected abstract void setup() throws Exception;
 
     /**
      * Start the Balsa application
      * 
-     * @throws BalsaException
+     * @throws Exception
      *             returns void
      */
-    public final void start() throws BalsaException
+    public final void start() throws Exception
     {
         // Setup the app
         this.setup();
         // Check we have stuff
         if (this.getListener() == null) throw new BalsaException("The Balsa application must have a listener");
-        if (this.getSessionEngine() == null) throw new BalsaException("The Balsa application must have a session engine");
         if (this.getViewEngine() == null) throw new BalsaException("The Balsa application must have a view engine");
         // Set the common args
         this.getListener().setPort(this.getIntArgument("port", BalsaListener.DEFAULT_PORT));
         this.getListener().setPoolSize(this.getIntArgument("workers", BalsaListener.DEFAULT_POOL_SIZE));
-        this.getSessionEngine().setPoolSize(this.getIntArgument("workers", BalsaListener.DEFAULT_POOL_SIZE));
-        this.getSessionEngine().setSessionLifetime(this.getIntArgument("session-lifetime", SessionEngine.DEFAULT_SESSION_LIFETIME));
-        this.getViewEngine().base(new File(this.getArgument("views", FileLoader.DEFAULT_BASE)));
+        if (this.getSessionEngine() != null)
+        {
+            this.getSessionEngine().setPoolSize(this.getIntArgument("workers", BalsaListener.DEFAULT_POOL_SIZE));
+            this.getSessionEngine().setSessionLifetime(this.getIntArgument("session-lifetime", SessionEngine.DEFAULT_SESSION_LIFETIME));
+        }
+        this.viewPath(new File(this.getArgument("views", FileViewSource.DEFAULT_VIEW_PATH)));
         // if in development mode
         if ("true".equalsIgnoreCase(this.getArgument("dev", "false")))
         {
@@ -499,13 +614,41 @@ public abstract class BalsaApplication
             this.viewEngine.cacheOff();
         }
         // Construct the processor chain
-        this.getListener().setProcessor(new RouteProcessor(this.getRoutingEngine()));
+        this.getListener().setProcessor(this.constructProcessingChain());
         // Start the session engine
-        this.getSessionEngine().start();
+        if (this.getSessionEngine() != null) this.getSessionEngine().start();
         // Start the view engine
         this.getViewEngine().start();
         // Start the listener
         this.getListener().start();
+    }
+
+    private BalsaProcessor constructProcessingChain()
+    {
+        return this.constructHeadFilterChain(this.constructFilterChain(this.filters(), this.constructTailFilterChain(new RouteProcessor(this.getRoutingEngine()))));
+    }
+
+    private BalsaProcessor constructHeadFilterChain(BalsaProcessor processor)
+    {
+        BalsaProcessor head = processor;
+        head = new FilterProcessor(new SessionFilter(), head);
+        return head;
+    }
+
+    private BalsaProcessor constructTailFilterChain(BalsaProcessor processor)
+    {
+        return processor;
+    }
+
+    private BalsaProcessor constructFilterChain(List<BalsaFilter> filters, BalsaProcessor processor)
+    {
+        BalsaProcessor head = processor;
+        ListIterator<BalsaFilter> i = filters.listIterator();
+        while (i.hasPrevious())
+        {
+            head = new FilterProcessor(i.previous(), head);
+        }
+        return head;
     }
 
     /**
@@ -522,7 +665,7 @@ public abstract class BalsaApplication
     {
         this.getListener().stop();
         this.getViewEngine().stop();
-        this.getSessionEngine().stop();
+        if (this.getSessionEngine() != null) this.getSessionEngine().stop();
         this.shutdown();
     }
 }

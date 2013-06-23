@@ -110,7 +110,7 @@
     <module>balsa-core</module>
 	<module>balsa-archetype</module>
 	<module>balsa-apt</module>
-    <module>balsa-metrics</module>
+    <module>balsa-data</module>
   </modules>
 
 	<repositories>

@@ -1,7 +1,5 @@
 package com.intrbiz.balsa.listener;
 
-import java.io.IOException;
-
 import com.intrbiz.balsa.BalsaContext;
 
 /**
@@ -10,10 +8,10 @@ import com.intrbiz.balsa.BalsaContext;
 public interface BalsaProcessor
 {
     /**
-     * Process an Balsa context
+     * Process a Balsa context
      * @param context the Balsa context
-     * @throws IOException
+     * @throws Throwable
      * returns void
      */
-    public void process(BalsaContext context) throws Throwable;
+    void process(BalsaContext context) throws Throwable;
 }

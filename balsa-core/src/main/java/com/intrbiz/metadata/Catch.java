@@ -5,6 +5,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.intrbiz.balsa.http.HTTP.HTTPStatus;
+
 /**
  * Define that this method is an error route, valid for the given exceptions
  */
@@ -12,4 +14,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Catch {
     Class<? extends Throwable>[] value() default { Throwable.class };
+    HTTPStatus[] httpErrors() default {};
 }

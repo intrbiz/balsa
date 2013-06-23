@@ -7,20 +7,52 @@ import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.List;
 
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.intrbiz.balsa.error.BalsaInternalError;
+import com.intrbiz.balsa.http.HTTP;
+import com.intrbiz.balsa.http.HTTP.HTTPStatus;
+import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.listener.BalsaResponse;
 import com.intrbiz.balsa.scgi.SCGIResponse;
-import com.intrbiz.balsa.scgi.SCGIResponse.Status;
+import com.intrbiz.balsa.util.BalsaWriter;
 import com.intrbiz.balsa.util.HTMLWriter;
-import com.intrbiz.json.writer.JSONWriter;
 
 public final class BalsaSCGIResponse implements BalsaResponse
 {
+    // send file
+    
+    private static final String SEND_FILE_DEFAULT_HEADER = "X-SENDFILE";
+    
+    private static final String NGINX_ACCEL_HEADER = "X-Accel-Redirect";
+    
+    private static final String NGINX_SERVER_SOFTWARE = "nginx";
+    
+    //
+    
     private final SCGIResponse res;
     
-    public BalsaSCGIResponse(SCGIResponse res)
+    private final BalsaRequest req;
+
+    private final JsonFactory jsonFactory;
+
+    private final XMLOutputFactory xmlFactory;
+
+    private JsonGenerator jsonGenerator = null;
+
+    private XMLStreamWriter xmlWriter = null;
+
+    public BalsaSCGIResponse(SCGIResponse res, BalsaRequest req, JsonFactory jsonFactory, XMLOutputFactory xmlFactory)
     {
         this.res = res;
+        this.req = req;
+        this.jsonFactory = jsonFactory;
+        this.xmlFactory = xmlFactory;
     }
 
     @Override
@@ -30,39 +62,44 @@ public final class BalsaSCGIResponse implements BalsaResponse
     }
 
     @Override
-    public Status getStatus()
+    public HTTPStatus getStatus()
     {
         return this.res.getStatus();
     }
 
     @Override
-    public void status(Status status)
+    public BalsaResponse status(HTTPStatus status)
     {
         this.res.status(status);
+        return this;
     }
 
     @Override
-    public void ok()
+    public BalsaResponse ok()
     {
         this.res.ok();
+        return this;
     }
 
     @Override
-    public void notFound()
+    public BalsaResponse notFound()
     {
         this.res.notFound();
+        return this;
     }
 
     @Override
-    public void error()
+    public BalsaResponse error()
     {
         this.res.error();
+        return this;
     }
 
     @Override
-    public void redirect(boolean permanent)
+    public BalsaResponse redirect(boolean permanent)
     {
         this.res.redirect(permanent);
+        return this;
     }
 
     @Override
@@ -72,9 +109,10 @@ public final class BalsaSCGIResponse implements BalsaResponse
     }
 
     @Override
-    public void charset(Charset charset)
+    public BalsaResponse charset(Charset charset)
     {
         this.res.charset(charset);
+        return this;
     }
 
     @Override
@@ -84,39 +122,52 @@ public final class BalsaSCGIResponse implements BalsaResponse
     }
 
     @Override
-    public void contentType(String contentType)
+    public BalsaResponse contentType(String contentType)
     {
         this.res.contentType(contentType);
+        return this;
     }
 
     @Override
-    public void plain()
+    public BalsaResponse plain()
     {
         this.res.plain();
+        return this;
     }
 
     @Override
-    public void html()
+    public BalsaResponse html()
     {
         this.res.html();
+        return this;
     }
 
     @Override
-    public void javascript()
+    public BalsaResponse javascript()
     {
         this.res.javascript();
+        return this;
     }
 
     @Override
-    public void json()
+    public BalsaResponse json()
     {
         this.res.json();
+        return this;
+    }
+    
+    @Override
+    public BalsaResponse xml()
+    {
+        this.contentType(HTTP.ContentTypes.APPLICATION_XML);
+        return this;
     }
 
     @Override
-    public void css()
+    public BalsaResponse css()
     {
         this.res.css();
+        return this;
     }
 
     @Override
@@ -126,9 +177,10 @@ public final class BalsaSCGIResponse implements BalsaResponse
     }
 
     @Override
-    public void cacheControl(String value)
+    public BalsaResponse cacheControl(String value)
     {
         this.res.cacheControl(value);
+        return this;
     }
 
     @Override
@@ -138,33 +190,38 @@ public final class BalsaSCGIResponse implements BalsaResponse
     }
 
     @Override
-    public void expires(String value)
+    public BalsaResponse expires(String value)
     {
         this.res.expires(value);
+        return this;
     }
 
     @Override
-    public void expires(Date value)
+    public BalsaResponse expires(Date value)
     {
         this.res.expires(value);
+        return this;
     }
 
     @Override
-    public void header(String name, String value)
+    public BalsaResponse header(String name, String value)
     {
         this.res.header(name, value);
+        return this;
     }
 
     @Override
-    public void header(String name, Date value)
+    public BalsaResponse header(String name, Date value)
     {
         this.res.header(name, value);
+        return this;
     }
 
     @Override
-    public void redirect(String location, boolean permanent) throws IOException
+    public BalsaResponse redirect(String location, boolean permanent) throws IOException
     {
         this.res.redirect(location, permanent);
+        return this;
     }
 
     @Override
@@ -174,9 +231,28 @@ public final class BalsaSCGIResponse implements BalsaResponse
     }
 
     @Override
-    public void sendHeaders() throws IOException
+    public BalsaResponse sendHeaders() throws IOException
     {
         this.res.sendHeaders();
+        return this;
+    }
+    
+    @Override
+    public BalsaResponse sendFile(String file) throws IOException
+    {
+        // be smart based on the web server
+        String serverSoftware = this.req.getServerSoftware();
+        if (serverSoftware != null && (serverSoftware.toLowerCase().indexOf(NGINX_SERVER_SOFTWARE) != -1))
+        {
+            // nginx
+            this.header(NGINX_ACCEL_HEADER, file);
+        }
+        else
+        {
+            // default to the defacto header
+            this.header(SEND_FILE_DEFAULT_HEADER, file);
+        }
+        return this;
     }
 
     @Override
@@ -191,11 +267,32 @@ public final class BalsaSCGIResponse implements BalsaResponse
         return this.res.getWriter();
     }
 
-    @Override
-    public JSONWriter getJsonWriter() throws IOException
+    public BalsaResponse write(String content) throws IOException
     {
-        // TODO
-        return null;
+        Writer w = this.getWriter();
+        w.write(content);
+        return this;
+    }
+
+    @Override
+    public JsonGenerator getJsonWriter() throws IOException
+    {
+        if (this.jsonGenerator == null)
+        {
+            this.jsonGenerator = this.jsonFactory.createGenerator(this.getWriter());
+            this.jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
+        }
+        return this.jsonGenerator;
+    }
+
+    @Override
+    public XMLStreamWriter getXMLWriter() throws IOException, XMLStreamException
+    {
+        if (this.xmlWriter == null)
+        {
+            this.xmlWriter = this.xmlFactory.createXMLStreamWriter(this.getWriter());
+        }
+        return this.xmlWriter;
     }
 
     @Override
@@ -203,11 +300,36 @@ public final class BalsaSCGIResponse implements BalsaResponse
     {
         return this.res.getHtmlWriter();
     }
+    
+    @Override
+    public BalsaWriter getViewWriter() throws IOException
+    {
+        return this.getHtmlWriter();
+    }
 
     @Override
-    public void flush() throws IOException
+    public BalsaResponse flush() throws IOException
     {
+        // if the headers have not been sent, send them
+        this.sendHeaders();
+        // flush any streams we have opened first
+        if (this.isHeadersSent())
+        {
+            if (this.jsonGenerator != null) this.jsonGenerator.flush();
+            if (this.xmlWriter != null)
+            {
+                try
+                {
+                    this.xmlWriter.flush();
+                }
+                catch (XMLStreamException e)
+                {
+                    throw new IOException("Failed to flush XML Stream", e);
+                }
+            }
+        }
         this.res.flush();
+        return this;
     }
 
     @Override

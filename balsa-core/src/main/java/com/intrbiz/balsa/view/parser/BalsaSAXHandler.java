@@ -12,21 +12,20 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
+import com.intrbiz.balsa.engine.view.BalsaView;
 import com.intrbiz.balsa.view.component.Component;
-import com.intrbiz.balsa.view.component.View;
-import com.intrbiz.balsa.view.loader.Loader;
 import com.intrbiz.balsa.view.renderer.Renderer;
-import com.intrbiz.express.ELException;
+import com.intrbiz.express.ExpressException;
 import com.intrbiz.express.value.ValueExpression;
 
 /**
  * A SAX handler which build parses XML into balsa component trees
- *
+ * 
  */
 public class BalsaSAXHandler extends DefaultHandler
 {
     private Stack<Component> stack = new Stack<Component>();
-    
+
     private Stack<StringBuilder> text = new Stack<StringBuilder>();
 
     private ComponentLibraryRegister componentLibraryRegister;
@@ -36,12 +35,12 @@ public class BalsaSAXHandler extends DefaultHandler
     private ParserContext context;
 
     private Logger logger = Logger.getLogger(BalsaSAXHandler.class);
-    
+
     private BalsaContext balsaContext;
 
-    public BalsaSAXHandler(Loader ldr, String idPrefix, View view, ComponentLibraryRegister clr, RenderLibraryRegister rlr, BalsaContext context)
+    public BalsaSAXHandler(BalsaView view, ComponentLibraryRegister clr, RenderLibraryRegister rlr, BalsaContext context)
     {
-        this.context = new ParserContext(idPrefix, view, ldr);
+        this.context = new ParserContext(view);
         this.componentLibraryRegister = clr;
         this.renderLibraryRegister = rlr;
         this.balsaContext = context;
@@ -75,8 +74,7 @@ public class BalsaSAXHandler extends DefaultHandler
         {
             // append the text to the current text buffer
             StringBuilder sb = this.text.peek();
-            if (sb != null)
-                sb.append(ch, start, length);
+            if (sb != null) sb.append(ch, start, length);
         }
     }
 
@@ -96,25 +94,22 @@ public class BalsaSAXHandler extends DefaultHandler
             {
                 String strText = compText.toString();
                 // trim ?
-                if (! "pre".equals(comp.getName())) strText = strText.trim();
+                if (!"pre".equals(comp.getName())) strText = strText.trim();
                 if (strText.length() > 0)
                 {
                     try
                     {
-                        ValueExpression ve = new ValueExpression(this.balsaContext.getELContext(), strText);
+                        ValueExpression ve = new ValueExpression(this.balsaContext.getExpressContext(), strText);
                         comp.setText(ve);
                     }
-                    catch (ELException e)
+                    catch (ExpressException e)
                     {
                         throw new SAXException("Failed to parse text EL expression", e);
                     }
                 }
             }
             //
-            if (comp.getName() == null || !comp.getName().equalsIgnoreCase(localName))
-            {
-                    throw new SAXException("Could not close the element \"" + localName + "\".  It looks like the document is not well formed!");
-            }
+            if (comp.getName() == null || !comp.getName().equalsIgnoreCase(localName)) { throw new SAXException("Could not close the element \"" + localName + "\".  It looks like the document is not well formed!"); }
             if (this.stack.isEmpty())
             {
                 this.stack.push(comp);
@@ -134,8 +129,7 @@ public class BalsaSAXHandler extends DefaultHandler
     {
         try
         {
-            Component comp = this.componentLibraryRegister.loadComponent(uri, localName, this.context.getNextComponentId());
-            comp.setId(this.context.getNextComponentId());
+            Component comp = this.componentLibraryRegister.loadComponent(uri, localName);
             comp.setView(this.context.getView());
             // load the renderer
             comp.setRenderer((Renderer) this.renderLibraryRegister.loadRenderer(comp));
@@ -143,29 +137,15 @@ public class BalsaSAXHandler extends DefaultHandler
             {
                 String name = attributes.getLocalName(i);
                 String value = attributes.getValue(i);
-                if ("id".equalsIgnoreCase(name))
-                {
-                    // check we have not had the id already
-                    if (this.context.containsId(value)) throw new SAXException("Duplicate component id detected, id=" + value + " , component=" + localName);
-                    this.context.addId(value);
-                    comp.setId(value);
-                }
-                else
-                {
-                    ValueExpression valExp = new ValueExpression(this.balsaContext.getELContext(), value);
-                    comp.getAttributes().put(name, valExp);
-                }
+                //
+                ValueExpression valExp = new ValueExpression(this.balsaContext.getExpressContext(), value);
+                comp.getAttributes().put(name, valExp);
             }
             this.stack.push(comp);
             this.text.push(new StringBuilder());
         }
-        catch (SAXException se)
-        {
-            throw se;
-        }
         catch (Exception je)
         {
-            je.printStackTrace();
             throw new SAXException("Could not load component or renderer: " + uri + ", " + localName, je);
         }
     }
@@ -221,7 +201,8 @@ public class BalsaSAXHandler extends DefaultHandler
     @Override
     public InputSource resolveEntity(String publicId, String systemId) throws IOException, SAXException
     {
-        if (BalsaDTD.Balsa_DTD_URI.equalsIgnoreCase(systemId)) { return new InputSource(new StringReader(BalsaDTD.Balsa_DTD)); }
+        if (BalsaDTD.Balsa_DTD_URI.equalsIgnoreCase(systemId))
+            return new InputSource(new StringReader(BalsaDTD.Balsa_DTD));
         return super.resolveEntity(publicId, systemId);
     }
 }

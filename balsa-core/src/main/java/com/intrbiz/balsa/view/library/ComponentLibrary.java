@@ -10,7 +10,7 @@ import com.intrbiz.balsa.view.parser.PostProcessor;
 public interface ComponentLibrary
 {
     public List<PostProcessor> postprocessors();
-    public Component load(String name, String id) throws BalsaException;
+    public Component load(String name) throws BalsaException;
     public Set<String> componentNames();
     public Class<? extends Component> componentClass(String name);
     

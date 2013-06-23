@@ -1,10 +1,21 @@
 package com.intrbiz.balsa.listener.scgi;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
+import com.intrbiz.balsa.http.HTTP;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.parameter.Parameter;
 import com.intrbiz.balsa.scgi.SCGIRequest;
@@ -13,9 +24,21 @@ public final class BalsaSCGIRequest implements BalsaRequest
 {
     private final SCGIRequest req;
     
-    public BalsaSCGIRequest(SCGIRequest req)
+    private final JsonFactory jsonFactory;
+    
+    private final XMLInputFactory xmlFactory;
+    
+    private Reader reader;
+    
+    private JsonParser jsonReader;
+    
+    private XMLStreamReader xmlReader;
+    
+    public BalsaSCGIRequest(SCGIRequest req, JsonFactory jsonFactory, XMLInputFactory xmlFactory)
     {
         this.req = req;
+        this.jsonFactory = jsonFactory;
+        this.xmlFactory = xmlFactory;
     }
 
     @Override
@@ -34,6 +57,18 @@ public final class BalsaSCGIRequest implements BalsaRequest
     public String getContentType()
     {
         return this.req.getContentType();
+    }
+    
+    @Override
+    public boolean isXml()
+    {
+        return HTTP.ContentTypes.APPLICATION_XML.equalsIgnoreCase(this.getContentType());
+    }
+    
+    @Override
+    public boolean isJson()
+    {
+        return HTTP.ContentTypes.APPLICATION_JSON.equalsIgnoreCase(this.getContentType());
     }
 
     @Override
@@ -88,6 +123,12 @@ public final class BalsaSCGIRequest implements BalsaRequest
     public String getRequestMethod()
     {
         return this.req.getRequestMethod();
+    }
+    
+    @Override
+    public String getRequestScheme()
+    {
+        return this.req.getRequestScheme();
     }
 
     @Override
@@ -215,6 +256,34 @@ public final class BalsaSCGIRequest implements BalsaRequest
     {
         return this.req.getInput();
     }
+    
+    public Reader getReader()
+    {
+        // TODO
+        if (this.reader == null)
+        {
+            this.reader = new BufferedReader(new InputStreamReader(this.getInput(), HTTP.Charsets.UTF8));
+        }
+        return this.reader;
+    }
+    
+    public JsonParser getJsonReader() throws IOException
+    {
+        if (this.jsonReader == null)
+        {
+            this.jsonReader = this.jsonFactory.createJsonParser(this.getReader());
+        }
+        return this.jsonReader;
+    }
+    
+    public XMLStreamReader getXMLReader() throws IOException, XMLStreamException
+    {
+        if (this.xmlReader == null)
+        {
+            this.xmlReader = this.xmlFactory.createXMLStreamReader(this.getReader());
+        }
+        return this.xmlReader;
+    }
 
     @Override
     public Object getBody()
@@ -229,7 +298,7 @@ public final class BalsaSCGIRequest implements BalsaRequest
     }
 
     @Override
-    public String dumpRequest()
+    public String dump()
     {
         return this.req.dumpRequest();
     }

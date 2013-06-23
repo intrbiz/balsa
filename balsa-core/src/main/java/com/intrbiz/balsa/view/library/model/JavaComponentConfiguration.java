@@ -43,13 +43,12 @@ public class JavaComponentConfiguration extends ComponentConfiguration
     }
 
     @Override
-    public Component load(String id, String name, String library) throws BalsaException
+    public Component load(String name, String library) throws BalsaException
     {
         try
         {
             Class<?> c = Class.forName(this.getClassname());
             Component co = (Component) c.newInstance();
-            co.setId(id);
             co.setName(name);
             return co;
         }

@@ -28,6 +28,7 @@ public class TextNode extends Component
             else
             {
                 String txt = this.getText().toString();
+                // TODO: looks bad
                 if (!"#{''}".equals(txt))
                 {
                     s.append(p).append("  ").append(Util.xmlEncode(txt)).append("\r\n");

@@ -1,18 +1,21 @@
 package com.intrbiz.balsa.view.component;
 
+import static com.intrbiz.balsa.BalsaContext.Balsa;
+
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.intrbiz.Util;
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.view.BalsaView;
+import com.intrbiz.balsa.util.BalsaWriter;
 import com.intrbiz.balsa.view.renderer.Renderer;
+import com.intrbiz.express.ExpressException;
 import com.intrbiz.express.operator.StringLiteral;
 import com.intrbiz.express.value.ValueExpression;
 
@@ -25,9 +28,9 @@ import com.intrbiz.express.value.ValueExpression;
  * 
  * In balsa a request has a series of phases, during this phases the component tree is processed. Therefore the component has certain lifecycle methods which are invoked in order to process these phases. Components are responsible to ensuring their children are correctly processed. In general components delegate these lifecycle method to there renderer, if they are to be rendered.
  */
-public abstract class Component implements Cloneable, BalsaView
+public abstract class Component
 {
-    protected View view;
+    protected BalsaView view;
 
     /**
      * The component name, unique within a library
@@ -59,22 +62,17 @@ public abstract class Component implements Cloneable, BalsaView
      */
     protected Renderer renderer;
 
-    /**
-     * The component identifier, unique within one graph
-     */
-    protected String id = null;
-
     public Component()
     {
         super();
     }
 
-    public View getView()
+    public BalsaView getView()
     {
         return view;
     }
 
-    public void setView(View view)
+    public void setView(BalsaView view)
     {
         this.view = view;
     }
@@ -182,29 +180,12 @@ public abstract class Component implements Cloneable, BalsaView
     }
 
     /**
-     * @return the id
-     */
-    public String getId()
-    {
-        return id;
-    }
-
-    /**
-     * @param id
-     *            the id to set
-     */
-    public void setId(String id)
-    {
-        this.id = id;
-    }
-
-    /**
      * 
      * @param context
      * @throws BalsaException
      *             returns void
      */
-    public void decode(BalsaContext context) throws BalsaException
+    public void decode(BalsaContext context) throws BalsaException, ExpressException
     {
         if (this.isRendered())
         {
@@ -220,13 +201,13 @@ public abstract class Component implements Cloneable, BalsaView
      * @throws BalsaException
      *             returns void
      */
-    public void encode(BalsaContext context) throws IOException, BalsaException
+    public void encode(BalsaContext context, BalsaWriter to) throws IOException, BalsaException, ExpressException
     {
         if (this.isRendered())
         {
-            if (this.getRenderer() != null) ((Renderer) this.getRenderer()).encodeStart(this, context);
-            if (this.getRenderer() != null) ((Renderer) this.getRenderer()).encodeChildren(this, context);
-            if (this.getRenderer() != null) ((Renderer) this.getRenderer()).encodeEnd(this, context);
+            if (this.getRenderer() != null) ((Renderer) this.getRenderer()).encodeStart(this, context, to);
+            if (this.getRenderer() != null) ((Renderer) this.getRenderer()).encodeChildren(this, context, to);
+            if (this.getRenderer() != null) ((Renderer) this.getRenderer()).encodeEnd(this, context, to);
         }
     }
 
@@ -265,21 +246,6 @@ public abstract class Component implements Cloneable, BalsaView
         return this.attributes.get(name);
     }
 
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (obj == null) return false;
-        if (obj == this) return true;
-        if (obj instanceof Component) return this.id.equals(((Component) obj).getId());
-        return false;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return this.id.hashCode();
-    }
-
     /**
      * Should this component and children be rendered
      * 
@@ -292,132 +258,14 @@ public abstract class Component implements Cloneable, BalsaView
         {
             try
             {
-                // TODO
-                Object obj = rend.get(null, this);
+                Object obj = rend.get(Balsa().getExpressContext(), this);
                 if (obj instanceof Boolean) return ((Boolean) obj).booleanValue();
             }
             catch (Exception e)
             {
-                return true;
             }
         }
         return true;
-    }
-
-    /**
-     * Deep copy
-     * 
-     * @return returns Component
-     */
-    public Component cloneComponent()
-    {
-        try
-        {
-            Component comp = (Component) this.clone();
-            // copy attributes
-            comp.attributes = new ConcurrentHashMap<String, ValueExpression>();
-            for (String name : this.getAttributes().keySet())
-            {
-                ValueExpression value = this.getAttribute(name);
-                comp.addAttribute(name, value);
-            }
-            // copy the children
-            comp.children = new LinkedList<Component>();
-            for (Component child : this.getChildren())
-            {
-                comp.addChild(child.cloneComponent());
-            }
-            if (this.getRenderer() != null) comp.setRenderer(((Renderer) this.getRenderer()).cloneRenderer());
-
-            return comp;
-        }
-        catch (Exception e)
-        {
-        }
-        return null;
-    }
-
-    /**
-     * Deep clone of the component, prefixing the components id's with the given prefix
-     * 
-     * @param prefix
-     * @return returns Component
-     */
-    public Component cloneComponent(String prefix)
-    {
-        try
-        {
-            Component comp = (Component) this.clone();
-            comp.setId(prefix + " " + comp.getId());
-            // copy attributes
-            comp.attributes = new ConcurrentHashMap<String, ValueExpression>();
-            for (String name : this.getAttributes().keySet())
-            {
-                ValueExpression value = this.getAttribute(name);
-                comp.addAttribute(name, value);
-            }
-            // copy the children
-            comp.children = new LinkedList<Component>();
-            for (Component child : this.getChildren())
-            {
-                comp.addChild(child.cloneComponent(prefix));
-            }
-            if (this.getRenderer() != null) comp.setRenderer(((Renderer) this.getRenderer()).cloneRenderer());
-            return comp;
-        }
-        catch (Exception e)
-        {
-        }
-        return null;
-    }
-
-    /**
-     * Shallow copy
-     */
-    @Override
-    public Object clone()
-    {
-        try
-        {
-            return super.clone();
-        }
-        catch (Exception e)
-        {
-        }
-        return null;
-    }
-
-    /**
-     * Recursively search for a component with the given id
-     * 
-     * @param id
-     * @return returns Component
-     */
-    public final Component getComponentById(String id)
-    {
-        return this.getComponentById(id, true);
-    }
-
-    /**
-     * Search for a component either recursively or not
-     * 
-     * @param id
-     * @param recurse
-     *            - should child components be searched too
-     * @return returns Component
-     */
-    public final Component getComponentById(String id, boolean recurse)
-    {
-        for (Component comp : this.children)
-        {
-            if (comp.getId().equals(id)) return comp;
-            if (recurse)
-            {
-                Component found = comp.getComponentById(id);
-                if (found != null) return found;
-            }
-        }
-        return null;
     }
 
     /**

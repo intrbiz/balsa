@@ -4,14 +4,14 @@ import java.io.IOException;
 
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
-import com.intrbiz.balsa.util.HTMLWriter;
+import com.intrbiz.balsa.util.BalsaWriter;
 import com.intrbiz.balsa.view.component.Component;
 import com.intrbiz.balsa.view.core.generic.GenericRenderer;
-import com.intrbiz.express.ELException;
+import com.intrbiz.express.ExpressException;
 
 public class PreRenderer extends GenericRenderer
 {
-    public void encodeStart(Component component, BalsaContext context, HTMLWriter out) throws IOException, BalsaException
+    public void encodeStart(Component component, BalsaContext context, BalsaWriter out) throws IOException, BalsaException
     {
         out.openStartTag(component.getName());
         // attributes
@@ -22,15 +22,15 @@ public class PreRenderer extends GenericRenderer
     }
     
     @Override
-    protected void encodeText(Component component, BalsaContext context, HTMLWriter out) throws IOException, BalsaException
+    protected void encodeText(Component component, BalsaContext context, BalsaWriter out) throws IOException, BalsaException
     {
         if (component.getText() != null)
         {
             try
             {
-                out.putEnc(String.valueOf(component.getText().get(context.getELContext(), this)));
+                out.putEnc(String.valueOf(component.getText().get(context.getExpressContext(), this)));
             }
-            catch (ELException e)
+            catch (ExpressException e)
             {
                 throw new BalsaException("EL error", e);
             }
@@ -38,7 +38,7 @@ public class PreRenderer extends GenericRenderer
     }
     
     @Override
-    public void encodeEnd(Component component, BalsaContext context, HTMLWriter out) throws IOException, BalsaException
+    public void encodeEnd(Component component, BalsaContext context, BalsaWriter out) throws IOException, BalsaException
     {
         out.endTagLn(component.getName());
     }

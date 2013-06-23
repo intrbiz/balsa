@@ -1,10 +1,8 @@
 package com.intrbiz.balsa.engine;
 
 import com.intrbiz.balsa.engine.session.BalsaSession;
-import com.intrbiz.balsa.event.BalsaEventAnnouncer;
-import com.intrbiz.balsa.event.BalsaSessionEvent;
 
-public interface SessionEngine extends BalsaEngine, BalsaEventAnnouncer<BalsaSessionEvent>
+public interface SessionEngine extends BalsaEngine
 {
     public static final int DEFAULT_SESSION_LIFETIME = 30;
     

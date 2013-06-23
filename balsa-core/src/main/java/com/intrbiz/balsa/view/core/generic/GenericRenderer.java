@@ -5,17 +5,17 @@ import java.util.Map.Entry;
 
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
-import com.intrbiz.balsa.util.HTMLWriter;
+import com.intrbiz.balsa.util.BalsaWriter;
 import com.intrbiz.balsa.view.component.Component;
 import com.intrbiz.balsa.view.renderer.HTMLRenderer;
-import com.intrbiz.express.ELException;
+import com.intrbiz.express.ExpressException;
 import com.intrbiz.express.value.ValueExpression;
 
 public class GenericRenderer extends HTMLRenderer
 {
 
     @Override
-    public void encodeStart(Component component, BalsaContext context, HTMLWriter out) throws IOException, BalsaException
+    public void encodeStart(Component component, BalsaContext context, BalsaWriter out) throws IOException, BalsaException
     {
         out.openStartTagPad(component.getName());
         // attributes
@@ -25,7 +25,7 @@ public class GenericRenderer extends HTMLRenderer
         this.encodeText(component, context, out);
     }
 
-    protected void encodeAttributes(Component component, BalsaContext context, HTMLWriter out) throws IOException, BalsaException
+    protected void encodeAttributes(Component component, BalsaContext context, BalsaWriter out) throws IOException, BalsaException
     {
         for (Entry<String, ValueExpression> attribute : component.getAttributes().entrySet())
         {
@@ -33,27 +33,27 @@ public class GenericRenderer extends HTMLRenderer
         }
     }
 
-    protected void encodeAttribute(Component component, BalsaContext context, HTMLWriter out, String name, ValueExpression value) throws IOException, BalsaException
+    protected void encodeAttribute(Component component, BalsaContext context, BalsaWriter out, String name, ValueExpression value) throws IOException, BalsaException
     {
         try
         {
-            out.attribute(name, String.valueOf(value.get(context.getELContext(), this)));
+            out.attribute(name, String.valueOf(value.get(context.getExpressContext(), component)));
         }
-        catch (ELException e)
+        catch (ExpressException e)
         {
             throw new BalsaException("EL error", e);
         }
     }
 
-    protected void encodeText(Component component, BalsaContext context, HTMLWriter out) throws IOException, BalsaException
+    protected void encodeText(Component component, BalsaContext context, BalsaWriter out) throws IOException, BalsaException
     {
         if (component.getText() != null)
         {
             try
             {
-                out.putEncPadLn(String.valueOf(component.getText().get(context.getELContext(), this)));
+                out.putEncPadLn(String.valueOf(component.getText().get(context.getExpressContext(), component)));
             }
-            catch (ELException e)
+            catch (ExpressException e)
             {
                 throw new BalsaException("EL error", e);
             }
@@ -61,7 +61,7 @@ public class GenericRenderer extends HTMLRenderer
     }
 
     @Override
-    public void encodeEnd(Component component, BalsaContext context, HTMLWriter out) throws IOException, BalsaException
+    public void encodeEnd(Component component, BalsaContext context, BalsaWriter out) throws IOException, BalsaException
     {
         out.endTagPadLn(component.getName());
     }

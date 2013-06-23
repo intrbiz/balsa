@@ -75,12 +75,12 @@ public class ComponentLibraryRegister
         this.libraries.put(url, cl);
     }
 
-    public Component loadComponent(String library, String name, String id) throws BalsaException
+    public Component loadComponent(String library, String name) throws BalsaException
     {
         ComponentLibrary lib = this.libraries.get(library);
         if (lib == null) lib = this.defaultLibrary;
         if (lib == null) throw new BalsaException("Cannot find library");
-        return lib.load(name, id);
+        return lib.load(name);
     }
 
     public List<PostProcessor> getRequiredPostProcessors()

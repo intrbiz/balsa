@@ -1,10 +1,16 @@
 package com.intrbiz.balsa.listener;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
+import com.fasterxml.jackson.core.JsonParser;
 import com.intrbiz.balsa.parameter.Parameter;
 
 /**
@@ -36,6 +42,10 @@ public interface BalsaRequest
      * returns String
      */
     public String getContentType();
+    
+    boolean isXml();
+    
+    boolean isJson();
 
     /**
      * The protocol version of the request
@@ -99,6 +109,13 @@ public interface BalsaRequest
      * returns String
      */
     public String getRequestMethod();
+    
+    /**
+     * The HTTP request scheme, EG: http or https
+     * @return
+     * returns String
+     */
+    public String getRequestScheme();
 
     /**
      * The URI of the web request, EG: /test/
@@ -263,6 +280,16 @@ public interface BalsaRequest
      * returns InputStream
      */
     public InputStream getInput();
+    
+    /**
+     * Get the request body as a character reader
+     * @return
+     */
+    Reader getReader();
+    
+    JsonParser getJsonReader() throws IOException;
+    
+    XMLStreamReader getXMLReader() throws IOException, XMLStreamException;
 
     /**
      * Get the parsed request body
@@ -282,5 +309,5 @@ public interface BalsaRequest
      * Util
      */
     
-    public String dumpRequest();
+    public String dump();
 }

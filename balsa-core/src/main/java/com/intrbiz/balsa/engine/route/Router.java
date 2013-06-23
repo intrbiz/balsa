@@ -3,15 +3,62 @@ package com.intrbiz.balsa.engine.route;
 import static com.intrbiz.balsa.BalsaContext.Balsa;
 
 import java.io.IOException;
+import java.security.Principal;
 
+import com.intrbiz.balsa.BalsaApplication;
+import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
-import com.intrbiz.balsa.scgi.SCGIResponse.Status;
+import com.intrbiz.balsa.engine.security.Credentials;
+import com.intrbiz.balsa.listener.BalsaRequest;
+import com.intrbiz.balsa.listener.BalsaResponse;
+import com.intrbiz.metadata.Prefix;
+import com.intrbiz.metadata.Template;
 
 /**
  * A router routes requests
  */
 public abstract class Router
-{
+{   
+    private final String prefix = this.myPrefix();
+    
+    private final String[] templates = this.myTemplates();
+    
+    private final String myPrefix()
+    {
+        Class<?> clazz = this.getClass();
+        Prefix prefix = clazz.getAnnotation(Prefix.class);
+        if (prefix == null) return "/";
+        return prefix.value();
+    }
+    
+    private final String[] myTemplates()
+    {
+        Class<?> clazz = this.getClass();
+        Template template = clazz.getAnnotation(Template.class);
+        if (template == null || template.value() == null) return new String[0];
+        return template.value();
+    }
+    
+    public final String prefix()
+    {
+        return this.prefix;
+    }
+    
+    public final String getPrefix()
+    {
+        return this.prefix;
+    }
+    
+    public final String[] templates()
+    {
+        return this.templates;
+    }
+    
+    public final String[] getTemplates()
+    {
+        return this.templates;
+    }
+    
     /*
      * Router mandatory methods
      */
@@ -47,17 +94,17 @@ public abstract class Router
      *            the bean class
      * @return returns Object the bean
      */
-    protected <T> T model(String name, Class<T> type)
+    protected final <T> T model(String name, Class<T> type)
     {
         return Balsa().model(name, type);
     }
     
-    protected <T> T model(String name, Class<T> type, boolean create)
+    protected final <T> T model(String name, Class<T> type, boolean create)
     {
         return Balsa().model(name, type, create);
     }
     
-    protected <T> T model(String name, T model)
+    protected final <T> T model(String name, T model)
     {
         return Balsa().model(name, model);
     }
@@ -69,7 +116,7 @@ public abstract class Router
      *            the parameter name
      * @return returns String the parameter value
      */
-    protected String param(String name)
+    protected final String param(String name)
     {
         return Balsa().param(name);
     }
@@ -80,9 +127,19 @@ public abstract class Router
      * @param views
      *            returns void
      */
-    protected void decode(String... views) throws BalsaException
+    protected final void decode(String... views) throws BalsaException
     {
-        Balsa().decode(views);
+        Balsa().decode(new String[][]{ this.app().templates(), this.templates() }, views);
+    }
+    
+    /**
+     * Decode the given views without using any templates
+     * @param views
+     * @throws BalsaException
+     */
+    protected final void decodeOnly(String... views) throws BalsaException
+    {
+        Balsa().decode(null, views);
     }
 
     /**
@@ -93,22 +150,32 @@ public abstract class Router
      * @throws BalsaException
      * returns void
      */
-    protected void encode(String... views) throws BalsaException
+    protected final void encode(String... views) throws BalsaException
     {
-        Balsa().encode(views);
+        Balsa().encode(new String[][]{ this.app().templates(), this.templates() }, views);
     }
     
+    protected final String encodeBuffered(String... views) throws BalsaException
+    {
+        return Balsa().encodeBuffered(new String[][]{ this.app().templates(), this.templates() }, views);
+    }
+
     /**
-     * Set the response content type and status and encode the given views.  
-     * @param contentType the content type of the response
-     * @param status      the status of the response
-     * @param views       the views to encode
+     * Respond by encoding the given views, without using any templates.
+     * 
+     * NB: This will not set the content type and status of the response.
+     * @param views  the views to encode
      * @throws BalsaException
      * returns void
      */
-    public void encode(String contentType, Status status, String... views) throws BalsaException
+    protected final void encodeOnly(String... views) throws BalsaException
     {
-        Balsa().encode(contentType, status, views);
+        Balsa().encodeOnly(views);
+    }
+    
+    protected final String encodeOnlyBuffered(String... views) throws BalsaException
+    {
+        return Balsa().encodeOnlyBuffered(views);
     }
     
     /**
@@ -137,6 +204,21 @@ public abstract class Router
     {
         return Balsa().path(path);
     }
+    
+    /**
+     * Translate the given relative path into the URL for the public resource.
+     * 
+     * The resulting URL maybe an absolute server path or an absolute URL.
+     * 
+     * 
+     * 
+     * @param path the relative path to the public resource
+     * @return the URL to the resource.
+     */
+    public String pub(String path)
+    {
+        return Balsa().pub(path);
+    }
 
     /**
      * Redirect to another URL
@@ -146,7 +228,7 @@ public abstract class Router
      * @param permanent
      *            it the redirect permenant (301) returns void
      */
-    protected void redirect(String url, boolean permanent) throws IOException
+    protected final void redirect(String url, boolean permanent) throws IOException
     {
         Balsa().redirect(url, permanent);
     }
@@ -157,7 +239,7 @@ public abstract class Router
      * @param url
      *            the URL to redirect to returns void
      */
-    protected void redirect(String url) throws IOException
+    protected final void redirect(String url) throws IOException
     {
         Balsa().redirect(url);
     }
@@ -168,17 +250,17 @@ public abstract class Router
      * @param constraint
      *            returns void
      */
-    protected void require(boolean constraint) throws BalsaException
+    protected final void require(boolean constraint) throws BalsaException
     {
         Balsa().require(constraint);
     }
 
-    protected void require(boolean constraint, String message) throws BalsaException
+    protected final void require(boolean constraint, String message) throws BalsaException
     {
         Balsa().require(constraint, message);
     }
 
-    protected <E extends Exception> void require(boolean constraint, E securityException) throws E
+    protected final <E extends Exception> void require(boolean constraint, E securityException) throws E
     {
         Balsa().require(constraint, securityException);
     }
@@ -188,9 +270,24 @@ public abstract class Router
      * 
      * returns boolean
      */
-    protected boolean user()
+    protected final boolean validPrincipal()
     {
-        return Balsa().user();
+        return Balsa().validPrincipal();
+    }
+    
+    protected void deauthenticate()
+    {
+        Balsa().deauthenticate();
+    }
+    
+    protected Principal authenticate(String username, String password)
+    {
+        return Balsa().authenticate(username, password);
+    }
+    
+    protected Principal authenticate(Credentials credentials)
+    {
+        return Balsa().authenticate(credentials);
     }
 
     /**
@@ -200,7 +297,7 @@ public abstract class Router
      *            the permission name
      * @return returns boolean
      */
-    protected boolean permission(String permission)
+    protected final boolean permission(String permission)
     {
         return Balsa().permission(permission);
     }
@@ -248,22 +345,23 @@ public abstract class Router
      *            the model class
      * @return returns Object the model
      */
-    protected <T> T sessionModel(String name, Class<T> type)
+    protected final <T> T sessionModel(String name, Class<T> type)
     {
         return Balsa().sessionModel(name, type);
     }
     
-    protected <T> T sessionModel(String name, Class<T> type, boolean create)
+    protected final <T> T sessionModel(String name, Class<T> type, boolean create)
     {
         return Balsa().sessionModel(name, type, create);
     }
     
-    protected <T> T sessionModel(String name, T model)
+    protected final <T> T sessionModel(String name, T model)
     {
         return Balsa().sessionModel(name, model);
     }
     
-    protected Object action(String name, Object... arguments) throws BalsaException
+    
+    protected final Object action(String name, Object... arguments) throws BalsaException
     {
         try
         {
@@ -273,5 +371,57 @@ public abstract class Router
         {
             throw new BalsaException("Failed to perform action: " + name, e);
         }
+    }
+    
+    /**
+     * Get the current Balsa context
+     * @return
+     */
+    protected final BalsaContext balsa()
+    {
+        return Balsa();
+    }
+    
+    /**
+     * Get the current Balsa request
+     * @return
+     */
+    protected final BalsaRequest request()
+    {
+        return Balsa().request();
+    }
+    
+    /**
+     * Get the value of the given header
+     * @param name the header name
+     * @return
+     */
+    protected final String header(String name)
+    {
+        return Balsa().header(name);
+    }
+    
+    /**
+     * Get the value of the given cookie
+     * @param name the cookie name
+     * @return
+     */
+    protected final String cookie(String name)
+    {
+        return Balsa().cookie(name);
+    }
+    
+    /**
+     * Get the current Balsa response
+     * @return
+     */
+    protected final BalsaResponse response()
+    {
+        return Balsa().response();
+    }
+    
+    protected final BalsaApplication app()
+    {
+       return Balsa().app(); 
     }
 }

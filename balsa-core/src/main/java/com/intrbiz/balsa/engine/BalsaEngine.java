@@ -5,6 +5,8 @@ import com.intrbiz.balsa.BalsaException;
 
 public interface BalsaEngine
 {
+    String getEngineName();
+    
     BalsaApplication getBalsaApplication();
     
     void setBalsaApplication(BalsaApplication application);

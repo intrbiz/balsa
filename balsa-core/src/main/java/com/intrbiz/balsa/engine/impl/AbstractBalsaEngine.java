@@ -7,7 +7,7 @@ import com.intrbiz.balsa.engine.BalsaEngine;
 /**
  * Basic engine implementation
  */
-public class AbstractBalsaEngine implements BalsaEngine
+public abstract class AbstractBalsaEngine implements BalsaEngine
 {
     protected BalsaApplication application;
     

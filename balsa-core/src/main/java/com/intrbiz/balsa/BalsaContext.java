@@ -1,23 +1,31 @@
 package com.intrbiz.balsa;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.security.Principal;
 import java.util.Map;
 import java.util.TreeMap;
 
 import com.intrbiz.balsa.bean.BeanProvider;
+import com.intrbiz.balsa.engine.security.Credentials;
+import com.intrbiz.balsa.engine.security.PasswordCredentials;
 import com.intrbiz.balsa.engine.session.BalsaSession;
+import com.intrbiz.balsa.engine.view.BalsaView;
+import com.intrbiz.balsa.error.BalsaIOError;
 import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.listener.BalsaResponse;
 import com.intrbiz.balsa.parameter.Parameter;
 import com.intrbiz.balsa.parameter.StringParameter;
-import com.intrbiz.balsa.scgi.SCGIResponse.Status;
-import com.intrbiz.balsa.util.BalsaELContext;
-import com.intrbiz.express.ELContext;
+import com.intrbiz.balsa.util.BalsaWriter;
+import com.intrbiz.balsa.util.HTMLWriter;
+import com.intrbiz.express.DefaultContext;
+import com.intrbiz.express.ExpressContext;
+import com.intrbiz.express.ExpressEntityResolver;
 import com.intrbiz.express.action.ActionHandler;
 
 /**
- * The balsa Context - represents the state of the JSC application at any given moment in time.
+ * The balsa Context - represents the state of the Balsa application at any given moment in time.
  * 
  * The Context is bound to the current thread and therefore transient. The Context is only valid for the life time of the request.
  */
@@ -32,28 +40,18 @@ public class BalsaContext
     private final BalsaRequest request;
 
     private final BalsaResponse response;
-    
+
     private final Map<String, Object> models = new TreeMap<String, Object>();
 
     private Throwable exception = null;
-    
-    private long processingStart;
-    
-    private long processingEnd;
-    
-    private final ELContext elContext = new BalsaELContext() {
-        @Override
-        public Object getEntityInner(String name, Object source)
-        {
-            return BalsaContext.this.models.get(name);
-        }
 
-        @Override
-        public BalsaApplication getApplication()
-        {
-            return BalsaContext.this.getApplication();
-        }
-    };
+    private long processingStart;
+
+    private long processingEnd;
+
+    private final ExpressContext expressContext;
+
+    private BalsaView view;
 
     public BalsaContext(BalsaApplication application, BalsaRequest request, BalsaResponse response)
     {
@@ -61,6 +59,20 @@ public class BalsaContext
         this.application = application;
         this.request = request;
         this.response = response;
+        this.expressContext = new DefaultContext(this.application.expressExtensions(), new ExpressEntityResolver()
+        {
+            @Override
+            public Object getEntity(String name, Object source)
+            {
+                return BalsaContext.this.models.get(name);
+            }
+
+            @Override
+            public ActionHandler getAction(String name, Object source)
+            {
+                return BalsaContext.this.application.action(name);
+            }
+        });
     }
 
     /**
@@ -81,10 +93,10 @@ public class BalsaContext
         else
             currentInstance.set(context);
     }
-    
-    public final ELContext getELContext()
+
+    public final ExpressContext getExpressContext()
     {
-        return this.elContext;
+        return this.expressContext;
     }
 
     /**
@@ -92,25 +104,33 @@ public class BalsaContext
      * 
      * @return returns balsaApplication
      */
-    public final BalsaApplication getApplication()
+    public final BalsaApplication app()
     {
         return this.application;
     }
 
     /**
      * Get the current session
-     * @return
-     * returns BalsaSession
+     * 
+     * @return returns BalsaSession
      */
-    public final BalsaSession getSession()
+    public final BalsaSession session()
     {
+        if (this.session == null)
+        {
+            String sessionId = this.app().getSessionEngine().makeId();
+            this.setSession(this.app().getSessionEngine().getSession(sessionId));
+            // send the cookie
+            this.response().header("Set-Cookie", BalsaSession.COOKIE_NAME + "=" + sessionId + "; Path=" + this.path("/"));
+        }
         return session;
     }
 
     /**
      * Set the current session
+     * 
      * @param session
-     * returns void
+     *            returns void
      */
     public final void setSession(BalsaSession session)
     {
@@ -120,7 +140,7 @@ public class BalsaContext
     /**
      * Get the balsa request object
      */
-    public final BalsaRequest getRequest()
+    public final BalsaRequest request()
     {
         return this.request;
     }
@@ -128,7 +148,7 @@ public class BalsaContext
     /**
      * Get the balsa response object
      */
-    public final BalsaResponse getResponse()
+    public final BalsaResponse response()
     {
         return this.response;
     }
@@ -171,7 +191,7 @@ public class BalsaContext
     public void activate()
     {
     }
-    
+
     // Timing
 
     public final long getProcessingStart()
@@ -193,7 +213,6 @@ public class BalsaContext
     {
         this.processingEnd = processingEnd;
     }
-    
 
     // Helper functions
 
@@ -222,23 +241,23 @@ public class BalsaContext
         }
         return model;
     }
-    
+
     public <T> T model(String name, Class<T> type)
     {
         return this.model(name, type, true);
     }
-    
+
     public Object model(String name)
     {
         return this.models.get(name);
     }
-    
+
     public <T> T model(String name, T model)
     {
         this.models.put(name, model);
         return model;
     }
-    
+
     public <E> BeanProvider<E> provider(Class<E> type)
     {
         return this.application.provider(type);
@@ -259,138 +278,214 @@ public class BalsaContext
     }
 
     /**
+     * Get the value of the request header given
+     * 
+     * @param name
+     *            the header name
+     * @return returns String the header value
+     */
+    public String header(String name)
+    {
+        return this.request().getHeader(name);
+    }
+
+    /**
+     * Get the value of the request cookie given
+     * 
+     * @param name
+     *            the cookie name
+     * @return returns String the cookie value
+     */
+    public String cookie(String name)
+    {
+        return this.request().cookie(name);
+    }
+
+    /**
+     * Get the view which is currently being decoded or encoded
+     * 
+     * @return the BalsaView
+     */
+    public BalsaView view()
+    {
+        return this.view;
+    }
+
+    /**
+     * Get the view which is currently being decoded or encoded
+     * 
+     * @return the BalsaView
+     */
+    public BalsaView getView()
+    {
+        return this.view;
+    }
+
+    /**
      * Decode the given views
      * 
-     * @param useTemplate should the view engine use the configured application templates
+     * @param useTemplate
+     *            should the view engine use the configured application templates
      * @param views
      *            returns void
      */
-    public void decode(boolean useTemplate, String... views) throws BalsaException
-    {
-        this.getApplication().getViewEngine().load(views, useTemplate, this).decode(this);
-    }
-    
-    public void decode(String... views) throws BalsaException
-    {
-        this.decode(true, views);
-    }
-
-
-    /**
-     * Set the response content type and status and encode the given views.  
-     * @param contentType the content type of the response
-     * @param status      the status of the response
-     * @param useTemplate should the view engine use the configured application templates
-     * @param views       the views to encode
-     * @throws BalsaException
-     * returns void
-     */
-    public void encode(String contentType, Status status, boolean useTemplate, String... views) throws BalsaException
+    public void decode(String[][] templates, String... views) throws BalsaException
     {
         try
         {
-            // set the content type
-            this.response.contentType(contentType);
-            // set the response status
-            this.response.status(status);
-            // load and encode the view
-            this.application.getViewEngine().load(views, useTemplate, this).encode(this);
-            // flush the response
-            this.response.flush();
+            this.view = this.app().getViewEngine().load(templates, views, this);
+            this.view.decode(this);
         }
-        catch (IOException e)
+        finally
         {
-            throw new BalsaException("Error encoding view", e);
+            this.view = null;
         }
     }
-    
-    public void encode(String contentType, Status status, String... views) throws BalsaException
+
+    public void decodeOnly(String... views) throws BalsaException
     {
-        this.encode(contentType, status, true, views);
+        this.decode(null, views);
     }
-    
+
     /**
      * Respond by encoding the given views
      * 
      * NB: This will not set the content type and status of the response.
-     * @param useTemplate should the view engine use the configured application templates
-     * @param views  the views to encode
+     * 
+     * @param views
+     *            the views to encode
      * @throws BalsaException
-     * returns void
+     *             returns void
      */
-    public void encode(boolean useTemplate, String... views) throws BalsaException
+    public void encode(BalsaWriter to, String[][] templates, String... views) throws BalsaException
     {
         try
         {
+            if (to == null) to = this.response().getViewWriter();
             // load and encode the view
-            this.application.getViewEngine().load(views, useTemplate, this).encode(this);
+            try
+            {
+                this.view = this.app().getViewEngine().load(templates, views, this);
+                this.view.encode(this, to);
+            }
+            finally
+            {
+                this.view = null;
+            }
             // flush the response
-            this.response.flush();
+            to.flush();
         }
         catch (IOException e)
         {
-            throw new BalsaException("Error encoding view", e);
+            throw new BalsaIOError("IO error while encoding view", e);
         }
     }
-    
-    public void encode(String... views) throws BalsaException
+
+    public void encode(String[][] templates, String... views) throws BalsaException
     {
-        this.encode(true, views);
+        this.encode(null, templates, views);
     }
-    
+
+    public void encodeOnly(BalsaWriter to, String... views) throws BalsaException
+    {
+        this.encode(to, null, views);
+    }
+
+    public void encodeOnly(String... views) throws BalsaException
+    {
+        this.encode(null, null, views);
+    }
+
+    public String encodeBuffered(String[][] templates, String... views) throws BalsaException
+    {
+        try
+        {
+            StringWriter sw = new StringWriter();
+            HTMLWriter hw = new HTMLWriter(sw);
+            this.encode(hw, templates, views);
+            hw.close();
+            return sw.toString();
+        }
+        catch (IOException e)
+        {
+            throw new BalsaIOError("IO error while encoding buffered view", e);
+        }
+    }
+
+    public String encodeOnlyBuffered(String... views) throws BalsaException
+    {
+        return this.encodeBuffered(null, views);
+    }
+
     /**
      * Translate the given URL into an absolute URL using information from the request.
      * 
-     * The URL will not be translated, and returned unchanged, if:
-     *  1. the URL has a protocol (start with: '[A-Za-z]://')
-     *  2. the URL starts with '//'
+     * The URL will not be translated, and returned unchanged, if: 1. the URL has a protocol (start with: '[A-Za-z]://') 2. the URL starts with '//'
      * 
-     * @param url  the relative url to translate
-     * @return
-     * returns String
+     * @param url
+     *            the relative url to translate
+     * @return returns String
      */
     public String url(String url)
     {
         if (url == null) return null;
         if (url.startsWith("//")) return url;
-        // TODO Regex?
         if (url.indexOf("://") != -1) return url;
         // translate it
         StringBuilder sb = new StringBuilder();
-        // TODO
-        sb.append("http://");
+        // the scheme
+        int port = this.request.getServerPort();
+        String scheme = this.request.getRequestScheme();
+        sb.append(scheme != null ? scheme : (port == 443 ? "https" : "http"));
+        sb.append("://");
         // server name
         sb.append(this.request.getServerName());
         // port?
-        int port = this.request.getServerPort();
         if (port != 80 && port != 443) sb.append(":").append(port);
         // script path
         String scriptPath = this.request.getScriptName();
-        if (! scriptPath.startsWith("/")) sb.append("/");
+        if (!scriptPath.startsWith("/")) sb.append("/");
         sb.append(scriptPath);
         // path
-        if (! (url.startsWith("/") || scriptPath.endsWith("/"))) sb.append("/");
+        if (!(url.startsWith("/") || scriptPath.endsWith("/"))) sb.append("/");
         sb.append(url);
         return sb.toString();
     }
 
     /**
      * Translate the given path to a server absolute path using information from the request.
-     * @param path the path to make absolute
-     * @return
-     * returns String
+     * 
+     * @param path
+     *            the path to make absolute
+     * @return returns String
      */
     public String path(String path)
     {
         StringBuilder sb = new StringBuilder();
         // script path
         String scriptPath = this.request.getScriptName();
-        if (! scriptPath.startsWith("/")) sb.append("/");
+        if (!scriptPath.startsWith("/")) sb.append("/");
         sb.append(scriptPath);
         // path
-        if (! (path.startsWith("/") || scriptPath.endsWith("/"))) sb.append("/");
+        if (!(path.startsWith("/") || scriptPath.endsWith("/"))) sb.append("/");
         sb.append(path);
-        return sb.toString();        
+        return sb.toString();
+    }
+
+    /**
+     * Translate the given relative path into the URL for the public resource.
+     * 
+     * The resulting URL maybe an absolute server path or an absolute URL.
+     * 
+     * 
+     * 
+     * @param path
+     *            the relative path to the public resource
+     * @return the URL to the resource.
+     */
+    public String pub(String path)
+    {
+        return this.app().getPublicResourceEngine().pub(this, path);
     }
 
     /**
@@ -439,13 +534,39 @@ public class BalsaContext
     }
 
     /**
-     * Check that the current user is valid (not public)
+     * Check that the current principal is valid (not public)
      * 
      * returns boolean
      */
-    public boolean user()
+    public boolean validPrincipal()
     {
-        return false;
+        return this.currentPrincipal() != null;
+    }
+
+    public Principal currentPrincipal()
+    {
+        return this.session().currentPrincipal();
+    }
+
+    public void deauthenticate()
+    {
+        this.session().setCurrentPrincipal(null);
+    }
+
+    public Principal authenticate(Credentials credentials) throws BalsaSecurityException
+    {
+        // use the security engine to authenticate the user
+        Principal principal = this.app().getSecurityEngine().authenticate(credentials);
+        if (principal == null) throw new BalsaSecurityException("Failed to authenticate user");
+        // store the principal
+        this.session().setCurrentPrincipal(principal);
+        //
+        return principal;
+    }
+
+    public Principal authenticate(String username, String password) throws BalsaSecurityException
+    {
+        return this.authenticate(new PasswordCredentials.Simple(username, password));
     }
 
     /**
@@ -457,43 +578,48 @@ public class BalsaContext
      */
     public boolean permission(String permission)
     {
-        return false;
+        return this.app().getSecurityEngine().check(this.currentPrincipal(), permission);
     }
-    
+
     /**
      * Get the named session variable
-     * @param name the variable name
-     * @return
-     * returns Object
+     * 
+     * @param name
+     *            the variable name
+     * @return returns Object
      */
     public Object sessionVar(String name)
     {
-        return this.session.var(name);
+        return this.session().var(name);
     }
-    
+
     /**
      * Get the named session variable of the given type
-     * @param name the variable name
-     * @param type the variable type
-     * @return
-     * returns T
+     * 
+     * @param name
+     *            the variable name
+     * @param type
+     *            the variable type
+     * @return returns T
      */
     public <T> T sessionVar(String name, Class<T> type)
     {
-        return this.session.var(name, type);
+        return this.session().var(name, type);
     }
-    
+
     /**
      * Store a variable in the session
-     * @param name the variable name
-     * @param object the variable
-     * returns void
+     * 
+     * @param name
+     *            the variable name
+     * @param object
+     *            the variable returns void
      */
     public void sessionVar(String name, Object object)
     {
-        this.session.var(name, object);
+        this.session().var(name, object);
     }
-    
+
     /**
      * Create the session model of the given name
      * 
@@ -505,27 +631,24 @@ public class BalsaContext
      */
     public <T> T sessionModel(String name, Class<T> type)
     {
-        if (this.session == null) return null;
-        return this.session.model(name, type);
+        return this.session().model(name, type);
     }
-    
+
     public <T> T sessionModel(String name, Class<T> type, boolean create)
     {
-        if (this.session == null) return null;
-        return this.session.model(name, type, create);
+        return this.session().model(name, type, create);
     }
-    
+
     public <T> T sessionModel(String name, T model)
     {
-        if (this.session == null) return null;
-        return this.session.model(name, model);
+        return this.session().model(name, model);
     }
-    
+
     // Actions
-    
+
     public Object action(String action, Object... arguments) throws Exception
     {
-        ActionHandler handler = this.application.action(action);
+        ActionHandler handler = this.app().action(action);
         if (handler == null) throw new BalsaException("The action " + action + " does not exist");
         return handler.act(arguments);
     }

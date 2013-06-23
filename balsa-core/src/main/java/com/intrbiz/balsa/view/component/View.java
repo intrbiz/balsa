@@ -5,20 +5,17 @@ import java.io.IOException;
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.view.BalsaView;
+import com.intrbiz.balsa.util.BalsaWriter;
+import com.intrbiz.express.ExpressException;
+import com.intrbiz.express.value.ValueExpression;
 
-public class View implements BalsaView
+public class View extends BalsaView
 {
     private Component root;
 
-    private View previous;
-
-    private View next;
-
-    public View(View previous)
+    public View(BalsaView previous)
     {
-        super();
-        this.previous = previous;
-        if (this.previous != null) this.previous.setNext(this);
+        super(previous);
     }
 
     public Component getRoot()
@@ -31,36 +28,25 @@ public class View implements BalsaView
         this.root = root;
     }
 
-    public View getPrevious()
-    {
-        return previous;
-    }
-
-    public void setPrevious(View previous)
-    {
-        this.previous = previous;
-        if (this.previous != null) this.previous.setNext(this);
-    }
-
-    public View getNext()
-    {
-        return next;
-    }
-
-    public void setNext(View next)
-    {
-        this.next = next;
-    }
-
     @Override
-    public void decode(BalsaContext context) throws BalsaException
+    public void decode(BalsaContext context) throws BalsaException, ExpressException
     {
         this.root.decode(context);
     }
 
     @Override
-    public void encode(BalsaContext context) throws IOException, BalsaException
+    public void encode(BalsaContext context, BalsaWriter to) throws IOException, BalsaException, ExpressException
     {
-        this.root.encode(context);
+        this.root.encode(context, to);
+    }
+    
+    public String getTitle()
+    {
+        if (this.root == null) return null;
+        ValueExpression titleExp = this.root.getAttribute("title");
+        if (titleExp == null) return null;
+        Object title = titleExp.get(BalsaContext.Balsa().getExpressContext(), this.root);
+        if (title == null) return null;
+        return String.valueOf(title);
     }
 }

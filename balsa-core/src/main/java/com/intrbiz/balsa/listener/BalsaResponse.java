@@ -7,39 +7,20 @@ import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.List;
 
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.intrbiz.balsa.error.BalsaInternalError;
-import com.intrbiz.balsa.scgi.SCGIResponse;
-import com.intrbiz.balsa.scgi.SCGIResponse.Status;
+import com.intrbiz.balsa.http.HTTP.HTTPStatus;
+import com.intrbiz.balsa.util.BalsaWriter;
 import com.intrbiz.balsa.util.HTMLWriter;
-import com.intrbiz.json.writer.JSONWriter;
 
 /**
  * The current response
  */
 public interface BalsaResponse
-{
-    /**
-     * Common charsets
-     */
-    public static class Charsets extends SCGIResponse.Charsets
-    {
-    }
-
-    /**
-     * Common content types
-     */
-    public static class ContentTypes extends SCGIResponse.ContentTypes
-    {
-    }
-    
-    public static class CacheControl extends SCGIResponse.CacheControl
-    {
-    }
-    
-    public static class Expires extends SCGIResponse.Expires
-    {
-    }
-    
+{    
     /**
      * Abort the response because an error has happened while processing the request.
      * 
@@ -56,34 +37,34 @@ public interface BalsaResponse
      * 
      * @return returns int
      */
-    public Status getStatus();
+    public HTTPStatus getStatus();
 
     /**
      * Set the status of the HTTP response
      * @param status 
      * returns void
      */
-    public void status(Status status);
+    public BalsaResponse status(HTTPStatus status);
 
     /**
      * Set the HTTP response status to: 200
      */
-    public void ok();
+    public BalsaResponse ok();
 
     /**
      * Set the HTTP response status to: 404
      */
-    public void notFound();
+    public BalsaResponse notFound();
 
     /**
      * Set the HTTP response status to: 500
      */
-    public void error();
+    public BalsaResponse error();
 
     /**
-     * Set the HTTP response status to: 302
+     * Set the HTTP response status to: 302 or 301
      */
-    public void redirect(boolean permanent);
+    public BalsaResponse redirect(boolean permanent);
 
     /**
      * Get the character set of the response
@@ -98,7 +79,7 @@ public interface BalsaResponse
      * @param charset
      *            returns void
      */
-    public void charset(Charset charset);
+    public BalsaResponse charset(Charset charset);
 
     /**
      * Get the response content type
@@ -113,32 +94,37 @@ public interface BalsaResponse
      * @param contentType
      *            The MIME content type
      */
-    public void contentType(String contentType);
+    public BalsaResponse contentType(String contentType);
 
     /**
      * Set the response content type to: text/plain
      */
-    public void plain();
+    public BalsaResponse plain();
 
     /**
      * Set the response content type to: text/html
      */
-    public void html();
+    public BalsaResponse html();
 
     /**
      * Set the response content type to: text/javascript
      */
-    public void javascript();
+    public BalsaResponse javascript();
 
     /**
      * Set the response content type to: application/json
      */
-    public void json();
+    public BalsaResponse json();
+    
+    /**
+     * Set the response content type to: application/xml
+     */
+    public BalsaResponse xml();
 
     /**
      * Set the response content type to: text/css
      */
-    public void css();
+    public BalsaResponse css();
     
     /**
      * Get the cache control header
@@ -152,7 +138,7 @@ public interface BalsaResponse
      * @param value
      * returns void
      */
-    public void cacheControl(String value);
+    public BalsaResponse cacheControl(String value);
     
     /**
      * Get the expires header
@@ -166,8 +152,8 @@ public interface BalsaResponse
      * @param value
      * returns void
      */
-    public void expires(String value);
-    public void expires(Date value);
+    public BalsaResponse expires(String value);
+    public BalsaResponse expires(Date value);
 
     /**
      * Add a HTTP header to the response
@@ -175,9 +161,9 @@ public interface BalsaResponse
      * @param name
      * @param value
      */
-    public void header(String name, String value);
+    public BalsaResponse header(String name, String value);
     
-    public void header(String name, Date value);
+    public BalsaResponse header(String name, Date value);
 
     /**
      * Issue a redirect to the given location
@@ -185,7 +171,7 @@ public interface BalsaResponse
      * @param location
      *            The redirection URL
      */
-    public void redirect(String location, boolean permanent) throws IOException;
+    public BalsaResponse redirect(String location, boolean permanent) throws IOException;
 
     /**
      * Get the headers which have been added to the response
@@ -199,7 +185,14 @@ public interface BalsaResponse
      * 
      * @throws IOException
      */
-    public void sendHeaders() throws IOException;
+    public BalsaResponse sendHeaders() throws IOException;
+    
+    /**
+     * Tell the web server to send the static file
+     * @param file the file to send to the client
+     * @throws IOException
+     */
+    public BalsaResponse sendFile(String file) throws IOException;
 
     /**
      * Get the raw response output stream
@@ -218,6 +211,14 @@ public interface BalsaResponse
      *             returns Writer
      */
     public Writer getWriter() throws IOException;
+    
+    /**
+     * Helper to write a raw text response back
+     * @param content
+     * @return
+     * @throws IOException
+     */
+    public BalsaResponse write(String content) throws IOException;
 
     /**
      * Get the response JSON writer
@@ -226,23 +227,37 @@ public interface BalsaResponse
      * @throws IOException
      *             returns JSONWriter
      */
-    public JSONWriter getJsonWriter() throws IOException;
-
+    public JsonGenerator getJsonWriter() throws IOException;
+    
     /**
      * Get the response HTML writer
      * 
-     * @return
+     * @return returns HTMLWriter
      * @throws IOException
-     *             returns HTMLWriter
      */
     public HTMLWriter getHtmlWriter() throws IOException;
+
+    /**
+     * Get the response Balsa View writer
+     * 
+     * @return returns BalsaViewWriter
+     * @throws IOException
+     */
+    public BalsaWriter getViewWriter() throws IOException;
+    
+    /**
+     * Get the response XML writer
+     * @return
+     * @throws IOException
+     */
+    public XMLStreamWriter getXMLWriter() throws IOException, XMLStreamException;
     
     /**
      * Flush this response to the web server
      * @throws IOException
      * returns void
      */
-    public void flush() throws IOException;
+    public BalsaResponse flush() throws IOException;
     
     /**
      * Have the headers been sent to the web server
