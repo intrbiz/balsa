@@ -82,26 +82,40 @@ public class SimpleSessionEngine extends AbstractBalsaEngine implements SessionE
         this.sessionLifetime = sessionLifetime;
     }
 
+    @Override
     public String makeId()
     {
         return "ba15a" + Long.toHexString(this.idRandom.nextLong()) + Long.toHexString(this.idCounter.incrementAndGet() ^ this.idCounterMask) + Long.toHexString(this.idRandom.nextLong());
+    }
+    
+    private byte[] makeRequestToken()
+    {
+        byte[] token = new byte[32];
+        this.idRandom.nextBytes(token);
+        return token;
+    }
+    
+    protected BalsaSession newSession(String sessionId)
+    {
+        if (logger.isTraceEnabled()) logger.trace("Creating session: " + sessionId);
+        //
+        this.activeSessions.inc();
+        this.createdSessions.mark();
+        TimerContext timer = this.sessionLifeTimer.time();
+        //
+        SimpleSession session = new SimpleSession(this.application, sessionId, this.poolSize, timer);
+        session.setRequestToken(this.makeRequestToken());
+        //
+        this.sessions.put(sessionId, session);
+        //
+        return session;
     }
 
     @Override
     public BalsaSession getSession(String sessionId)
     {
-        SimpleSession session = this.sessions.get(sessionId);
-        if (session == null)
-        {
-            if (logger.isTraceEnabled()) logger.trace("Creating session: " + sessionId);
-            //
-            this.activeSessions.inc();
-            this.createdSessions.mark();
-            TimerContext timer = this.sessionLifeTimer.time();
-            //
-            session = new SimpleSession(this.application, sessionId, this.poolSize, timer);
-            this.sessions.put(sessionId, session);
-        }
+        BalsaSession session = this.sessions.get(sessionId);
+        if (session == null) session = this.newSession(sessionId);
         session.access();
         return session;
     }

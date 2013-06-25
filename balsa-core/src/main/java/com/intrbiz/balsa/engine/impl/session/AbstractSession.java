@@ -8,6 +8,8 @@ public abstract class AbstractSession implements BalsaSession
 {
     private Principal currentPrincipal;
     
+    private byte[] requestToken;
+    
     @SuppressWarnings("unchecked")
     @Override
     public <T> T var(String name, Class<T> type)
@@ -32,5 +34,17 @@ public abstract class AbstractSession implements BalsaSession
     public Principal currentPrincipal()
     {
         return this.currentPrincipal;
+    }
+
+    @Override
+    public byte[] requestToken()
+    {
+        return this.requestToken;
+    }
+
+    @Override
+    public void setRequestToken(byte[] token)
+    {
+        this.requestToken = token;
     }
 }

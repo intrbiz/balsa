@@ -91,4 +91,13 @@ public interface BalsaSession
      * @param principal
      */
     void setCurrentPrincipal(Principal principal);
+    
+    
+    /**
+     * The nonce used to validate requests, to mitigate request forgery.
+     * @return
+     */
+    byte[] requestToken();
+    
+    void setRequestToken(byte[] token);
 }
