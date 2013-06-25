@@ -99,5 +99,7 @@ public interface BalsaSession
      */
     byte[] requestToken();
     
+    String encodedRequestToken();
+    
     void setRequestToken(byte[] token);
 }

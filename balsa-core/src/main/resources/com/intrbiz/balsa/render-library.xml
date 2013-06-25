@@ -17,4 +17,7 @@
 	
 	<renderer component="com.intrbiz.balsa.view.core.data.DataSetComponent"      classname="com.intrbiz.balsa.view.core.data.DataSetRenderer" />
 	
+	<renderer component="com.intrbiz.balsa.view.core.security.RequestTokenComponent"      classname="com.intrbiz.balsa.view.core.security.RequestTokenRenderer" />
+	<renderer component="com.intrbiz.balsa.view.core.security.RequestPathTokenComponent"      classname="com.intrbiz.balsa.view.core.security.RequestPathTokenRenderer" />
+	
 </render-library>

@@ -2,6 +2,8 @@ package com.intrbiz.balsa.engine.impl.session;
 
 import java.security.Principal;
 
+import org.apache.commons.codec.binary.Base64;
+
 import com.intrbiz.balsa.engine.session.BalsaSession;
 
 public abstract class AbstractSession implements BalsaSession
@@ -40,6 +42,12 @@ public abstract class AbstractSession implements BalsaSession
     public byte[] requestToken()
     {
         return this.requestToken;
+    }
+    
+    @Override
+    public String encodedRequestToken()
+    {
+        return Base64.encodeBase64String(this.requestToken);
     }
 
     @Override

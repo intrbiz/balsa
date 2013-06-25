@@ -31,6 +31,8 @@ import com.intrbiz.balsa.express.BalsaFunction;
 import com.intrbiz.balsa.express.PathFunction;
 import com.intrbiz.balsa.express.PathInfoFunction;
 import com.intrbiz.balsa.express.PublicFunction;
+import com.intrbiz.balsa.express.RequestPathTokenFunction;
+import com.intrbiz.balsa.express.RequestTokenFunction;
 import com.intrbiz.balsa.express.TitleFunction;
 import com.intrbiz.balsa.listener.BalsaFilter;
 import com.intrbiz.balsa.listener.BalsaListener;
@@ -129,9 +131,11 @@ public abstract class BalsaApplication
         this.expressExtensions.addFunction(new BalsaFunction());
         this.expressExtensions.addFunction(new PathInfoFunction());
         this.expressExtensions.addFunction(new TitleFunction());
+        this.expressExtensions.addFunction(new RequestTokenFunction());
         //
         this.expressExtensions.addFunction("path", PathFunction.class);
         this.expressExtensions.addFunction("public", PublicFunction.class);
+        this.expressExtensions.addFunction("request_path_token", RequestPathTokenFunction.class);
         /* Default Engines */
         this.listener(new BalsaSCGIListener());
         this.sessionEngine(new SimpleSessionEngine());

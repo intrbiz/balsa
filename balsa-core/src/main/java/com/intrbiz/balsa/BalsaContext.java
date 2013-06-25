@@ -1,10 +1,16 @@
 package com.intrbiz.balsa;
 
+import static com.intrbiz.Util.isEmpty;
+import static com.intrbiz.util.Hash.asUTF8;
+import static com.intrbiz.util.Hash.sha256;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.security.Principal;
 import java.util.Map;
 import java.util.TreeMap;
+
+import org.apache.commons.codec.binary.Base64;
 
 import com.intrbiz.balsa.bean.BeanProvider;
 import com.intrbiz.balsa.engine.security.Credentials;
@@ -23,6 +29,8 @@ import com.intrbiz.express.DefaultContext;
 import com.intrbiz.express.ExpressContext;
 import com.intrbiz.express.ExpressEntityResolver;
 import com.intrbiz.express.action.ActionHandler;
+
+;
 
 /**
  * The balsa Context - represents the state of the Balsa application at any given moment in time.
@@ -579,6 +587,50 @@ public class BalsaContext
     public boolean permission(String permission)
     {
         return this.app().getSecurityEngine().check(this.currentPrincipal(), permission);
+    }
+
+    /**
+     * Check that the given token matches the request token
+     * 
+     * @param token
+     * @return
+     */
+    public boolean validRequestToken(String token)
+    {
+        if (isEmpty(token)) return false;
+        return requestToken().equals(token);
+    }
+
+    /**
+     * Check that the given token matches sha256(request token + path)
+     * 
+     * @param token
+     * @return
+     */
+    public boolean validRequestPathToken(String token)
+    {
+        if (isEmpty(token)) return false;
+        return requestPathToken(request().getPathInfo()).equals(token);
+    }
+
+    /**
+     * Get the request token for the given path which is used to verify a request is valid
+     * 
+     * @param path
+     * @return
+     */
+    public String requestPathToken(String path)
+    {
+        return Base64.encodeBase64String(sha256(asUTF8(path), session().requestToken()));
+    }
+    
+    /**
+     * Get the request token which is used to verify if a request is valid
+     * @return
+     */
+    public String requestToken()
+    {
+        return session().encodedRequestToken();
     }
 
     /**

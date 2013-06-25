@@ -50,4 +50,10 @@ public class PermissionsBuilder extends SecurityBuilder
             sb.append("    context.require(context.permission(\"").append(permission).append("\"));\r\n");
         }
     }
+    
+    @Override
+    public boolean isSingular()
+    {
+        return false;
+    }
 }

@@ -33,6 +33,8 @@ import com.intrbiz.metadata.Post;
 import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.RequirePermissions;
 import com.intrbiz.metadata.RequireValidPrincipal;
+import com.intrbiz.metadata.RequireValidRequestPathToken;
+import com.intrbiz.metadata.RequireValidRequestToken;
 import com.intrbiz.metadata.XML;
 import com.intrbiz.util.compiler.CompilerTool;
 
@@ -160,12 +162,13 @@ public class ExecBuilder
     
     public ExecBuilder securityCheck(SecurityBuilder builder)
     {
-        // only ever add one valid principal check
-        if (builder instanceof ValidPrincipalBuilder)
+        // don't add duplicates
+        if (builder.isSingular())
         {
             for (SecurityBuilder b : this.securityBuilders)
             {
-                if (b instanceof ValidPrincipalBuilder) return this;
+                if (builder.getClass() == b.getClass()) 
+                    return this;
             }
         }
         // add the builder
@@ -186,6 +189,18 @@ public class ExecBuilder
     public ExecBuilder permission(String[] permissions)
     {
         return this.securityCheck(new PermissionsBuilder().permission(permissions));
+    }
+    
+    public ExecBuilder validRequestToken(String parameterName)
+    {
+        this.securityCheck(new ValidRequestBuilder(parameterName));
+        return this;
+    }
+    
+    public ExecBuilder validRequestPathToken(String parameterName)
+    {
+        this.securityCheck(new ValidRequestBuilder(parameterName).path());
+        return this;
     }
     
     public ExecBuilder wrapper(RouteWrapperBuilder builder)
@@ -560,6 +575,30 @@ public class ExecBuilder
         public void restrictedByPermissions()
         {
             
+        }
+        
+        @Get("/csrf/1")
+        @RequireValidRequestToken()
+        public void csrfCheck1()
+        {
+        }
+        
+        @Get("/csrf/2")
+        @RequireValidRequestToken(@Param("token"))
+        public void csrfCheck2()
+        {
+        }
+        
+        @Get("/csrf/3")
+        @RequireValidRequestPathToken(value = @Param("token"))
+        public void csrfCheck3()
+        {
+        }
+        
+        @Get("/csrf/4")
+        @RequireValidRequestPathToken()
+        public void csrfCheck4()
+        {
         }
     }
 }
