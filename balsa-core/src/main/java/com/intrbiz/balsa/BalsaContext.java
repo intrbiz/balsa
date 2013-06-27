@@ -18,6 +18,7 @@ import com.intrbiz.balsa.engine.security.PasswordCredentials;
 import com.intrbiz.balsa.engine.session.BalsaSession;
 import com.intrbiz.balsa.engine.view.BalsaView;
 import com.intrbiz.balsa.error.BalsaIOError;
+import com.intrbiz.balsa.error.BalsaInternalError;
 import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.listener.BalsaResponse;
@@ -129,6 +130,7 @@ public class BalsaContext
             String sessionId = this.app().getSessionEngine().makeId();
             this.setSession(this.app().getSessionEngine().getSession(sessionId));
             // send the cookie
+            if (this.response().isHeadersSent()) throw new BalsaInternalError("Cannot create session, headers have already been sent.");
             this.response().header("Set-Cookie", BalsaSession.COOKIE_NAME + "=" + sessionId + "; Path=" + this.path("/"));
         }
         return session;
