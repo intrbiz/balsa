@@ -32,6 +32,7 @@ import com.intrbiz.metadata.Param;
 import com.intrbiz.metadata.Post;
 import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.RequirePermissions;
+import com.intrbiz.metadata.RequireSession;
 import com.intrbiz.metadata.RequireValidPrincipal;
 import com.intrbiz.metadata.RequireValidRequestPathToken;
 import com.intrbiz.metadata.RequireValidRequestToken;
@@ -200,6 +201,12 @@ public class ExecBuilder
     public ExecBuilder validRequestPathToken(String parameterName)
     {
         this.securityCheck(new ValidRequestBuilder(parameterName).path());
+        return this;
+    }
+    
+    public ExecBuilder requireSession()
+    {
+        this.securityCheck(new RequireSessionBuilder());
         return this;
     }
     
@@ -553,6 +560,7 @@ public class ExecBuilder
     }
     
     @Prefix("/")
+    @RequireSession()
     @RequireValidPrincipal()
     public static class RestrictedRouter extends Router
     {        
@@ -597,6 +605,7 @@ public class ExecBuilder
         
         @Get("/csrf/4")
         @RequireValidRequestPathToken()
+        @RequireSession()
         public void csrfCheck4()
         {
         }
