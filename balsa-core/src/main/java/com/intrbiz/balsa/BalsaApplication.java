@@ -22,7 +22,7 @@ import com.intrbiz.balsa.engine.SessionEngine;
 import com.intrbiz.balsa.engine.ViewEngine;
 import com.intrbiz.balsa.engine.impl.publicresource.PublicResourceEngineImpl;
 import com.intrbiz.balsa.engine.impl.route.RouteEngineImpl;
-import com.intrbiz.balsa.engine.impl.security.DummySecurityEngine;
+import com.intrbiz.balsa.engine.impl.security.SecurityEngineImpl;
 import com.intrbiz.balsa.engine.impl.session.SimpleSessionEngine;
 import com.intrbiz.balsa.engine.impl.view.BalsaViewEngineImpl;
 import com.intrbiz.balsa.engine.impl.view.FileViewSource;
@@ -140,7 +140,7 @@ public abstract class BalsaApplication
         this.listener(new BalsaSCGIListener());
         this.sessionEngine(new SimpleSessionEngine());
         this.viewEngine(new BalsaViewEngineImpl());
-        this.securityEngine(new DummySecurityEngine());
+        this.securityEngine(new SecurityEngineImpl());
         this.publicResourceEngine(new PublicResourceEngineImpl());
     }
 

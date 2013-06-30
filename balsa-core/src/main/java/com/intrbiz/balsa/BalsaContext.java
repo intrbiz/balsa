@@ -600,6 +600,7 @@ public class BalsaContext
     public boolean validRequestToken(String token)
     {
         if (isEmpty(token)) return false;
+        System.out.println("Valid?: " + this.requestToken() + " == " + token);
         return requestToken().equals(token);
     }
 
