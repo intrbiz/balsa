@@ -1,16 +1,12 @@
 package com.intrbiz.balsa;
 
 import static com.intrbiz.Util.isEmpty;
-import static com.intrbiz.util.Hash.asUTF8;
-import static com.intrbiz.util.Hash.sha256;
 
 import java.io.IOException;
 import java.io.StringWriter;
 import java.security.Principal;
 import java.util.Map;
 import java.util.TreeMap;
-
-import org.apache.commons.codec.binary.Base64;
 
 import com.intrbiz.balsa.bean.BeanProvider;
 import com.intrbiz.balsa.engine.security.Credentials;
@@ -592,48 +588,47 @@ public class BalsaContext
     }
 
     /**
-     * Check that the given token matches the request token
+     * Check that the given access token is valid
      * 
      * @param token
      * @return
      */
-    public boolean validRequestToken(String token)
+    public boolean validAccessToken(String token)
     {
         if (isEmpty(token)) return false;
-        System.out.println("Valid?: " + this.requestToken() + " == " + token);
-        return requestToken().equals(token);
+        return this.application.getSecurityEngine().validAccess(token);
     }
 
     /**
-     * Check that the given token matches sha256(request token + path)
+     * Check that the given access token is valid for the current path
      * 
      * @param token
      * @return
      */
-    public boolean validRequestPathToken(String token)
+    public boolean validAccessTokenForURL(String token)
     {
         if (isEmpty(token)) return false;
-        return requestPathToken(request().getPathInfo()).equals(token);
+        return this.application.getSecurityEngine().validAccessForURL(this.request.getPathInfo(), token);
     }
 
     /**
-     * Get the request token for the given path which is used to verify a request is valid
+     * Generate an access token which is valid for the given URL
      * 
      * @param path
      * @return
      */
-    public String requestPathToken(String path)
+    public String generateAccessTokenForURL(String path)
     {
-        return Base64.encodeBase64String(sha256(asUTF8(path), session().requestToken()));
+        return this.application.getSecurityEngine().generateAccessTokenForURL(path);
     }
     
     /**
-     * Get the request token which is used to verify if a request is valid
+     * Generate an access token
      * @return
      */
-    public String requestToken()
+    public String generateAccessToken()
     {
-        return session().encodedRequestToken();
+        return this.application.getSecurityEngine().generateAccessToken();
     }
 
     /**

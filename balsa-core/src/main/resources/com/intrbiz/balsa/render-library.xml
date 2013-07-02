@@ -17,7 +17,7 @@
 	
 	<renderer component="com.intrbiz.balsa.view.core.data.DataSetComponent"      classname="com.intrbiz.balsa.view.core.data.DataSetRenderer" />
 	
-	<renderer component="com.intrbiz.balsa.view.core.security.RequestTokenComponent"      classname="com.intrbiz.balsa.view.core.security.RequestTokenRenderer" />
-	<renderer component="com.intrbiz.balsa.view.core.security.RequestPathTokenComponent"      classname="com.intrbiz.balsa.view.core.security.RequestPathTokenRenderer" />
+	<renderer component="com.intrbiz.balsa.view.core.security.AccessTokenComponent"        classname="com.intrbiz.balsa.view.core.security.AccessTokenRenderer" />
+	<renderer component="com.intrbiz.balsa.view.core.security.AccessTokenForURLComponent"  classname="com.intrbiz.balsa.view.core.security.AccessTokenForURLRenderer" />
 	
 </render-library>

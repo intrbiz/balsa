@@ -10,7 +10,7 @@ public class RequestPathTokenFunction extends Function
 {
     public RequestPathTokenFunction()
     {
-        super("request_path_token");
+        super("access_token_for_url");
     }
 
     @Override
@@ -25,7 +25,7 @@ public class RequestPathTokenFunction extends Function
             if (val instanceof String) path = (String) val; 
         }
         //
-        return BalsaContext.Balsa().requestPathToken(path);
+        return BalsaContext.Balsa().generateAccessTokenForURL(path);
     }
 
 }

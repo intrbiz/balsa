@@ -5,14 +5,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.intrbiz.balsa.engine.impl.route.exec.ValidRequestBuilder;
+import com.intrbiz.balsa.engine.impl.route.exec.ValidAccessTokenBuilder;
 
 /**
  * Verify the request token before executing
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@IsSecurityCheck(ValidRequestBuilder.class)
-public @interface RequireValidRequestToken {
-    Param value() default @Param("request-token");
+@Target({ElementType.METHOD, ElementType.TYPE})
+@IsSecurityCheck(ValidAccessTokenBuilder.class)
+public @interface RequireValidAccessTokenForURL {
+    Param value() default @Param("key");
 }

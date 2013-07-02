@@ -135,7 +135,7 @@ public abstract class BalsaApplication
         //
         this.expressExtensions.addFunction("path", PathFunction.class);
         this.expressExtensions.addFunction("public", PublicFunction.class);
-        this.expressExtensions.addFunction("request_path_token", RequestPathTokenFunction.class);
+        this.expressExtensions.addFunction("access_token_for_url", RequestPathTokenFunction.class);
         /* Default Engines */
         this.listener(new BalsaSCGIListener());
         this.sessionEngine(new SimpleSessionEngine());

@@ -88,13 +88,6 @@ public class SimpleSessionEngine extends AbstractBalsaEngine implements SessionE
         return "ba15a" + Long.toHexString(this.idRandom.nextLong()) + Long.toHexString(this.idCounter.incrementAndGet() ^ this.idCounterMask) + Long.toHexString(this.idRandom.nextLong());
     }
     
-    private byte[] makeRequestToken()
-    {
-        byte[] token = new byte[32];
-        this.idRandom.nextBytes(token);
-        return token;
-    }
-    
     protected BalsaSession newSession(String sessionId)
     {
         if (logger.isTraceEnabled()) logger.trace("Creating session: " + sessionId);
@@ -104,7 +97,6 @@ public class SimpleSessionEngine extends AbstractBalsaEngine implements SessionE
         TimerContext timer = this.sessionLifeTimer.time();
         //
         SimpleSession session = new SimpleSession(this.application, sessionId, this.poolSize, timer);
-        session.setRequestToken(this.makeRequestToken());
         //
         this.sessions.put(sessionId, session);
         //

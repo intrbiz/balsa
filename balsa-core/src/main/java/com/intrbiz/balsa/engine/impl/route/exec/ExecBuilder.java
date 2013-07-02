@@ -33,9 +33,9 @@ import com.intrbiz.metadata.Post;
 import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.RequirePermissions;
 import com.intrbiz.metadata.RequireSession;
+import com.intrbiz.metadata.RequireValidAccessToken;
+import com.intrbiz.metadata.RequireValidAccessTokenForURL;
 import com.intrbiz.metadata.RequireValidPrincipal;
-import com.intrbiz.metadata.RequireValidRequestPathToken;
-import com.intrbiz.metadata.RequireValidRequestToken;
 import com.intrbiz.metadata.XML;
 import com.intrbiz.util.compiler.CompilerTool;
 
@@ -192,15 +192,15 @@ public class ExecBuilder
         return this.securityCheck(new PermissionsBuilder().permission(permissions));
     }
     
-    public ExecBuilder validRequestToken(String parameterName)
+    public ExecBuilder validAccessToken(String parameterName)
     {
-        this.securityCheck(new ValidRequestBuilder(parameterName));
+        this.securityCheck(new ValidAccessTokenBuilder(parameterName));
         return this;
     }
     
-    public ExecBuilder validRequestPathToken(String parameterName)
+    public ExecBuilder validAccessTokenForURL(String parameterName)
     {
-        this.securityCheck(new ValidRequestBuilder(parameterName).path());
+        this.securityCheck(new ValidAccessTokenBuilder(parameterName).path());
         return this;
     }
     
@@ -586,25 +586,25 @@ public class ExecBuilder
         }
         
         @Get("/csrf/1")
-        @RequireValidRequestToken()
+        @RequireValidAccessToken()
         public void csrfCheck1()
         {
         }
         
         @Get("/csrf/2")
-        @RequireValidRequestToken(@Param("token"))
+        @RequireValidAccessToken(@Param("token"))
         public void csrfCheck2()
         {
         }
         
         @Get("/csrf/3")
-        @RequireValidRequestPathToken(value = @Param("token"))
+        @RequireValidAccessTokenForURL(value = @Param("token"))
         public void csrfCheck3()
         {
         }
         
         @Get("/csrf/4")
-        @RequireValidRequestPathToken()
+        @RequireValidAccessTokenForURL()
         @RequireSession()
         public void csrfCheck4()
         {

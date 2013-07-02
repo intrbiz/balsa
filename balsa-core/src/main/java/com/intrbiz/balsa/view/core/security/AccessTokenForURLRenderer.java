@@ -8,18 +8,19 @@ import com.intrbiz.balsa.util.BalsaWriter;
 import com.intrbiz.balsa.view.component.Component;
 import com.intrbiz.balsa.view.core.generic.GenericRenderer;
 
-public class RequestTokenRenderer extends GenericRenderer
+public class AccessTokenForURLRenderer extends GenericRenderer
 {
     @Override
     public void encodeStart(Component component, BalsaContext context, BalsaWriter out) throws IOException, BalsaException
     {
-        String id = ((RequestTokenComponent) component).getId();
+        String id = ((AccessTokenForURLComponent) component).getId();
+        String path = ((AccessTokenForURLComponent) component).getPath();
         //
         out.openStartTagPad("input");
         out.attribute("type", "hidden");
         out.attribute("id", id);
         out.attribute("name", id);
-        out.attribute("value", context.requestToken());
+        out.attribute("value", context.generateAccessTokenForURL(path));
         out.closeStartTagLn();
         out.endTagLn("input");
     }

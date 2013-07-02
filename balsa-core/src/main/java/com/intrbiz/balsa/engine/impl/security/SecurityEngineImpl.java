@@ -19,7 +19,7 @@ import com.intrbiz.crypto.cookie.CryptoCookie.Flag;
 
 public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityEngine
 {
-    protected SecretKey applicationKey = SecretKey.generate();
+    protected SecretKey applicationKey;
     
     protected int tokenLength;
     
@@ -35,6 +35,7 @@ public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityE
     {
         super();
         // defaults
+        this.applicationKey = SecretKey.generate();
         this.tokenLength = 32;
         this.lifetime = 1;
         this.lifetimeUnit = TimeUnit.HOURS;

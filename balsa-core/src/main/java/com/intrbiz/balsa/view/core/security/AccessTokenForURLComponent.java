@@ -4,9 +4,9 @@ import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.view.component.Component;
 import com.intrbiz.express.value.ValueExpression;
 
-public class RequestPathTokenComponent extends Component
+public class AccessTokenForURLComponent extends Component
 {
-    public RequestPathTokenComponent()
+    public AccessTokenForURLComponent()
     {
         super();
     }
@@ -19,7 +19,7 @@ public class RequestPathTokenComponent extends Component
             Object val = ve.get(BalsaContext.Balsa().getExpressContext(), this);
             if (val instanceof String) return (String) val;
         }
-        return "request-token";
+        return "key";
     }
     
     public String getPath()

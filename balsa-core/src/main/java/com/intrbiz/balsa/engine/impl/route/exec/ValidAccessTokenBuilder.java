@@ -5,10 +5,10 @@ import java.lang.annotation.Annotation;
 import com.intrbiz.balsa.engine.impl.route.exec.model.ExecutorClass;
 import com.intrbiz.balsa.error.security.BalsaInvalidRequest;
 import com.intrbiz.balsa.util.Util;
-import com.intrbiz.metadata.RequireValidRequestPathToken;
-import com.intrbiz.metadata.RequireValidRequestToken;
+import com.intrbiz.metadata.RequireValidAccessTokenForURL;
+import com.intrbiz.metadata.RequireValidAccessToken;
 
-public class ValidRequestBuilder extends SecurityBuilder
+public class ValidAccessTokenBuilder extends SecurityBuilder
 {
     private enum VerifyMethod {
         SIMPLE, PATH
@@ -18,12 +18,12 @@ public class ValidRequestBuilder extends SecurityBuilder
 
     private String parameter;
 
-    public ValidRequestBuilder()
+    public ValidAccessTokenBuilder()
     {
         super();
     }
 
-    public ValidRequestBuilder(String name)
+    public ValidAccessTokenBuilder(String name)
     {
         this.parameter = name;
     }
@@ -31,27 +31,27 @@ public class ValidRequestBuilder extends SecurityBuilder
     @Override
     public void fromAnnotation(Annotation a)
     {
-        if (a instanceof RequireValidRequestToken)
+        if (a instanceof RequireValidAccessToken)
         {
-            RequireValidRequestToken vr = (RequireValidRequestToken) a;
+            RequireValidAccessToken vr = (RequireValidAccessToken) a;
             this.method = VerifyMethod.SIMPLE;
             this.parameter = vr.value().value();
         }
-        else if (a instanceof RequireValidRequestPathToken)
+        else if (a instanceof RequireValidAccessTokenForURL)
         {
-            RequireValidRequestPathToken vr = (RequireValidRequestPathToken) a;
+            RequireValidAccessTokenForURL vr = (RequireValidAccessTokenForURL) a;
             this.method = VerifyMethod.PATH;
             this.parameter = vr.value().value();
         }
     }
 
-    public ValidRequestBuilder path()
+    public ValidAccessTokenBuilder path()
     {
         this.method = VerifyMethod.PATH;
         return this;
     }
 
-    public ValidRequestBuilder parameter(String name)
+    public ValidAccessTokenBuilder parameter(String name)
     {
         this.parameter = name;
         return this;
@@ -68,11 +68,11 @@ public class ValidRequestBuilder extends SecurityBuilder
         sb.append("    String requestToken = context.param(\"").append(this.parameter).append("\");\r\n");
         if (VerifyMethod.SIMPLE.equals(this.method))
         {
-            sb.append("    context.require(context.validRequestToken(requestToken), new BalsaInvalidRequest());\r\n");
+            sb.append("    context.require(context.validAccessToken(requestToken), new BalsaInvalidRequest());\r\n");
         }
         else if (VerifyMethod.PATH.equals(this.method))
         {
-            sb.append("    context.require(context.validRequestPathToken(requestToken), new BalsaInvalidRequest());\r\n");
+            sb.append("    context.require(context.validAccessTokenForURL(requestToken), new BalsaInvalidRequest());\r\n");
         }
     }
 }

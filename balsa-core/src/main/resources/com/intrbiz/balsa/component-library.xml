@@ -18,7 +18,7 @@
 	
 	<java-component name="data-set" classname="com.intrbiz.balsa.view.core.data.DataSetComponent" />
 	
-	<java-component name="request-token"  classname="com.intrbiz.balsa.view.core.security.RequestTokenComponent" />
-	<java-component name="request-path-token"  classname="com.intrbiz.balsa.view.core.security.RequestPathTokenComponent" />
+	<java-component name="access-token"          classname="com.intrbiz.balsa.view.core.security.AccessTokenComponent" />
+	<java-component name="access-token-for-url"  classname="com.intrbiz.balsa.view.core.security.AccessTokenForURLComponent" />
 	
 </component-library>
