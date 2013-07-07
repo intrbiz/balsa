@@ -435,6 +435,7 @@ public class BalsaContext
     public String url(String url)
     {
         if (url == null) return null;
+        if (url.startsWith("#")) return url;
         if (url.startsWith("//")) return url;
         if (url.indexOf("://") != -1) return url;
         // translate it
