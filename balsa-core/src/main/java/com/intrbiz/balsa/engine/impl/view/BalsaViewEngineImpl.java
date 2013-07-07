@@ -21,6 +21,7 @@ import com.intrbiz.balsa.engine.view.BalsaViewSource;
 import com.intrbiz.balsa.error.view.BalsaViewNotFound;
 import com.intrbiz.cache.IBCache;
 import com.intrbiz.cache.WeakCache;
+import com.intrbiz.express.ExpressException;
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Timer;
 import com.yammer.metrics.core.TimerContext;
@@ -93,6 +94,10 @@ public class BalsaViewEngineImpl extends AbstractBalsaEngine implements ViewEngi
                 return parser.parse(previous, resource, context);
             }
             throw new BalsaException("Failed to find parser for " + resource.getFormat());
+        }
+        catch (ExpressException e)
+        {
+            throw new BalsaViewNotFound("Failed to parse view", e);
         }
         finally
         {
