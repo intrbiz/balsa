@@ -451,8 +451,11 @@ public class BalsaContext
         if (port != 80 && port != 443) sb.append(":").append(port);
         // script path
         String scriptPath = this.request.getScriptName();
-        if (!scriptPath.startsWith("/")) sb.append("/");
-        sb.append(scriptPath);
+        if (scriptPath.length() > 0)
+        {
+            if (!scriptPath.startsWith("/")) sb.append("/");
+            sb.append(scriptPath);
+        }
         // path
         if (!(url.startsWith("/") || scriptPath.endsWith("/"))) sb.append("/");
         sb.append(url);
@@ -471,8 +474,11 @@ public class BalsaContext
         StringBuilder sb = new StringBuilder();
         // script path
         String scriptPath = this.request.getScriptName();
-        if (!scriptPath.startsWith("/")) sb.append("/");
-        sb.append(scriptPath);
+        if (scriptPath.length() > 0)
+        {
+            if (!scriptPath.startsWith("/")) sb.append("/");
+            sb.append(scriptPath);
+        }
         // path
         if (!(path.startsWith("/") || scriptPath.endsWith("/"))) sb.append("/");
         sb.append(path);
