@@ -10,7 +10,7 @@ public class PublicFunction extends Function
 {
     public PublicFunction()
     {
-        super("path");
+        super("public");
     }
 
     @Override
