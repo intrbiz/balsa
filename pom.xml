@@ -111,6 +111,7 @@
 	<module>balsa-archetype</module>
 	<module>balsa-apt</module>
     <module>balsa-data</module>
+    <module>balsa-pegdown</module>
   </modules>
 
 	<repositories>
