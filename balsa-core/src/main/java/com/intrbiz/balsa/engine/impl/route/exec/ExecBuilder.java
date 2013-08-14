@@ -364,9 +364,9 @@ public class ExecBuilder
                 ab.fromAnnotation(argAnno, annos, pt[i]);
                 b.argument(ab);
             }
-            else if (pt[i] == String.class && route.getCompiledAs().length > asIndex )
+            else if (pt[i] == String.class && route.getCompiledPattern().as.length > asIndex )
             {
-                b.parameterArgument(route.getCompiledAs()[asIndex]);
+                b.parameterArgument(route.getCompiledPattern().as[asIndex]);
                 asIndex++;
             }
             else

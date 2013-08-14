@@ -54,15 +54,15 @@ public class RouteEntry implements Comparable<RouteEntry>
     {
         if ("ANY".equals(this.route.getMethod()) || this.route.getMethod().equals(request.getRequestMethod()))
         {
-            Matcher m = this.route.getCompiledPattern().matcher(request.getPathInfo());
+            Matcher m = this.route.getCompiledPattern().pattern.matcher(request.getPathInfo());
             if (m.matches())
             {
                 // extract parameters
-                if (this.route.getCompiledAs().length > 0)
+                if (this.route.getCompiledPattern().as.length > 0)
                 {
-                    for (int i = 0; i < m.groupCount() && i < this.route.getCompiledAs().length; i++)
+                    for (int i = 0; i < m.groupCount() && i < this.route.getCompiledPattern().as.length; i++)
                     {
-                        request.addParameter(new StringParameter(this.route.getCompiledAs()[i], m.group(i + 1)));
+                        request.addParameter(new StringParameter(this.route.getCompiledPattern().as[i], m.group(i + 1)));
                     }
                 }
                 return true;
@@ -75,7 +75,7 @@ public class RouteEntry implements Comparable<RouteEntry>
     {
         if ("ANY".equals(this.route.getMethod()) || this.route.getMethod().equals(request.getRequestMethod()))
         {
-            Matcher m = this.route.getCompiledPattern().matcher(request.getPathInfo());
+            Matcher m = this.route.getCompiledPattern().pattern.matcher(request.getPathInfo());
             if (m.matches())
             {
                 // do we have an exception match

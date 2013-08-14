@@ -21,7 +21,7 @@ import com.intrbiz.metadata.Put;
 public class Route implements Comparable<Route>
 {
     private final String prefix;
-    
+
     private final String method;
 
     private final String pattern;
@@ -34,9 +34,7 @@ public class Route implements Comparable<Route>
 
     private final Router router;
 
-    private Pattern compiledPattern;
-
-    private String[] compiledAs;
+    private CompiledPattern compiledPattern;
 
     private Class<? extends Throwable>[] exceptions = null;
 
@@ -53,8 +51,13 @@ public class Route implements Comparable<Route>
         this.handler = handler;
         this.router = router;
     }
-    
+
     public String prefix()
+    {
+        return this.prefix;
+    }
+    
+    public String getPrefix()
     {
         return this.prefix;
     }
@@ -104,24 +107,14 @@ public class Route implements Comparable<Route>
         this.exceptions = exceptions.value();
     }
 
-    public Pattern getCompiledPattern()
+    public CompiledPattern getCompiledPattern()
     {
         return compiledPattern;
     }
 
-    public void setCompiledPattern(Pattern compiledPattern)
+    public void setCompiledPattern(CompiledPattern compiledPattern)
     {
         this.compiledPattern = compiledPattern;
-    }
-
-    public String[] getCompiledAs()
-    {
-        return compiledAs;
-    }
-
-    public void setCompiledAs(String[] compiledAs)
-    {
-        this.compiledAs = compiledAs;
     }
 
     @Override
@@ -213,7 +206,7 @@ public class Route implements Comparable<Route>
         Order order = method.getAnnotation(Order.class);
         if (order != null) r.setOrder(order.value());
         // compile the pattern
-        compilePattern(prefix, r);
+        r.setCompiledPattern(compilePattern(r.getPrefix(), r.getPattern(), r.isRegex(), r.getAs()));
         return r;
     }
 
@@ -268,52 +261,88 @@ public class Route implements Comparable<Route>
         return s;
     }
 
-    private static final Pattern PARAM_REGEX = Pattern.compile("(\\*\\*)|(\\*)|(\\+)|(:[a-zA-Z0-9_]+)");
+    private static final Pattern PARAM_REGEX2 = Pattern.compile("((?<!\\\\)\\*\\*(?::[A-Za-z0-9_]+)?)|((?<![\\\\*])\\*(?::[A-Za-z0-9_]+)?)|((?<!\\\\)\\+\\+(?::[A-Za-z0-9_]+)?)|((?<![\\\\+])\\+(?::[A-Za-z0-9_]+)?)|((?<![*+\\\\]):[A-Za-z0-9_]+)");
 
-    public static void compilePattern(String prefix, Route route)
+    public static class CompiledPattern
     {
-        if (route.isRegex())
+        public final Pattern pattern;
+
+        public final String[] as;
+
+        public CompiledPattern(Pattern pattern, String[] as)
         {
-            route.setCompiledPattern(Pattern.compile("\\A" + stripTrailingSlash(prefix) + ensureStartingSlash(route.getPattern()) + "\\z"));
-            route.setCompiledAs(route.as);
+            this.pattern = pattern;
+            this.as = as;
         }
-        else
+    }
+    
+    public static CompiledPattern compilePattern(String prefix, String pattern, boolean isRegex, String[] as)
+    {
+        return isRegex ? compileRegexPattern(prefix, pattern, as) : compileBalsaPattern(prefix, pattern);
+    }
+    
+    public static CompiledPattern compileRegexPattern(String prefix, String pattern, String[] as)
+    {
+        return new CompiledPattern(Pattern.compile("\\A" + stripTrailingSlash(prefix) + ensureStartingSlash(pattern) + "\\z"), as);
+    }
+
+    public static CompiledPattern compileBalsaPattern(String prefix, String pattern)
+    {
+        List<String> as = new LinkedList<String>();
+        StringBuilder buffer = new StringBuilder();
+        Matcher m = PARAM_REGEX2.matcher(pattern);
+        int start = 0;
+        while (m.find())
         {
-            String pattern = route.getPattern();
-            List<String> as = new LinkedList<String>();
-            StringBuilder buffer = new StringBuilder();
-            Matcher m = PARAM_REGEX.matcher(pattern);
-            int start = 0;
-            while (m.find())
+            String op = m.group();
+            //
+            buffer.append(pattern.substring(start, m.start()));
+            if ("**".equals(op))
             {
-                String op = m.group();
-                //
-                buffer.append(pattern.substring(start, m.start()));
-                if ("**".equals(op))
-                {
-                    buffer.append(".*");
-                }
-                else if ("*".equals(op))
-                {
-                    buffer.append("[^/]*");
-                }
-                else if ("+".equals(op))
-                {
-                    buffer.append("[^/]+");
-                }
-                else if (op.startsWith(":"))
-                {
-                    buffer.append("([^/]+)");
-                    as.add(m.group().substring(1));
-                }
-                start = m.end();
+                buffer.append(".*");
             }
-            if (start <= pattern.length()) buffer.append(pattern.substring(start));
-            // as
-            route.setCompiledAs(as.toArray(new String[as.size()]));
-            // compile the pattern
-            route.setCompiledPattern(Pattern.compile("\\A" + stripTrailingSlash(prefix) + ensureStartingSlash(buffer.toString()) + "\\z"));
+            else if ("*".equals(op))
+            {
+                buffer.append("[^/]*");
+            }
+            else if ("++".equals(op))
+            {
+                buffer.append(".+");
+            }
+            else if ("+".equals(op))
+            {
+                buffer.append("[^/]+");
+            }
+            else if (op.startsWith("**"))
+            {
+                buffer.append("(.*)");
+                as.add(op.substring(3));
+            }
+            else if (op.startsWith("*"))
+            {
+                buffer.append("([^/]*)");
+                as.add(op.substring(2));
+            }
+            else if (op.startsWith("++"))
+            {
+                buffer.append("(.+)");
+                as.add(op.substring(3));
+            }
+            else if (op.startsWith("+"))
+            {
+                buffer.append("([^/]+)");
+                as.add(op.substring(2));
+            }
+            else if (op.startsWith(":"))
+            {
+                buffer.append("([^/]+)");
+                as.add(op.substring(1));
+            }
+            start = m.end();
         }
+        if (start <= pattern.length()) buffer.append(pattern.substring(start));
+        // compile the pattern
+        return new CompiledPattern(Pattern.compile("\\A" + stripTrailingSlash(prefix) + ensureStartingSlash(buffer.toString()) + "\\z"), as.toArray(new String[as.size()]));
     }
 
     /**
@@ -333,7 +362,7 @@ public class Route implements Comparable<Route>
             return new Route(prefix, "ANY", url.value(), url.regex(), url.as(), method, router);
         }
     }
-    
+
     public static class GetRouteBuilder implements RouteBuilder
     {
         @Override
@@ -343,7 +372,7 @@ public class Route implements Comparable<Route>
             return new Route(prefix, "GET", url.value(), url.regex(), url.as(), method, router);
         }
     }
-    
+
     public static class PostRouteBuilder implements RouteBuilder
     {
         @Override
@@ -353,7 +382,7 @@ public class Route implements Comparable<Route>
             return new Route(prefix, "POST", url.value(), url.regex(), url.as(), method, router);
         }
     }
-    
+
     public static class PutRouteBuilder implements RouteBuilder
     {
         @Override
@@ -363,7 +392,7 @@ public class Route implements Comparable<Route>
             return new Route(prefix, "Put", url.value(), url.regex(), url.as(), method, router);
         }
     }
-    
+
     public static class DeleteRouteBuilder implements RouteBuilder
     {
         @Override
@@ -373,5 +402,4 @@ public class Route implements Comparable<Route>
             return new Route(prefix, "DELETE", url.value(), url.regex(), url.as(), method, router);
         }
     }
-
 }
