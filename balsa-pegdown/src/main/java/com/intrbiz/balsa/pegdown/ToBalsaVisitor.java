@@ -112,7 +112,11 @@ public class ToBalsaVisitor implements Visitor
             this.sections.pop();
         }
         // title ?
-        if (this.title != null)
+        if (this.view.getMetadata().containsAttribute("title"))
+        {
+            this.addAttribute(this.root, "title", (String) this.view.getMetadata().getAttribute("title"));
+        }
+        else if (this.title != null)
         {
             String titleText = this.getText(this.title);
             this.addAttribute(this.root, "title", titleText);

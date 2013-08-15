@@ -92,6 +92,30 @@ public interface BalsaViewSource
         {
             return new BufferedReader(new InputStreamReader(this.openStream(), this.charset != null ? this.charset : Charset.defaultCharset()));
         }
+        
+        /**
+         * Slurp the reader into memory
+         * @return
+         */
+        public String slurp() throws IOException
+        {
+            Reader reader = this.openReader();
+            StringBuilder sb = new StringBuilder();
+            try
+            {
+                char[] b = new char[4096];
+                int r;
+                while ((r = reader.read(b)) != -1)
+                {
+                    sb.append(b, 0, r);
+                }
+            }
+            finally
+            {
+                reader.close();
+            }
+            return sb.toString();
+        }
     }
 
     /**

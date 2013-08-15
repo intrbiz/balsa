@@ -1,7 +1,6 @@
 package com.intrbiz.balsa;
 
 import java.io.IOException;
-import java.io.Reader;
 
 import org.parboiled.Parboiled;
 import org.pegdown.Extensions;
@@ -9,6 +8,7 @@ import org.pegdown.Parser;
 import org.pegdown.ast.RootNode;
 import org.pegdown.plugins.PegDownPlugins;
 
+import com.intrbiz.balsa.engine.impl.view.ViewMetadataParser;
 import com.intrbiz.balsa.engine.view.BalsaView;
 import com.intrbiz.balsa.engine.view.BalsaViewParser;
 import com.intrbiz.balsa.engine.view.BalsaViewSource.Resource;
@@ -17,6 +17,27 @@ import com.intrbiz.balsa.view.component.View;
 
 public class PegdownViewParser implements BalsaViewParser
 {
+    private boolean parseMetadata = true;
+
+    public PegdownViewParser()
+    {
+    }
+
+    public PegdownViewParser(boolean parseMetadata)
+    {
+        this.parseMetadata = parseMetadata;
+    }
+
+    public boolean isParseMetadata()
+    {
+        return parseMetadata;
+    }
+
+    public void setParseMetadata(boolean parseMetadata)
+    {
+        this.parseMetadata = parseMetadata;
+    }
+
     @Override
     public BalsaView parse(BalsaView previous, Resource resource, BalsaContext context) throws BalsaException
     {
@@ -25,7 +46,10 @@ public class PegdownViewParser implements BalsaViewParser
             View view = this.createView(previous, resource, context);
             // parse
             Parser parser = Parboiled.createParser(Parser.class, Extensions.TABLES | Extensions.AUTOLINKS, 2000L, Parser.DefaultParseRunnerProvider, PegDownPlugins.NONE);
-            RootNode root = parser.parse(slurp(resource.openReader()).toCharArray());
+            //
+            String viewText = resource.slurp();
+            if (this.parseMetadata) viewText = ViewMetadataParser.extractMetadata(viewText, view.getMetadata());
+            RootNode root = parser.parse(viewText.toCharArray());
             // visit
             ToBalsaVisitor visitor = new ToBalsaVisitor(view);
             visitor.startDocument();
@@ -44,24 +68,5 @@ public class PegdownViewParser implements BalsaViewParser
     protected View createView(BalsaView previous, Resource resource, BalsaContext context)
     {
         return new View(previous);
-    }
-
-    private String slurp(Reader reader) throws IOException
-    {
-        StringBuilder sb = new StringBuilder();
-        try
-        {
-            char[] b = new char[4096];
-            int r;
-            while ((r = reader.read(b)) != -1)
-            {
-                sb.append(b, 0, r);
-            }
-        }
-        finally
-        {
-            reader.close();
-        }
-        return sb.toString();
     }
 }
