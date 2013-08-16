@@ -588,6 +588,18 @@ public abstract class BalsaApplication
      * @throws Exception
      */
     protected abstract void setup() throws Exception;
+    
+    // startup hooks
+    
+    protected void startListener() throws Exception
+    {
+        logger.info("Starting listener.");
+    }
+    
+    protected void startComplete() throws Exception
+    {
+        logger.info("Startup Complete.");
+    }
 
     /**
      * Start the Balsa application
