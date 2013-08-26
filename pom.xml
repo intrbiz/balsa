@@ -112,8 +112,9 @@
 	<module>balsa-apt</module>
     <module>balsa-data</module>
     <module>balsa-pegdown</module>
+    <module>balsa-test</module>
   </modules>
-
+<!--
 	<repositories>
 		<repository>
 			<id>snapshots</id>
@@ -139,5 +140,6 @@
 			<name>Intrbiz</name>
 			<url>http://build.intrbiz.net/nexus/content/repositories/releases</url>
 		</repository>
-	</distributionManagement>	
+	</distributionManagement>
+-->
 </project>
