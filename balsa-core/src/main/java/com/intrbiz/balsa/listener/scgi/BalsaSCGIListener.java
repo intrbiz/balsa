@@ -30,6 +30,8 @@ import com.yammer.metrics.core.TimerContext;
 
 public class BalsaSCGIListener extends BalsaListener
 {
+    public static final int DEFAULT_PORT = 8090;
+    
     private SCGIListener listener;
     
     private final Counter totalRequests = Metrics.newCounter(BalsaListener.class, "total-requests");
@@ -48,7 +50,7 @@ public class BalsaSCGIListener extends BalsaListener
 
     public BalsaSCGIListener()
     {
-        super();
+        super(DEFAULT_PORT);
     }
 
     public BalsaSCGIListener(int port, int poolSize)

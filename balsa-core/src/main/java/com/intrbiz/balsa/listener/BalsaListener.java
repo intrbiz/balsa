@@ -6,30 +6,24 @@ import com.intrbiz.balsa.engine.impl.AbstractBalsaEngine;
 
 public abstract class BalsaListener extends AbstractBalsaEngine implements BalsaEngine
 {
-    public static final int DEFAULT_PORT = 8090;
-
     public static final int DEFAULT_POOL_SIZE = 16;
 
-    private int port = DEFAULT_PORT;
+    private int port;
 
-    private int poolSize = DEFAULT_POOL_SIZE;
+    private int poolSize;
 
     private BalsaProcessor processor;
 
-    public BalsaListener()
+    protected BalsaListener(int port)
     {
         super();
-    }
-
-    public BalsaListener(int port)
-    {
-        this();
         this.port = port;
+        this.poolSize = DEFAULT_POOL_SIZE;
     }
 
     public BalsaListener(int port, int poolSize)
     {
-        this();
+        super();
         this.port = port;
         this.poolSize = poolSize;
     }
