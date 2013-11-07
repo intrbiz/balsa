@@ -615,7 +615,7 @@ public abstract class BalsaApplication
         if (this.getListener() == null) throw new BalsaException("The Balsa application must have a listener");
         if (this.getViewEngine() == null) throw new BalsaException("The Balsa application must have a view engine");
         // Set the common args
-        this.getListener().setPort(this.getIntArgument("port", BalsaListener.DEFAULT_PORT));
+        this.getListener().setPort(this.getIntArgument("port", this.getListener().getDefaultPort()));
         this.getListener().setPoolSize(this.getIntArgument("workers", BalsaListener.DEFAULT_POOL_SIZE));
         if (this.getSessionEngine() != null)
         {

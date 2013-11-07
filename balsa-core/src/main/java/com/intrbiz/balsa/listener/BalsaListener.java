@@ -57,6 +57,8 @@ public abstract class BalsaListener extends AbstractBalsaEngine implements Balsa
     {
         this.processor = processor;
     }
+    
+    public abstract int getDefaultPort();
 
     public abstract void start() throws BalsaException;
 
