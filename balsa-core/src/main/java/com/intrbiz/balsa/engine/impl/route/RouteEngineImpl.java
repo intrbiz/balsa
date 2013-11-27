@@ -2,7 +2,6 @@ package com.intrbiz.balsa.engine.impl.route;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -115,20 +114,17 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
     {
         // ROUTE!
         BalsaRequest request = context.request();
-        // find the prefix
-        PrefixContainer prefix = null;
-        for (Iterator<PrefixContainer> i = this.prefixes.iterator(); i.hasNext();)
+        // try all prefixes
+        for (PrefixContainer prefix : this.prefixes)
         {
-            prefix = i.next();
-            if (prefix.match(request)) break;
-        }
-        if (prefix != null)
-        {
-            RouteEntry handler = prefix.getHandler(request);
-            if (handler != null)
+            if (prefix.match(request))
             {
-                handler.execute(context);
-                return;
+                RouteEntry handler = prefix.getHandler(request);
+                if (handler != null)
+                {
+                    handler.execute(context);
+                    return;
+                }    
             }
         }
         throw new BalsaNotFound();
@@ -140,21 +136,17 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
         context.response().abortOnError(t);
         // Route the error
         BalsaRequest request = context.request();
-        // find the prefix
-        PrefixContainer prefix = null;
-        Iterator<PrefixContainer> i = this.prefixes.iterator();
-        while (i.hasNext())
+        // try all prefixes
+        for (PrefixContainer prefix : this.prefixes)
         {
-            prefix = i.next();
-            if (prefix.match(request)) break;
-        }
-        if (prefix != null)
-        {
-            RouteEntry handler = prefix.getExceptionHandler(request, t);
-            if (handler != null)
+            if (prefix.match(request))
             {
-                handler.executeException(context);
-                return;
+                RouteEntry handler = prefix.getExceptionHandler(request, t);
+                if (handler != null)
+                {
+                    handler.executeException(context);
+                    return;
+                }    
             }
         }
         // We cannot handle the error captain
