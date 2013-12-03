@@ -113,6 +113,7 @@
     <module>balsa-data</module>
     <module>balsa-pegdown</module>
     <module>balsa-test</module>
+    <module>balsa-packaging</module>
   </modules>
 <!--
 	<repositories>
