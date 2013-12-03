@@ -53,6 +53,7 @@ public class Balsa
         }
         catch (Exception e)
         {
+            e.printStackTrace();
             error("Error starting the application:\n\t" + e.getMessage());
         }
     }
