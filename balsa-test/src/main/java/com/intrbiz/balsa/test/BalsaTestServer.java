@@ -4,8 +4,6 @@ package com.intrbiz.balsa.test;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.security.SecureRandom;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
@@ -34,8 +32,6 @@ public class BalsaTestServer<T extends BalsaApplication> implements TestRule
     
     private Level logLevel = Level.TRACE;
     
-    private final Map<String, String> arguments = new HashMap<String, String>();
-    
     private T application;
     
     private int port = 0;
@@ -45,17 +41,11 @@ public class BalsaTestServer<T extends BalsaApplication> implements TestRule
         super();
         this.appClass = appClass;
         this.port = this.randomPort();
-        this.defaultArguments();
     }
     
     public Class<? extends BalsaApplication> getAppClass()
     {
         return this.appClass;
-    }
-    
-    public Map<String, String> getArguments()
-    {
-        return this.arguments;
     }
     
     /**
@@ -66,15 +56,6 @@ public class BalsaTestServer<T extends BalsaApplication> implements TestRule
     public BalsaTestServer<T> logLevel(Level level)
     {
         this.logLevel = level;
-        return this;
-    }
-    
-    /**
-     * Set an application argument
-     */
-    public BalsaTestServer<T> argument(String name, String value)
-    {
-        this.arguments.put(name, value);
         return this;
     }
     
@@ -131,10 +112,9 @@ public class BalsaTestServer<T extends BalsaApplication> implements TestRule
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(this.logLevel);
         // set the port
-        this.argument("port", String.valueOf(this.port));
+        System.setProperty("balsa.scgi.port", String.valueOf(this.port));
         // start the application
         this.application = this.appClass.newInstance();
-        this.application.arguments(this.arguments);
         this.application.start();
     }
     
@@ -147,11 +127,6 @@ public class BalsaTestServer<T extends BalsaApplication> implements TestRule
     }
     
     // helpers
-    
-    protected void defaultArguments()
-    {
-        this.argument("views", System.getProperty("balsa.views", "src/main/views"));
-    }
     
     protected int choosePort()
     {
