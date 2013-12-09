@@ -17,7 +17,11 @@ public class FileViewSource implements BalsaViewSource
 {
     private Logger logger = Logger.getLogger(FileViewSource.class);
     
-    public static final String DEFAULT_VIEW_PATH = "views";
+    public static final String PROD_VIEW_PATH = "views";
+    
+    public static final String TEST_VIEW_PATH = "views";
+    
+    public static final String DEV_VIEW_PATH = "src/main/views";
     
     public static final String DEFAULT_EXTENSION = "xml";
     

@@ -1,6 +1,7 @@
 package com.intrbiz.balsa;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -9,7 +10,10 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 import com.intrbiz.balsa.bean.BeanFactory;
 import com.intrbiz.balsa.bean.BeanProvider;
@@ -37,7 +41,9 @@ import com.intrbiz.balsa.express.TitleFunction;
 import com.intrbiz.balsa.listener.BalsaFilter;
 import com.intrbiz.balsa.listener.BalsaListener;
 import com.intrbiz.balsa.listener.BalsaProcessor;
+import com.intrbiz.balsa.listener.filter.PublicResourceFilter;
 import com.intrbiz.balsa.listener.filter.SessionFilter;
+import com.intrbiz.balsa.listener.http.BalsaHTTPListener;
 import com.intrbiz.balsa.listener.processor.FilterProcessor;
 import com.intrbiz.balsa.listener.processor.RouteProcessor;
 import com.intrbiz.balsa.listener.scgi.BalsaSCGIListener;
@@ -56,11 +62,6 @@ public abstract class BalsaApplication
     private Logger logger = Logger.getLogger(BalsaApplication.class);
 
     /**
-     * Application arguments
-     */
-    private final Map<String, String> arguments = new HashMap<String, String>();
-
-    /**
      * Bean providers
      */
     private final Map<String, BeanProvider<?>> models = new HashMap<String, BeanProvider<?>>();
@@ -73,7 +74,7 @@ public abstract class BalsaApplication
     /**
      * The listener
      */
-    private BalsaListener listener;
+    private final Map<String, BalsaListener> listeners = new HashMap<String, BalsaListener>();
 
     /**
      * The routing engine
@@ -116,12 +117,9 @@ public abstract class BalsaApplication
      */
     private final ExpressExtensionRegistry expressExtensions = new ExpressExtensionRegistry("balsa").addSubRegistry(ExpressExtensionRegistry.getDefaultRegistry());
     
-    private final String[] templates = this.myTemplates();
+    private String[] templates = new String[0];
     
-    private final String[] myTemplates()
-    {
-        return new String[0];
-    }
+    private String env = "dev";
 
     public BalsaApplication()
     {
@@ -132,94 +130,9 @@ public abstract class BalsaApplication
         this.expressExtensions.addFunction(new PathInfoFunction());
         this.expressExtensions.addFunction(new TitleFunction());
         this.expressExtensions.addFunction(new RequestTokenFunction());
-        //
         this.expressExtensions.addFunction("path", PathFunction.class);
         this.expressExtensions.addFunction("public", PublicFunction.class);
         this.expressExtensions.addFunction("access_token_for_url", RequestPathTokenFunction.class);
-        /* Default Engines */
-        this.listener(new BalsaSCGIListener());
-        this.sessionEngine(new SimpleSessionEngine());
-        this.viewEngine(new BalsaViewEngineImpl());
-        this.securityEngine(new SecurityEngineImpl());
-        this.publicResourceEngine(new PublicResourceEngineImpl());
-    }
-
-    /**
-     * Get all application arguments
-     * 
-     * @return returns Map<String,String>
-     */
-    public Map<String, String> getArguments()
-    {
-        return arguments;
-    }
-
-    /**
-     * Get an application argument
-     * 
-     * @param name
-     *            The argument name
-     * @return returns String
-     */
-    public String getArgument(String name)
-    {
-        return this.arguments.get(name);
-    }
-
-    /**
-     * this.routingEngine.s Get an application argument, returning the default value if the argument is null
-     * 
-     * @param name
-     *            The argument name
-     * @param def
-     *            The argument default value
-     * @return returns String
-     */
-    public String getArgument(String name, String def)
-    {
-        String val = this.arguments.get(name);
-        if (val == null) return def;
-        return val;
-    }
-
-    /**
-     * Get an application argument and parse it as an int, returning the default value if the argument is null
-     * 
-     * @param name
-     *            The argument name
-     * @param def
-     *            The argument default value
-     * @return returns int
-     */
-    public int getIntArgument(String name, int def)
-    {
-        String val = this.arguments.get(name);
-        if (val == null) return def;
-        return Integer.parseInt(val);
-    }
-
-    /**
-     * Set an application argument
-     * 
-     * @param name
-     *            The argument name
-     * @param value
-     *            The argument value
-     */
-    public void argument(String name, String value)
-    {
-        this.arguments.put(name, value);
-    }
-
-    /**
-     * Set all application arguments
-     * 
-     * @param arguments
-     *            The arguments
-     */
-    public void arguments(Map<String, String> arguments)
-    {
-        this.arguments.putAll(arguments);
     }
 
     /**
@@ -227,9 +140,9 @@ public abstract class BalsaApplication
      * 
      * @return returns BalsaListener
      */
-    public BalsaListener getListener()
+    public Collection<BalsaListener> getListeners()
     {
-        return listener;
+        return this.listeners.values();
     }
 
     /**
@@ -240,8 +153,11 @@ public abstract class BalsaApplication
      */
     public void listener(BalsaListener listener)
     {
-        this.listener = listener;
-        if (this.listener != null) this.listener.setBalsaApplication(this);
+        if (listener != null)
+        {
+            listener.setBalsaApplication(this);
+            this.listeners.put(listener.getListenerType(), listener);
+        }
     }
 
     /**
@@ -322,26 +238,47 @@ public abstract class BalsaApplication
         if (this.viewEngine != null) this.viewEngine.setBalsaApplication(this);
     }
     
-    
-    
+    /**
+     * The view paths
+     */
     public List<File> getViewPath()
     {
         return Collections.unmodifiableList(this.viewPath);
     }
     
+    /**
+     * Add a view path
+     */
     public void viewPath(File path)
     {
         this.viewPath.add(path);
     }
     
+    /**
+     * The application templates
+     */
     public String[] templates()
     {
         return this.templates;
     }
     
+    /**
+     * The application templates
+     */
     public String[] getTemplates()
     {
         return this.templates;
+    }
+    
+    /**
+     * Add an application template
+     */
+    public void template(String template)
+    {
+        String[] s = new String[this.templates.length + 1];
+        System.arraycopy(this.templates, 0, s, 0, this.templates.length);
+        s[s.length] = template;
+        this.templates = s;
     }
     
     /**
@@ -577,6 +514,31 @@ public abstract class BalsaApplication
     {
         return expressExtensions.addDecorator(name, entityType, decoratorClass);
     }
+    
+    public String getEnv()
+    {
+        return this.env;
+    }
+    
+    public void setEnv(String env)
+    {
+        this.env = env;
+    }
+    
+    public boolean isDevEnv()
+    {
+        return "dev".equals(this.getEnv());
+    }
+    
+    public boolean isTestEnv()
+    {
+        return "test".equals(this.getEnv());
+    }
+    
+    public boolean isProdEnv()
+    {
+        return "prod".equals(this.getEnv());
+    }
 
     /*
      * Life cycle
@@ -588,18 +550,6 @@ public abstract class BalsaApplication
      * @throws Exception
      */
     protected abstract void setup() throws Exception;
-    
-    // startup hooks
-    
-    protected void startListener() throws Exception
-    {
-        logger.info("Starting listener.");
-    }
-    
-    protected void startComplete() throws Exception
-    {
-        logger.info("Startup Complete.");
-    }
 
     /**
      * Start the Balsa application
@@ -609,62 +559,128 @@ public abstract class BalsaApplication
      */
     public final void start() throws Exception
     {
+        // env config parameter
+        this.env = System.getProperty("balsa.env", "dev");
+        // configure logging
+        this.configureLogging();
+        // defaults
+        this.setupDefaultEngines();
+        this.setupDefaultListeners();
         // Setup the app
         this.setup();
         // Check we have stuff
-        if (this.getListener() == null) throw new BalsaException("The Balsa application must have a listener");
+        if (this.getListeners().isEmpty()) throw new BalsaException("The Balsa application must have a listener");
         if (this.getViewEngine() == null) throw new BalsaException("The Balsa application must have a view engine");
-        // Set the common args
-        this.getListener().setPort(this.getIntArgument("port", this.getListener().getDefaultPort()));
-        this.getListener().setPoolSize(this.getIntArgument("workers", BalsaListener.DEFAULT_POOL_SIZE));
+        // configure the listeners
+        for (BalsaListener listener : this.getListeners())
+        {
+            listener.setPort(Integer.getInteger("balsa." + listener.getListenerType() + ".port", listener.getDefaultPort()));
+            listener.setPoolSize(Integer.getInteger("balsa." + listener.getListenerType() + ".workers", Integer.getInteger("balsa.workers", BalsaListener.DEFAULT_POOL_SIZE)));
+        }
+        // configure the session engine
         if (this.getSessionEngine() != null)
         {
-            this.getSessionEngine().setPoolSize(this.getIntArgument("workers", BalsaListener.DEFAULT_POOL_SIZE));
-            this.getSessionEngine().setSessionLifetime(this.getIntArgument("session-lifetime", SessionEngine.DEFAULT_SESSION_LIFETIME));
+            this.getSessionEngine().setPoolSize(Runtime.getRuntime().availableProcessors() * 2);
+            this.getSessionEngine().setSessionLifetime(Integer.getInteger("balsa.session-lifetime", SessionEngine.DEFAULT_SESSION_LIFETIME));
         }
-        this.viewPath(new File(this.getArgument("views", FileViewSource.DEFAULT_VIEW_PATH)));
-        // if in development mode
-        if ("true".equalsIgnoreCase(this.getArgument("dev", "false")))
+        // settings based on environment
+        if (this.isDevEnv())
         {
-            // disable view caching
-            this.viewEngine.cacheOff();
+            // development settings
+            this.viewPath(new File(System.getProperty("balsa.view.path", FileViewSource.DEV_VIEW_PATH)));
+            this.getViewEngine().cacheOff();
+        }
+        else if (this.isTestEnv())
+        {
+            // test settings
+            this.viewPath(new File(System.getProperty("balsa.view.path", FileViewSource.TEST_VIEW_PATH)));
+        }
+        else if (this.isProdEnv())
+        {
+            // production settings
+            this.viewPath(new File(System.getProperty("balsa.view.path", FileViewSource.PROD_VIEW_PATH)));
         }
         // Construct the processor chain
-        this.getListener().setProcessor(this.constructProcessingChain());
+        BalsaProcessor proc = this.constructProcessingChain();
+        logger.debug("Balsa processing chain: " + proc);
+        for (BalsaListener listener : this.getListeners())
+        {
+            listener.setProcessor(proc);
+        }
         // Start the session engine
         if (this.getSessionEngine() != null) this.getSessionEngine().start();
         // Start the view engine
         this.getViewEngine().start();
-        // Start the listener
-        this.getListener().start();
+        // Start the listeners
+        for (BalsaListener listener : this.getListeners())
+        {
+            listener.start();
+        }
     }
 
-    private BalsaProcessor constructProcessingChain()
+    protected BalsaProcessor constructProcessingChain()
     {
         return this.constructHeadFilterChain(this.constructFilterChain(this.filters(), this.constructTailFilterChain(new RouteProcessor(this.getRoutingEngine()))));
     }
 
-    private BalsaProcessor constructHeadFilterChain(BalsaProcessor processor)
+    protected BalsaProcessor constructHeadFilterChain(BalsaProcessor processor)
     {
         BalsaProcessor head = processor;
         head = new FilterProcessor(new SessionFilter(), head);
         return head;
     }
 
-    private BalsaProcessor constructTailFilterChain(BalsaProcessor processor)
+    protected BalsaProcessor constructTailFilterChain(BalsaProcessor processor)
     {
         return processor;
     }
 
-    private BalsaProcessor constructFilterChain(List<BalsaFilter> filters, BalsaProcessor processor)
+    protected BalsaProcessor constructFilterChain(List<BalsaFilter> filters, BalsaProcessor processor)
     {
         BalsaProcessor head = processor;
-        ListIterator<BalsaFilter> i = filters.listIterator();
+        ListIterator<BalsaFilter> i = filters.listIterator(filters.size());
         while (i.hasPrevious())
         {
             head = new FilterProcessor(i.previous(), head);
         }
         return head;
+    }
+    
+    protected void configureLogging()
+    {
+        String logging = System.getProperty("balsa.logging", "console");
+        if ("console".equals(logging))
+        {
+            // configure logging to terminal
+            BasicConfigurator.configure();
+            Logger.getRootLogger().setLevel(Level.toLevel(System.getProperty("balsa.logging.level", "trace").toUpperCase()));
+        }
+        else
+        {
+            // configure from file
+            PropertyConfigurator.configure(new File(logging).getAbsolutePath());
+        }
+    }
+    
+    protected void setupDefaultEngines() throws Exception
+    {
+        /* Default Engines */
+        this.sessionEngine(new SimpleSessionEngine());
+        this.viewEngine(new BalsaViewEngineImpl());
+        this.securityEngine(new SecurityEngineImpl());
+        this.publicResourceEngine(new PublicResourceEngineImpl());
+    }
+    
+    protected void setupDefaultListeners() throws Exception
+    {
+        /* Default Listeners */
+        this.listener(new BalsaSCGIListener());
+        // dev env addds HTTP listener
+        if (this.isDevEnv())
+        {
+            this.listener(new BalsaHTTPListener());
+            filter(new PublicResourceFilter(new File(System.getProperty("balsa.public.path", PublicResourceFilter.DEV_PUBLIC_PATH))));
+        }
     }
 
     /**
@@ -679,7 +695,10 @@ public abstract class BalsaApplication
      */
     public final void stop()
     {
-        this.getListener().stop();
+        for (BalsaListener listener : this.getListeners())
+        {
+            listener.stop();   
+        }
         this.getViewEngine().stop();
         if (this.getSessionEngine() != null) this.getSessionEngine().stop();
         this.shutdown();

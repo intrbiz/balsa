@@ -10,8 +10,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -39,25 +37,11 @@ public class BalsaBootstrap
         // create a class loader
         URLClassLoader classLoader = createClassLoader(workingDir);
         // get the app class
-        String appClass = getAppClass(jar);
-        // the balsa args
-        String[] appArgs = buildAppArgs(appClass, args);
+        String appClassName = getAppClass(jar);
         // load the app class
-        Class<?> balsa = classLoader.loadClass("com.intrbiz.Balsa");
-        Method main = balsa.getMethod("main", String[].class);
-        main.invoke(null, new Object[] { appArgs });
-    }
-    
-    private static String[] buildAppArgs(String appClass, String[] args)
-    {
-        List<String> newArgs = new LinkedList<String>();
-        newArgs.add("--app");
-        newArgs.add(appClass);
-        for (String arg : args)
-        {
-            newArgs.add(arg);
-        }
-        return newArgs.toArray(new String[0]);
+        Class<?> appClass = classLoader.loadClass(appClassName);
+        Method main = appClass.getMethod("main", String[].class);
+        main.invoke(null, new Object[] { args });
     }
     
     private static URLClassLoader createClassLoader(File workingDir) throws MalformedURLException

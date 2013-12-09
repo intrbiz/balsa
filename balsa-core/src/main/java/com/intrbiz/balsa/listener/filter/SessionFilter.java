@@ -21,4 +21,9 @@ public class SessionFilter implements BalsaFilter
         // Invoke the next filter
         next.filter(context);
     }
+    
+    public String toString()
+    {
+        return "Session Filter";
+    }
 }

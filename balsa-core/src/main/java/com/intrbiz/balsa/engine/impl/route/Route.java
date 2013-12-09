@@ -274,6 +274,11 @@ public class Route implements Comparable<Route>
             this.pattern = pattern;
             this.as = as;
         }
+        
+        public String toString()
+        {
+            return this.pattern.toString();
+        }
     }
     
     public static CompiledPattern compilePattern(String prefix, String pattern, boolean isRegex, String[] as)

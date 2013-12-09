@@ -58,6 +58,8 @@ public abstract class BalsaListener extends AbstractBalsaEngine implements Balsa
         this.processor = processor;
     }
     
+    public abstract String getListenerType();
+    
     public abstract int getDefaultPort();
 
     public abstract void start() throws BalsaException;

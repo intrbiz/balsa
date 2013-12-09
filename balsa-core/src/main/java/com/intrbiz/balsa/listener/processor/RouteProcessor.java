@@ -82,4 +82,9 @@ public final class RouteProcessor implements BalsaProcessor
             context.response().flush();
         }
     }
+    
+    public String toString()
+    {
+        return "Route Processor";
+    }
 }

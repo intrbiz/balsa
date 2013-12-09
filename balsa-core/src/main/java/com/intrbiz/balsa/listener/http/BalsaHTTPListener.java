@@ -3,21 +3,23 @@ package com.intrbiz.balsa.listener.http;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpChunkAggregator;
+import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.stream.ChunkedWriteHandler;
 
 import java.net.InetSocketAddress;
+
+import org.apache.log4j.Logger;
 
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.listener.BalsaListener;
 
-public class HTTPListener extends BalsaListener
+public class BalsaHTTPListener extends BalsaListener
 {
     public static final int DEFAULT_PORT = 8080;
 
@@ -28,18 +30,20 @@ public class HTTPListener extends BalsaListener
     private ServerBootstrap server;
 
     private Channel serverChannel;
+    
+    private Logger logger = Logger.getLogger(BalsaHTTPListener.class);
 
-    public HTTPListener()
+    public BalsaHTTPListener()
     {
         super(DEFAULT_PORT);
     }
 
-    public HTTPListener(int port, int poolSize)
+    public BalsaHTTPListener(int port, int poolSize)
     {
         super(port, poolSize);
     }
 
-    public HTTPListener(int port)
+    public BalsaHTTPListener(int port)
     {
         super(port);
     }
@@ -54,15 +58,20 @@ public class HTTPListener extends BalsaListener
     {
         return DEFAULT_PORT;
     }
+    
+    public String getListenerType()
+    {
+        return "http";
+    }
 
     @Override
     public void start() throws BalsaException
     {
         try
         {
-            System.out.println("Listening on port " + this.getPort());
+            logger.info("Listening for HTTP requests on port " + this.getPort());
             //
-            this.acceptGroup = new NioEventLoopGroup(this.getPoolSize());
+            this.acceptGroup = new NioEventLoopGroup(1);
             this.ioGroup = new NioEventLoopGroup(this.getPoolSize());
             //
             this.server = new ServerBootstrap();
@@ -73,18 +82,17 @@ public class HTTPListener extends BalsaListener
                 @Override
                 public void initChannel(SocketChannel ch) throws Exception
                 {
-                    ch.pipeline().addLast(
-                            new HttpRequestDecoder(), 
-                            new HttpChunkAggregator(1048576), 
-                            new HttpResponseEncoder(),
-                            new ChunkedWriteHandler(),
-                            new HTTPHandler(HTTPListener.this.getBalsaApplication()));
+                    ChannelPipeline p = ch.pipeline();
+                    p.addLast("decoder", new HttpRequestDecoder());
+                    p.addLast("aggregator", new HttpObjectAggregator(10 * 1024 * 1024));
+                    p.addLast("encoder", new HttpResponseEncoder());
+                    p.addLast("handler", new BalsaHTTPHandler(BalsaHTTPListener.this.getBalsaApplication(), BalsaHTTPListener.this.getProcessor()));
                 }
             });
-            this.server.localAddress(new InetSocketAddress(this.getPort()));
+            this.server.localAddress(new InetSocketAddress(8080));
             this.serverChannel = this.server.bind().sync().channel();
             //
-            System.out.println("Listener started");
+            logger.trace("Listener started");
         }
         catch (Exception e)
         {
@@ -103,7 +111,8 @@ public class HTTPListener extends BalsaListener
             }
             finally
             {
-                this.server.shutdown();
+                this.acceptGroup.shutdownGracefully().sync();
+                this.ioGroup.shutdownGracefully().sync();
             }
         }
         catch (Exception e)

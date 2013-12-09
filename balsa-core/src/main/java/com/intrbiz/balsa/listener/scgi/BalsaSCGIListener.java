@@ -72,6 +72,11 @@ public class BalsaSCGIListener extends BalsaListener
     {
         return DEFAULT_PORT;
     }
+    
+    public String getListenerType()
+    {
+        return "scgi";
+    }
 
     @Override
     public void start() throws BalsaException

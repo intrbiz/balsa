@@ -23,6 +23,11 @@ public final class FilterProcessor implements BalsaProcessor
             {
                 next.process(context);
             }
+            
+            public String toString()
+            {
+                return next.toString();
+            }
         };
     }
     
@@ -30,5 +35,10 @@ public final class FilterProcessor implements BalsaProcessor
     public void process(BalsaContext context) throws Throwable
     {
         this.filter.filter(context, this.chain);
+    }
+    
+    public String toString()
+    {
+        return this.filter + " -> " + this.chain; 
     }
 }
