@@ -13,4 +13,10 @@ public class App extends BalsaApplication
         // Setup the application routers
         router(new AppRouter());
     }
+    
+    public static void main(String[] args) throws Exception
+    {
+        App app = new App();
+        app.start();
+    }
 }

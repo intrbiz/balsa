@@ -49,16 +49,17 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
+				<groupId>com.intrbiz.balsa</groupId>
+				<artifactId>balsa-packaging</artifactId>
+				<version>4.0.0-SNAPSHOT</version>
 				<configuration>
-					<descriptor>assembly.xml</descriptor>
+					<appClass>${package}.App</appClass>
 				</configuration>
 				<executions>
 					<execution>
 						<phase>package</phase>
 						<goals>
-							<goal>single</goal>
+							<goal>balsa</goal>
 						</goals>
 					</execution>
 				</executions>
