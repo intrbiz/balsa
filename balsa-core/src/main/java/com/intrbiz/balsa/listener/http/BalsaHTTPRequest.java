@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.Set;
 import java.util.Stack;
 
@@ -112,34 +114,40 @@ public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
     {
         Stack<String> paths = new Stack<String>();
         // break up the path and decode each segment
-        for (String path : uri.split("/"))
+        Matcher m = Pattern.compile("/").matcher(uri);
+        int start = 0;
+        while (m.find())
         {
-            if (path.length() > 0)
+            processPath(paths, uri.substring(start, m.start()));
+            start = m.end();
+        }
+        processPath(paths, uri.substring(start));
+        // join the path
+        return Util.join("/", paths);
+    }
+    
+    private void processPath(Stack<String> paths, String path)
+    {
+        try
+        {
+            String dPath = URLDecoder.decode(path, "UTF-8");
+            if (".".equals(dPath))
             {
-                try
-                {
-                    String dPath = URLDecoder.decode(path, "UTF-8");
-                    if (".".equals(dPath))
-                    {
-                        // ignore
-                    }
-                    else if ("..".equals(dPath) && (! paths.empty()))
-                    {
-                        // go back up the path
-                        paths.pop();
-                    }
-                    else
-                    {
-                        paths.push(dPath);
-                    }
-                }
-                catch (UnsupportedEncodingException e)
-                {
-                }           
+                // ignore
+            }
+            else if ("..".equals(dPath) && (! paths.empty()))
+            {
+                // go back up the path
+                paths.pop();
+            }
+            else
+            {
+                paths.push(dPath);
             }
         }
-        // join the path
-        return "/" + Util.join("/", paths);
+        catch (UnsupportedEncodingException e)
+        {
+        }
     }
 
     @Override
