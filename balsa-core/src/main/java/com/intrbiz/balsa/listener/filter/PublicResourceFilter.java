@@ -34,6 +34,7 @@ public class PublicResourceFilter implements BalsaFilter
         mimeTypeMappings.put("xml", ContentTypes.APPLICATION_XML);
         mimeTypeMappings.put("txt", ContentTypes.TEXT_PLAIN);
         mimeTypeMappings.put("json", ContentTypes.APPLICATION_JSON);
+        // images
         mimeTypeMappings.put("png", "image/png");
         mimeTypeMappings.put("tiff", "image/tiff");
         mimeTypeMappings.put("tif", "image/tiff");
@@ -43,6 +44,9 @@ public class PublicResourceFilter implements BalsaFilter
         mimeTypeMappings.put("ico", "image/x-icon");
         mimeTypeMappings.put("svg", "image/svg+xml");
         mimeTypeMappings.put("svgz", "image/svg+xml");
+        // audio
+        mimeTypeMappings.put("mp3", "audio/mpeg");
+        mimeTypeMappings.put("ogg", "audio/ogg");
     }
 
     @Override

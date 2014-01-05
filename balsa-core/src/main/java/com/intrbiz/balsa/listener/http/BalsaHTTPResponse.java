@@ -389,7 +389,7 @@ public class BalsaHTTPResponse implements BalsaResponse
     {
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.valueOf(this.status.getCode()), Unpooled.wrappedBuffer(this.responseBuffer.toByteArray()));
         // headers
-        response.headers().set(CONTENT_TYPE, this.getContentType() + "; charset=" + this.getCharset().toString().toLowerCase());
+        response.headers().set(CONTENT_TYPE, this.getContentType() /*+ "; charset=" + this.getCharset().toString().toLowerCase()*/);
         response.headers().set(EXPIRES, this.expires);
         response.headers().set(CACHE_CONTROL, this.cacheControl);
         response.headers().set(SERVER, "Balsa HTTP Listener");
