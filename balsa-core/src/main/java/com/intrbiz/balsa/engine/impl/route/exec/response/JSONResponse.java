@@ -1,10 +1,10 @@
-package com.intrbiz.balsa.engine.impl.route.exec;
+package com.intrbiz.balsa.engine.impl.route.exec.response;
 
 import java.lang.annotation.Annotation;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.intrbiz.balsa.engine.impl.route.exec.model.ExecutorClass;
+import com.intrbiz.balsa.engine.impl.route.exec.ExecutorClass;
 
 public class JSONResponse extends ResponseBuilder
 {

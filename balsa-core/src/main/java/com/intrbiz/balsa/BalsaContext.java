@@ -1,10 +1,12 @@
 package com.intrbiz.balsa;
 
-import static com.intrbiz.Util.isEmpty;
+import static com.intrbiz.Util.*;
 
 import java.io.IOException;
 import java.io.StringWriter;
 import java.security.Principal;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -22,6 +24,7 @@ import com.intrbiz.balsa.parameter.Parameter;
 import com.intrbiz.balsa.parameter.StringParameter;
 import com.intrbiz.balsa.util.BalsaWriter;
 import com.intrbiz.balsa.util.HTMLWriter;
+import com.intrbiz.converter.ConversionException;
 import com.intrbiz.express.DefaultContext;
 import com.intrbiz.express.ExpressContext;
 import com.intrbiz.express.ExpressEntityResolver;
@@ -57,6 +60,8 @@ public class BalsaContext
     private final ExpressContext expressContext;
 
     private BalsaView view;
+    
+    private final List<ConversionException> conversionErrors = new LinkedList<ConversionException>();
 
     public BalsaContext(BalsaApplication application, BalsaRequest request, BalsaResponse response)
     {
@@ -191,11 +196,34 @@ public class BalsaContext
             this.application.deactivateModel(bean);
         }
         this.models.clear();
+        this.conversionErrors.clear();
         this.exception = null;
     }
 
     public void activate()
     {
+    }
+    
+    // conversion errors
+    
+    public boolean hasConversionErrors()
+    {
+        return ! this.conversionErrors.isEmpty();
+    }
+    
+    public void addConversionError(ConversionException cex)
+    {
+        this.conversionErrors.add(cex);
+    }
+    
+    public List<ConversionException> getConversionErrors()
+    {
+        return this.conversionErrors;
+    }
+    
+    public void clearConversionErrors()
+    {
+        this.conversionErrors.clear();
     }
 
     // Timing

@@ -1,10 +1,10 @@
-package com.intrbiz.balsa.engine.impl.route.exec;
+package com.intrbiz.balsa.engine.impl.route.exec.security;
 
 import java.lang.annotation.Annotation;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.intrbiz.balsa.engine.impl.route.exec.model.ExecutorClass;
+import com.intrbiz.balsa.engine.impl.route.exec.ExecutorClass;
 import com.intrbiz.metadata.RequirePermissions;
 
 public class PermissionsBuilder extends SecurityBuilder

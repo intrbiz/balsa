@@ -1,8 +1,8 @@
-package com.intrbiz.balsa.engine.impl.route.exec;
+package com.intrbiz.balsa.engine.impl.route.exec.argument;
 
 import java.lang.annotation.Annotation;
 
-import com.intrbiz.balsa.engine.impl.route.exec.model.ExecutorClass;
+import com.intrbiz.balsa.engine.impl.route.exec.ExecutorClass;
 
 public abstract class ArgumentBuilder<T>
 {
@@ -28,6 +28,8 @@ public abstract class ArgumentBuilder<T>
         this.parameterType = pt;
         return (T) this;
     }
+    
+    public abstract String getVariable();
     
     public abstract void fromAnnotation(Annotation a, Annotation[] parameterAnnotations, Class<?> parameterType);
     

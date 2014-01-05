@@ -5,7 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.intrbiz.balsa.engine.impl.route.exec.ResponseBuilder;
+import com.intrbiz.balsa.engine.impl.route.exec.response.ResponseBuilder;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)

@@ -8,35 +8,34 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.intrbiz.balsa.engine.impl.route.Route;
-import com.intrbiz.balsa.engine.impl.route.exec.model.ExecutorClass;
+import com.intrbiz.balsa.engine.impl.route.exec.argument.ArgumentBuilder;
+import com.intrbiz.balsa.engine.impl.route.exec.argument.ConverterBuilder;
+import com.intrbiz.balsa.engine.impl.route.exec.argument.CookieArgument;
+import com.intrbiz.balsa.engine.impl.route.exec.argument.HeaderArgument;
+import com.intrbiz.balsa.engine.impl.route.exec.argument.JSONArgument;
+import com.intrbiz.balsa.engine.impl.route.exec.argument.NullArgument;
+import com.intrbiz.balsa.engine.impl.route.exec.argument.ParameterArgument;
+import com.intrbiz.balsa.engine.impl.route.exec.argument.XMLArgument;
+import com.intrbiz.balsa.engine.impl.route.exec.response.JSONResponse;
+import com.intrbiz.balsa.engine.impl.route.exec.response.ResponseBuilder;
+import com.intrbiz.balsa.engine.impl.route.exec.response.XMLResponse;
+import com.intrbiz.balsa.engine.impl.route.exec.security.PermissionsBuilder;
+import com.intrbiz.balsa.engine.impl.route.exec.security.RequireSessionBuilder;
+import com.intrbiz.balsa.engine.impl.route.exec.security.SecurityBuilder;
+import com.intrbiz.balsa.engine.impl.route.exec.security.ValidAccessTokenBuilder;
+import com.intrbiz.balsa.engine.impl.route.exec.security.ValidPrincipalBuilder;
+import com.intrbiz.balsa.engine.impl.route.exec.wrapper.RouteWrapperBuilder;
 import com.intrbiz.balsa.engine.route.RouteExecutor;
 import com.intrbiz.balsa.engine.route.Router;
-import com.intrbiz.metadata.Any;
-import com.intrbiz.metadata.Cookie;
-import com.intrbiz.metadata.Get;
-import com.intrbiz.metadata.Header;
+import com.intrbiz.converter.Converter;
 import com.intrbiz.metadata.IsArgument;
 import com.intrbiz.metadata.IsResponse;
 import com.intrbiz.metadata.IsRouteWrapper;
 import com.intrbiz.metadata.IsSecurityCheck;
-import com.intrbiz.metadata.Param;
-import com.intrbiz.metadata.Post;
-import com.intrbiz.metadata.Prefix;
-import com.intrbiz.metadata.RequirePermissions;
-import com.intrbiz.metadata.RequireSession;
-import com.intrbiz.metadata.RequireValidAccessToken;
-import com.intrbiz.metadata.RequireValidAccessTokenForURL;
-import com.intrbiz.metadata.RequireValidPrincipal;
-import com.intrbiz.metadata.XML;
 import com.intrbiz.util.compiler.CompilerTool;
 
 public class ExecBuilder
@@ -50,6 +49,8 @@ public class ExecBuilder
     private int currentArgumentIndex = 0;
 
     private ArgumentBuilder<?>[] arguments;
+    
+    private ConverterBuilder[] converters;
 
     private Method handler;
 
@@ -76,6 +77,7 @@ public class ExecBuilder
         this.handler = handler;
         this.arity = handler.getParameterTypes().length;
         this.arguments = new ArgumentBuilder[this.arity];
+        this.converters = new ConverterBuilder[this.arity];
         return this;
     }
 
@@ -215,6 +217,15 @@ public class ExecBuilder
         this.wrapperBuilders.add(builder);
         return this;
     }
+    
+    public ExecBuilder withConverter(Converter<?> converter)
+    {
+        // add
+        if (this.currentArgumentIndex <= 0) throw new IllegalStateException("No arguments are defined, cannot add a converter");
+        if (this.arguments[this.currentArgumentIndex -1] == null) throw new IllegalArgumentException("Cannot attach the converter to a null argument");
+        this.converters[this.currentArgumentIndex -1] = new ConverterBuilder(this.currentArgumentIndex -1, converter);
+        return this;
+    }
 
     public ExecBuilder verify()
     {
@@ -224,8 +235,17 @@ public class ExecBuilder
         for (int i = 0; i < this.arguments.length; i++)
         {
             ArgumentBuilder<?> ab = this.arguments[i];
+            ConverterBuilder   cb = this.converters[i];
             if (ab == null) throw new IllegalStateException("Missing argument " + i);
-            ab.verify(this.handler.getParameterTypes()[i]);
+            if (cb == null)
+            {
+                ab.verify(this.handler.getParameterTypes()[i]);
+            }
+            else
+            {
+                ab.verify(cb.getFromType());
+                cb.verify(this.handler.getParameterTypes()[i]);
+            }
         }
         return this;
     }
@@ -246,12 +266,28 @@ public class ExecBuilder
         {
             wb.compileBefore(cls);
         }
-        //
+        // bind parameters
+        String[] parameterVariables = new String[this.arity];
         sb.append("    // bind the parameters\r\n");
-        for (ArgumentBuilder<?> ab : this.arguments)
+        for (int i = 0; i < this.arguments.length; i++)
         {
+            ArgumentBuilder<?> ab = this.arguments[i];
             ab.compile(cls);
+            parameterVariables[i] = ab.getVariable();
         }
+        // apply any converters
+        sb.append("    // convert any parameters\r\n");
+        for (int i = 0; i < this.converters.length; i++)
+        {
+            ConverterBuilder conv = this.converters[i];
+            if (conv != null)
+            {
+                conv.compile(cls, parameterVariables[i]);
+                parameterVariables[i] = conv.getVariable();   
+            }
+        }
+        sb.append("    // throw a conversion exception?\r\n");
+        sb.append("    if (context.hasConversionErrors()) throw new BalsaConversionError();\r\n");
         // wrappers
         for (RouteWrapperBuilder wb : this.wrapperBuilders)
         {
@@ -266,10 +302,10 @@ public class ExecBuilder
             sb.append(this.handler.getReturnType().getSimpleName()).append(" res = ");
         }
         sb.append("this.router.").append(this.handler.getName()).append("(");
-        for (int i = 0; i < this.arity; i++)
+        for (int i = 0; i < this.arguments.length; i++)
         {
             if (i > 0) sb.append(", ");
-            sb.append("p").append(i);
+            sb.append(parameterVariables[i]);
         }
         sb.append(");\r\n");
         //
@@ -298,9 +334,9 @@ public class ExecBuilder
         // compile the executor
         Class<? extends RouteExecutor<?>> cls = this.compile();
         // find the constructor
-        Constructor<? extends RouteExecutor<?>> con = cls.getConstructor(new Class<?>[] { this.router.getClass() });
+        Constructor<? extends RouteExecutor<?>> con = cls.getConstructor(new Class<?>[] { this.router.getClass(), Method.class });
         // create the executor
-        return con.newInstance(this.router);
+        return con.newInstance(this.router, this.handler);
     }
 
     public static ExecBuilder build(Route route) throws Exception
@@ -344,6 +380,7 @@ public class ExecBuilder
         {
             Annotation[] annos = pa[i];
             Annotation argAnno = getArgumentAnnotation(annos);
+            //
             ArgumentBuilder<?> wArg = null;
             for (RouteWrapperBuilder wb : b.wrapperBuilders)
             {
@@ -364,7 +401,7 @@ public class ExecBuilder
                 ab.fromAnnotation(argAnno, annos, pt[i]);
                 b.argument(ab);
             }
-            else if (pt[i] == String.class && route.getCompiledPattern().as.length > asIndex )
+            else if (route.getCompiledPattern().as.length > asIndex)
             {
                 b.parameterArgument(route.getCompiledPattern().as[asIndex]);
                 asIndex++;
@@ -373,6 +410,13 @@ public class ExecBuilder
             {
                 logger.warn("Binding null for argument " + i + " of route: " + route.toString());
                 b.nullArgument();
+            }
+            // converter
+            Converter<?> converter = Converter.fromParameter(pt[i], annos);
+            if (converter != null)
+            {
+                logger.info("Paramater with converter: " + converter);
+                b.withConverter(converter);
             }
         }
         // response encoding
@@ -489,125 +533,5 @@ public class ExecBuilder
             // eat
         }
         return null;
-    }
-
-    public static void main(String[] args) throws Exception
-    {
-        BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.TRACE);
-        //
-        RestrictedRouter rr = new RestrictedRouter();
-        //
-        for (Route r : Route.fromRouter("/", rr))
-        {
-            System.out.println("Route: " + r);
-            System.out.println("Handler:\r\n" + ExecBuilder.build(r).writeClass());
-            System.out.println(ExecBuilder.build(r).executor());
-        }
-        //        
-        TestRouter tr = new TestRouter();
-        for (Route r : Route.fromRouter("/", tr))
-        {
-            System.out.println("Route: " + r);
-            System.out.println("Handler:\r\n" + ExecBuilder.build(r).writeClass());
-            System.out.println(ExecBuilder.build(r).executor());
-        }
-    }
-
-    public static class TestRouter extends Router
-    {
-        @Get("/test/:param")
-        public void test(String param)
-        {
-        }
-
-        @Get("/test1")
-        public void test1(@Param("a") String a, @Header("b") String b, @Cookie("c") String c)
-        {
-        }
-
-        @Any("/test2")
-        @XML
-        public XMLObj test2(@Param("a") String param)
-        {
-            return new XMLObj();
-        }
-
-        @Post("/test3")
-        @XML
-        public XMLObj test3(@Param("a") String param, @XML XMLObj in)
-        {
-            return in;
-        }
-
-        @XmlType(name = "test")
-        @XmlRootElement(name = "test")
-        public static class XMLObj
-        {
-            private String stat = "OK";
-
-            @XmlElement(name = "stat")
-            public String getStat()
-            {
-                return stat;
-            }
-
-            public void setStat(String stat)
-            {
-                this.stat = stat;
-            }
-        }
-    }
-    
-    @Prefix("/")
-    @RequireSession()
-    @RequireValidPrincipal()
-    public static class RestrictedRouter extends Router
-    {        
-        @Get("/restricted")
-        @RequireValidPrincipal()
-        public void restricted()
-        {
-            
-        }
-        
-        @Get("/restricted/by/permission")
-        @RequirePermissions("test.permission")
-        public void restrictedByPermission()
-        {
-            
-        }
-
-        @Get("/restricted/by/permissions")
-        @RequirePermissions({"test.permission", "another.permission"})
-        public void restrictedByPermissions()
-        {
-            
-        }
-        
-        @Get("/csrf/1")
-        @RequireValidAccessToken()
-        public void csrfCheck1()
-        {
-        }
-        
-        @Get("/csrf/2")
-        @RequireValidAccessToken(@Param("token"))
-        public void csrfCheck2()
-        {
-        }
-        
-        @Get("/csrf/3")
-        @RequireValidAccessTokenForURL(value = @Param("token"))
-        public void csrfCheck3()
-        {
-        }
-        
-        @Get("/csrf/4")
-        @RequireValidAccessTokenForURL()
-        @RequireSession()
-        public void csrfCheck4()
-        {
-        }
     }
 }

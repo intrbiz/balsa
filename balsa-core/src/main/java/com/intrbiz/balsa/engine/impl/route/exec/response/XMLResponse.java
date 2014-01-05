@@ -1,4 +1,4 @@
-package com.intrbiz.balsa.engine.impl.route.exec;
+package com.intrbiz.balsa.engine.impl.route.exec.response;
 
 import java.lang.annotation.Annotation;
 
@@ -6,7 +6,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 import javax.xml.stream.XMLStreamWriter;
 
-import com.intrbiz.balsa.engine.impl.route.exec.model.ExecutorClass;
+import com.intrbiz.balsa.engine.impl.route.exec.ExecutorClass;
 
 public class XMLResponse extends ResponseBuilder
 {
