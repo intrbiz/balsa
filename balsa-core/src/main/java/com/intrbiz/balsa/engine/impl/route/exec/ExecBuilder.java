@@ -19,6 +19,7 @@ import com.intrbiz.balsa.engine.impl.route.exec.argument.HeaderArgument;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.JSONArgument;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.NullArgument;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.ParameterArgument;
+import com.intrbiz.balsa.engine.impl.route.exec.argument.ValidatorBuilder;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.XMLArgument;
 import com.intrbiz.balsa.engine.impl.route.exec.response.JSONResponse;
 import com.intrbiz.balsa.engine.impl.route.exec.response.ResponseBuilder;
@@ -37,6 +38,7 @@ import com.intrbiz.metadata.IsResponse;
 import com.intrbiz.metadata.IsRouteWrapper;
 import com.intrbiz.metadata.IsSecurityCheck;
 import com.intrbiz.util.compiler.CompilerTool;
+import com.intrbiz.validator.Validator;
 
 public class ExecBuilder
 {
@@ -51,6 +53,8 @@ public class ExecBuilder
     private ArgumentBuilder<?>[] arguments;
     
     private ConverterBuilder[] converters;
+    
+    private ValidatorBuilder[] validators;
 
     private Method handler;
 
@@ -78,6 +82,7 @@ public class ExecBuilder
         this.arity = handler.getParameterTypes().length;
         this.arguments = new ArgumentBuilder[this.arity];
         this.converters = new ConverterBuilder[this.arity];
+        this.validators = new ValidatorBuilder[this.arity];
         return this;
     }
 
@@ -226,6 +231,15 @@ public class ExecBuilder
         this.converters[this.currentArgumentIndex -1] = new ConverterBuilder(this.currentArgumentIndex -1, converter);
         return this;
     }
+    
+    public ExecBuilder withValidator(Validator<?> validator)
+    {
+        // add
+        if (this.currentArgumentIndex <= 0) throw new IllegalStateException("No arguments are defined, cannot add a validator");
+        if (this.arguments[this.currentArgumentIndex -1] == null) throw new IllegalArgumentException("Cannot attach the validator to a null argument");
+        this.validators[this.currentArgumentIndex -1] = new ValidatorBuilder(this.currentArgumentIndex -1, validator);
+        return this;
+    }
 
     public ExecBuilder verify()
     {
@@ -288,6 +302,18 @@ public class ExecBuilder
         }
         sb.append("    // throw a conversion exception?\r\n");
         sb.append("    if (context.hasConversionErrors()) throw new BalsaConversionError();\r\n");
+        // apply any validators
+        sb.append("    // validate any parameters\r\n");
+        for (int i = 0; i < this.validators.length; i++)
+        {
+            ValidatorBuilder vald = this.validators[i];
+            if (vald != null)
+            {
+                vald.compile(cls, parameterVariables[i]);   
+            }
+        }
+        sb.append("    // throw a validation exception?\r\n");
+        sb.append("    if (context.hasValidationErrors()) throw new BalsaValidationError();\r\n");
         // wrappers
         for (RouteWrapperBuilder wb : this.wrapperBuilders)
         {
@@ -415,8 +441,15 @@ public class ExecBuilder
             Converter<?> converter = Converter.fromParameter(pt[i], annos);
             if (converter != null)
             {
-                logger.info("Paramater with converter: " + converter);
+                logger.trace("Paramater with converter: " + converter);
                 b.withConverter(converter);
+            }
+            // validator
+            Validator<?> validator = Validator.fromParameter(pt[i], annos);
+            if (validator != null)
+            {
+                logger.trace("Paramater with validator: " + validator);
+                b.withValidator(validator);
             }
         }
         // response encoding

@@ -9,12 +9,13 @@ import javax.xml.bind.annotation.XmlType;
 
 import com.intrbiz.balsa.engine.route.Router;
 import com.intrbiz.metadata.Any;
-import com.intrbiz.metadata.AsDate;
-import com.intrbiz.metadata.AsInt;
-import com.intrbiz.metadata.AsUUID;
 import com.intrbiz.metadata.Cookie;
 import com.intrbiz.metadata.Get;
 import com.intrbiz.metadata.Header;
+import com.intrbiz.metadata.IsMandatory;
+import com.intrbiz.metadata.IsaDate;
+import com.intrbiz.metadata.IsaInt;
+import com.intrbiz.metadata.IsaUUID;
 import com.intrbiz.metadata.Param;
 import com.intrbiz.metadata.Post;
 import com.intrbiz.metadata.Prefix;
@@ -53,17 +54,17 @@ public class TestRouter extends Router
     }
     
     @Get("/test/asuuid/:param")
-    public void testAsUUID(@Param("param") @AsUUID UUID param)
+    public void testAsUUID(@Param("param") @IsaUUID @IsMandatory UUID param)
     {
     }
     
     @Get("/test/asint/:param")
-    public void testAsInt(@AsInt int param)
+    public void testAsInt(@IsaInt int param)
     {
     }
     
     @Get("/test/asint/:param")
-    public void testAsDate(@AsDate Date param)
+    public void testAsDate(@IsaDate Date param)
     {
     }
 

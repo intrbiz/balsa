@@ -29,6 +29,7 @@ import com.intrbiz.express.DefaultContext;
 import com.intrbiz.express.ExpressContext;
 import com.intrbiz.express.ExpressEntityResolver;
 import com.intrbiz.express.action.ActionHandler;
+import com.intrbiz.validator.ValidationException;
 
 ;
 
@@ -62,6 +63,8 @@ public class BalsaContext
     private BalsaView view;
     
     private final List<ConversionException> conversionErrors = new LinkedList<ConversionException>();
+    
+    private final List<ValidationException> validationErrors = new LinkedList<ValidationException>();
 
     public BalsaContext(BalsaApplication application, BalsaRequest request, BalsaResponse response)
     {
@@ -197,6 +200,7 @@ public class BalsaContext
         }
         this.models.clear();
         this.conversionErrors.clear();
+        this.validationErrors.clear();
         this.exception = null;
     }
 
@@ -224,6 +228,28 @@ public class BalsaContext
     public void clearConversionErrors()
     {
         this.conversionErrors.clear();
+    }
+    
+    // validation
+    
+    public boolean hasValidationErrors()
+    {
+        return ! this.validationErrors.isEmpty();
+    }
+    
+    public void addValidationError(ValidationException cex)
+    {
+        this.validationErrors.add(cex);
+    }
+    
+    public List<ValidationException> getValidationErrors()
+    {
+        return this.validationErrors;
+    }
+    
+    public void clearValidationErrors()
+    {
+        this.validationErrors.clear();
     }
 
     // Timing

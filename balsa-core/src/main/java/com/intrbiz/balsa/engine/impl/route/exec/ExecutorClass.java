@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.intrbiz.balsa.error.BalsaConversionError;
+import com.intrbiz.balsa.error.BalsaValidationError;
 
 public class ExecutorClass
 {
@@ -47,6 +48,7 @@ public class ExecutorClass
         this.imports.add("com.intrbiz.balsa.BalsaContext");
         this.imports.add(Method.class.getCanonicalName());
         this.imports.add(BalsaConversionError.class.getCanonicalName());
+        this.imports.add(BalsaValidationError.class.getCanonicalName());
     }
     
     public void addField(String type, String name)
