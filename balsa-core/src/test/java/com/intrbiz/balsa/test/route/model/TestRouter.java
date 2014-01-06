@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.XmlType;
 
 import com.intrbiz.balsa.engine.route.Router;
 import com.intrbiz.metadata.Any;
+import com.intrbiz.metadata.AsDate;
 import com.intrbiz.metadata.Cookie;
 import com.intrbiz.metadata.Get;
 import com.intrbiz.metadata.Header;
@@ -64,7 +65,7 @@ public class TestRouter extends Router
     }
     
     @Get("/test/asint/:param")
-    public void testAsDate(@IsaDate Date param)
+    public void testAsDate(@AsDate("yyyy-MM-dd") @IsaDate Date param)
     {
     }
 
