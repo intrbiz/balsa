@@ -131,4 +131,12 @@ public class SimpleSession extends AbstractSession
             this.application.deactivateModel(bean);
         }
     }
+    
+    public Object getEntity(String name, Object source)
+    {
+        Object value = this.model.get(name);
+        if (value != null) return value;
+        value = this.vars.get(name);
+        return value;
+    }
 }

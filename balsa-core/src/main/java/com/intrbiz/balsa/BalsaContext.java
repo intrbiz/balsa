@@ -77,7 +77,15 @@ public class BalsaContext
             @Override
             public Object getEntity(String name, Object source)
             {
-                return BalsaContext.this.models.get(name);
+                if ("balsa".equals(name)) return this;
+                Object value = BalsaContext.this.models.get(name);
+                if (value != null) return value;
+                // next session
+                if (BalsaContext.this.session != null)
+                {
+                    value = BalsaContext.this.session.getEntity(name, source);
+                }
+                return value;
             }
 
             @Override
