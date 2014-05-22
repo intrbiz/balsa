@@ -7,16 +7,20 @@ import javax.xml.bind.Marshaller;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.intrbiz.balsa.engine.impl.route.exec.ExecutorClass;
+import com.intrbiz.balsa.http.HTTP.HTTPStatus;
+import com.intrbiz.metadata.XML;
 
 public class XMLResponse extends ResponseBuilder
 {
     private Class<?> type;
-    
+
+    private HTTPStatus status;
+
     public XMLResponse()
     {
         super();
     }
-    
+
     public XMLResponse type(Class<?> type)
     {
         this.type = type;
@@ -30,6 +34,7 @@ public class XMLResponse extends ResponseBuilder
         cls.addImport(JAXBContext.class.getCanonicalName());
         cls.addImport(XMLStreamWriter.class.getCanonicalName());
         cls.addImport(Marshaller.class.getCanonicalName());
+        cls.addImport(HTTPStatus.class.getCanonicalName());
         cls.addImport(this.type.getCanonicalName());
         //
         cls.addField(JAXBContext.class.getSimpleName(), "xmlResCtx");
@@ -39,18 +44,39 @@ public class XMLResponse extends ResponseBuilder
         //
         StringBuilder sb = cls.getExecutorLogic();
         sb.append("    // encode the response to XML\r\n");
-        sb.append("    XMLStreamWriter writer = context.response().ok().xml().getXMLWriter();\r\n");
+        sb.append("    XMLStreamWriter writer = context.response().status(HTTPStatus." + this.status.name() + ").xml().getXMLWriter();\r\n");
         sb.append("    Marshaller m = this.xmlResCtx.createMarshaller();\r\n");
         sb.append("    m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);\r\n");
         sb.append("    m.marshal(res, writer);\r\n");
     }
-    
+
     @Override
     public void fromAnnotation(Annotation a, Annotation[] annotations, Class<?> returnType)
     {
         this.type(returnType);
+        this.status = ((XML) a).status();
     }
-    
+
+    public Class<?> getType()
+    {
+        return type;
+    }
+
+    public void setType(Class<?> type)
+    {
+        this.type = type;
+    }
+
+    public HTTPStatus getStatus()
+    {
+        return status;
+    }
+
+    public void setStatus(HTTPStatus status)
+    {
+        this.status = status;
+    }
+
     @Override
     public void verify(Class<?> returnType)
     {

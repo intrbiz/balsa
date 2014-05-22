@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 
 import com.intrbiz.balsa.engine.impl.route.exec.argument.JSONArgument;
 import com.intrbiz.balsa.engine.impl.route.exec.response.JSONResponse;
+import com.intrbiz.balsa.http.HTTP.HTTPStatus;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.PARAMETER })
@@ -14,4 +15,15 @@ import com.intrbiz.balsa.engine.impl.route.exec.response.JSONResponse;
 @IsArgument(JSONArgument.class)
 public @interface JSON
 {
+    /**
+     * The HTTP response status
+     * @return
+     */
+    HTTPStatus status() default HTTPStatus.OK;
+    
+    /**
+     * If the method returns null, set the HTTP response satus to 404 not found
+     * @return
+     */
+    boolean notFoundIfNull() default false;
 }

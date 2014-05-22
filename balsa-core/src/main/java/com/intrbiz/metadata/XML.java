@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 
 import com.intrbiz.balsa.engine.impl.route.exec.argument.XMLArgument;
 import com.intrbiz.balsa.engine.impl.route.exec.response.XMLResponse;
+import com.intrbiz.balsa.http.HTTP.HTTPStatus;
 
 /**
  * A route which will use JAXB to decode and encode the request / response
@@ -16,4 +17,9 @@ import com.intrbiz.balsa.engine.impl.route.exec.response.XMLResponse;
 @IsResponse(XMLResponse.class)
 @IsArgument(XMLArgument.class)
 public @interface XML {
+    /**
+     * The HTTP response status
+     * @return
+     */
+    HTTPStatus status() default HTTPStatus.OK;
 }
