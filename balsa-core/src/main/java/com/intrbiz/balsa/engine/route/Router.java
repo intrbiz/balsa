@@ -17,7 +17,7 @@ import com.intrbiz.metadata.Template;
 /**
  * A router routes requests
  */
-public abstract class Router
+public abstract class Router<A extends BalsaApplication>
 {   
     private final String prefix = this.myPrefix();
     
@@ -420,7 +420,7 @@ public abstract class Router
         return Balsa().response();
     }
     
-    protected final BalsaApplication app()
+    protected final A app()
     {
        return Balsa().app(); 
     }

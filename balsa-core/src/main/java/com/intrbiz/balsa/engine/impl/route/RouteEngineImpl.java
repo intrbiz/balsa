@@ -23,7 +23,7 @@ import com.intrbiz.balsa.listener.BalsaRequest;
  */
 public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
 {    
-    private List<Router> routers = new ArrayList<Router>();
+    private List<Router<?>> routers = new ArrayList<Router<?>>();
     
     private List<PrefixContainer> prefixes = new ArrayList<PrefixContainer>();
     
@@ -39,12 +39,12 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
         return "Balsa-Route-Engine";
     }
     
-    public List<Router> getRouters()
+    public List<Router<?>> getRouters()
     {
         return Collections.unmodifiableList(this.routers);
     }
 
-    public void router(Router router) throws BalsaException
+    public void router(Router<?> router) throws BalsaException
     {
         // extract all the meta information
         this.routers.add(router);
@@ -52,7 +52,7 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
         this.compileRouter(router);
     }
     
-    protected void compileRouter(Router router) throws BalsaException
+    protected void compileRouter(Router<?> router) throws BalsaException
     {
         // get the prefix for the router
         String prefix = router.getPrefix();

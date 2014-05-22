@@ -125,9 +125,10 @@ public class BalsaContext
      * 
      * @return returns balsaApplication
      */
-    public final BalsaApplication app()
+    @SuppressWarnings("unchecked")
+    public final <T extends BalsaApplication> T app()
     {
-        return this.application;
+        return (T) this.application;
     }
 
     /**

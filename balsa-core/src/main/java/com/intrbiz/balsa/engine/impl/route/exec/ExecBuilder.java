@@ -58,7 +58,7 @@ public class ExecBuilder
 
     private Method handler;
 
-    private Router router;
+    private Router<?> router;
 
     private ResponseBuilder response = null;
     
@@ -86,7 +86,7 @@ public class ExecBuilder
         return this;
     }
 
-    public ExecBuilder router(Router router)
+    public ExecBuilder router(Router<?> router)
     {
         this.router = router;
         return this;
@@ -370,7 +370,7 @@ public class ExecBuilder
         Logger logger = Logger.getLogger(ExecBuilder.class);
         // look at the structure and annotation of the given method and construct
         // the executor
-        Router router = route.getRouter();
+        Router<?> router = route.getRouter();
         Method method = route.getHandler();
         //
         ExecBuilder b = new ExecBuilder();

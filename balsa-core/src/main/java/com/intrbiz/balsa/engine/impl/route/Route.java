@@ -32,7 +32,7 @@ public class Route implements Comparable<Route>
 
     private final Method handler;
 
-    private final Router router;
+    private final Router<?> router;
 
     private CompiledPattern compiledPattern;
 
@@ -40,7 +40,7 @@ public class Route implements Comparable<Route>
 
     private int order = 0;
 
-    public Route(String prefix, String method, String pattern, boolean regex, String[] as, Method handler, Router router)
+    public Route(String prefix, String method, String pattern, boolean regex, String[] as, Method handler, Router<?> router)
     {
         super();
         this.prefix = prefix;
@@ -87,7 +87,7 @@ public class Route implements Comparable<Route>
         return handler;
     }
 
-    public Router getRouter()
+    public Router<?> getRouter()
     {
         return this.router;
     }
@@ -168,14 +168,14 @@ public class Route implements Comparable<Route>
         return "Route: " + this.getMethod() + " " + this.getPattern() + " => " + this.getHandler();
     }
 
-    public static List<Route> fromRouter(String prefix, Router router)
+    public static List<Route> fromRouter(String prefix, Router<?> router)
     {
         List<Route> routes = new LinkedList<Route>();
         fromRouter(prefix, router, router.getClass(), routes);
         return routes;
     }
 
-    private static void fromRouter(String prefix, Router router, Class<?> cls, List<Route> routes)
+    private static void fromRouter(String prefix, Router<?> router, Class<?> cls, List<Route> routes)
     {
         for (Method m : cls.getDeclaredMethods())
         {
@@ -186,7 +186,7 @@ public class Route implements Comparable<Route>
         if (cls.getSuperclass() != null) fromRouter(prefix, router, cls.getSuperclass(), routes);
     }
 
-    public static Route fromMethod(String prefix, Router router, Method method)
+    public static Route fromMethod(String prefix, Router<?> router, Method method)
     {
         if (!Modifier.isPublic(method.getModifiers())) return null;
         // get the route annotation
@@ -355,13 +355,13 @@ public class Route implements Comparable<Route>
      */
     public static interface RouteBuilder
     {
-        Route build(String prefix, Router router, Method method, Annotation a);
+        Route build(String prefix, Router<?> router, Method method, Annotation a);
     }
 
     public static class AnyRouteBuilder implements RouteBuilder
     {
         @Override
-        public Route build(String prefix, Router router, Method method, Annotation a)
+        public Route build(String prefix, Router<?> router, Method method, Annotation a)
         {
             Any url = (Any) a;
             return new Route(prefix, "ANY", url.value(), url.regex(), url.as(), method, router);
@@ -371,7 +371,7 @@ public class Route implements Comparable<Route>
     public static class GetRouteBuilder implements RouteBuilder
     {
         @Override
-        public Route build(String prefix, Router router, Method method, Annotation a)
+        public Route build(String prefix, Router<?> router, Method method, Annotation a)
         {
             Get url = (Get) a;
             return new Route(prefix, "GET", url.value(), url.regex(), url.as(), method, router);
@@ -381,7 +381,7 @@ public class Route implements Comparable<Route>
     public static class PostRouteBuilder implements RouteBuilder
     {
         @Override
-        public Route build(String prefix, Router router, Method method, Annotation a)
+        public Route build(String prefix, Router<?> router, Method method, Annotation a)
         {
             Post url = (Post) a;
             return new Route(prefix, "POST", url.value(), url.regex(), url.as(), method, router);
@@ -391,7 +391,7 @@ public class Route implements Comparable<Route>
     public static class PutRouteBuilder implements RouteBuilder
     {
         @Override
-        public Route build(String prefix, Router router, Method method, Annotation a)
+        public Route build(String prefix, Router<?> router, Method method, Annotation a)
         {
             Put url = (Put) a;
             return new Route(prefix, "Put", url.value(), url.regex(), url.as(), method, router);
@@ -401,7 +401,7 @@ public class Route implements Comparable<Route>
     public static class DeleteRouteBuilder implements RouteBuilder
     {
         @Override
-        public Route build(String prefix, Router router, Method method, Annotation a)
+        public Route build(String prefix, Router<?> router, Method method, Annotation a)
         {
             Delete url = (Delete) a;
             return new Route(prefix, "DELETE", url.value(), url.regex(), url.as(), method, router);

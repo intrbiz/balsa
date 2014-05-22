@@ -175,7 +175,7 @@ public abstract class BalsaApplication
      * 
      * @return returns List<Router>
      */
-    public List<Router> getRouters()
+    public List<Router<?>> getRouters()
     {
         return this.getRoutingEngine().getRouters();
     }
@@ -186,7 +186,7 @@ public abstract class BalsaApplication
      * @param router
      *            returns void
      */
-    public void router(Router router) throws BalsaException
+    public void router(Router<?> router) throws BalsaException
     {
         if (router != null)
         {

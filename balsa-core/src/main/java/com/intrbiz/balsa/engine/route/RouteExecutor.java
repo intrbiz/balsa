@@ -5,7 +5,7 @@ import java.lang.reflect.Method;
 
 import com.intrbiz.balsa.BalsaContext;
 
-public abstract class RouteExecutor<R extends Router>
+public abstract class RouteExecutor<R extends Router<?>>
 {
     protected final R router;
     
