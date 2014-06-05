@@ -1,6 +1,6 @@
 package com.intrbiz.balsa.engine.route;
 
-import static com.intrbiz.balsa.BalsaContext.Balsa;
+import static com.intrbiz.balsa.BalsaContext.*;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -275,6 +275,12 @@ public abstract class Router<A extends BalsaApplication>
         return Balsa().validPrincipal();
     }
     
+    @SuppressWarnings("unchecked")
+    protected final <T extends Principal> T currentPrincipal()
+    {
+        return (T) Balsa().currentPrincipal();
+    }
+    
     protected void deauthenticate()
     {
         Balsa().deauthenticate();
@@ -308,9 +314,10 @@ public abstract class Router<A extends BalsaApplication>
      * @return
      * returns Object
      */
-    public Object sessionVar(String name)
+    @SuppressWarnings("unchecked")
+    public <T> T sessionVar(String name)
     {
-        return Balsa().sessionVar(name);
+        return (T) Balsa().sessionVar(name);
     }
     
     /**
@@ -331,9 +338,9 @@ public abstract class Router<A extends BalsaApplication>
      * @param object the variable
      * returns void
      */
-    public void sessionVar(String name, Object object)
+    public <T> T sessionVar(String name, T object)
     {
-        Balsa().sessionVar(name, object);
+        return Balsa().sessionVar(name, object);
     }
     
     /**
@@ -360,8 +367,7 @@ public abstract class Router<A extends BalsaApplication>
         return Balsa().sessionModel(name, model);
     }
     
-    
-    protected final Object action(String name, Object... arguments) throws BalsaException
+    protected final <T> T action(String name, Object... arguments) throws BalsaException
     {
         try
         {

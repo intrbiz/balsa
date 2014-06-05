@@ -708,9 +708,10 @@ public class BalsaContext
      *            the variable name
      * @return returns Object
      */
-    public Object sessionVar(String name)
+    @SuppressWarnings("unchecked")
+    public <T> T sessionVar(String name)
     {
-        return this.session().var(name);
+        return (T) this.session().var(name);
     }
 
     /**
@@ -735,9 +736,10 @@ public class BalsaContext
      * @param object
      *            the variable returns void
      */
-    public void sessionVar(String name, Object object)
+    public <T> T sessionVar(String name, T object)
     {
         this.session().var(name, object);
+        return object;
     }
 
     /**
@@ -766,11 +768,12 @@ public class BalsaContext
 
     // Actions
 
-    public Object action(String action, Object... arguments) throws Exception
+    @SuppressWarnings("unchecked")
+    public <T> T action(String action, Object... arguments) throws Exception
     {
         ActionHandler handler = this.app().action(action);
         if (handler == null) throw new BalsaException("The action " + action + " does not exist");
-        return handler.act(arguments);
+        return (T) handler.act(arguments);
     }
 
     // Static
