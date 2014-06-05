@@ -65,7 +65,7 @@ public abstract class BalsaApplication
      * Bean providers
      */
     private final Map<String, BeanProvider<?>> models = new HashMap<String, BeanProvider<?>>();
-
+    
     /**
      * Actions
      */
@@ -611,11 +611,21 @@ public abstract class BalsaApplication
         if (this.getSessionEngine() != null) this.getSessionEngine().start();
         // Start the view engine
         this.getViewEngine().start();
+        // Application specific start up
+        this.startApplication();
         // Start the listeners
         for (BalsaListener listener : this.getListeners())
         {
             listener.start();
         }
+    }
+    
+    /**
+     * Any application specific startup actions, before the listeners are started
+     * @throws Exception
+     */
+    protected void startApplication() throws Exception
+    {
     }
 
     protected BalsaProcessor constructProcessingChain()
