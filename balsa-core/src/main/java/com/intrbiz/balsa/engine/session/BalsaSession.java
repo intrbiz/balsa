@@ -33,7 +33,7 @@ public interface BalsaSession
      * @return
      * returns Object
      */
-    Object var(String name);
+    <T> T var(String name);
     
     /**
      * Get the named session variable of the given type

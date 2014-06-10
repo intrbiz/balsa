@@ -314,10 +314,9 @@ public abstract class Router<A extends BalsaApplication>
      * @return
      * returns Object
      */
-    @SuppressWarnings("unchecked")
     public <T> T sessionVar(String name)
     {
-        return (T) Balsa().sessionVar(name);
+        return Balsa().sessionVar(name);
     }
     
     /**

@@ -53,11 +53,12 @@ public class SimpleSession extends AbstractSession
         return this.lastAccess;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public Object var(String name)
+    public <T> T var(String name)
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
-        return this.vars.get(name);
+        return (T) this.vars.get(name);
     }
 
     @Override
