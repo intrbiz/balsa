@@ -40,6 +40,10 @@ public interface BalsaSession
      */
     <T> T var(String name, T object);
     
+    /**
+     * Remove a variable of the given name
+     * @param name
+     */
     void removeVar(String name);
     
     /**
