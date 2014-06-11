@@ -78,7 +78,7 @@ public class BalsaContext
             public Object getEntity(String name, Object source)
             {
                 if ("balsa".equals(name)) return this;
-                Object value = BalsaContext.this.models.get(name);
+                Object value = BalsaContext.this.model(name);
                 if (value != null) return value;
                 // next session
                 if (BalsaContext.this.session != null)

@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.intrbiz.balsa.engine.impl.route.Route.Filter;
 import com.intrbiz.balsa.listener.BalsaRequest;
 
 /**
@@ -14,7 +15,11 @@ public class PrefixContainer implements Comparable<PrefixContainer>
 {
     private final String prefix;
 
-    private List<RouteEntry> routes = new LinkedList<RouteEntry>();
+    private final List<RouteEntry> routes = new LinkedList<RouteEntry>();
+    
+    private final List<RouteEntry> before = new LinkedList<RouteEntry>();
+    
+    private final List<RouteEntry> after = new LinkedList<RouteEntry>();
     
     private final RouteEngineImpl engine;
 
@@ -39,11 +44,35 @@ public class PrefixContainer implements Comparable<PrefixContainer>
     {
         return this.routes;
     }
+    
+    public List<RouteEntry> getBefore()
+    {
+        return before;
+    }
+
+    public List<RouteEntry> getAfter()
+    {
+        return after;
+    }
 
     public void registerRoute(RouteEntry handler)
     {
-        this.routes.add(handler);
-        Collections.sort(this.routes);
+        if (handler.isFilter())
+        {
+            if (handler.getFilter() == Filter.BEFORE)
+            {
+                this.before.add(handler);
+            }
+            else
+            {
+                this.after.add(handler);
+            }
+        }
+        else
+        {
+            this.routes.add(handler);
+            Collections.sort(this.routes);
+        }
     }
 
     /**
@@ -55,6 +84,18 @@ public class PrefixContainer implements Comparable<PrefixContainer>
     public boolean match(BalsaRequest request)
     {
         return request.getPathInfo().startsWith(this.prefix);
+    }
+    
+    public List<RouteEntry> getFilters(BalsaRequest request, Filter filterType)
+    {
+        if ((Filter.BEFORE == filterType ? this.before : this.after).isEmpty()) return null;
+        // find all before filters which match
+        List<RouteEntry> ret = new LinkedList<RouteEntry>();
+        for (RouteEntry route : (Filter.BEFORE == filterType ? this.before : this.after))
+        {
+            if ((! route.isExceptionHandler()) && route.match(request)) ret.add(route);
+        }
+        return ret;
     }
 
     /**
@@ -72,6 +113,24 @@ public class PrefixContainer implements Comparable<PrefixContainer>
         return null;
     }
     
+    public List<RouteEntry> getExceptionFilters(BalsaRequest request, Filter filterType)
+    {
+        if ((Filter.BEFORE == filterType ? this.before : this.after).isEmpty()) return null;
+        // find all before filters which match
+        List<RouteEntry> ret = new LinkedList<RouteEntry>();
+        for (RouteEntry route : (Filter.BEFORE == filterType ? this.before : this.after))
+        {
+            if (route.isExceptionHandler() && route.match(request)) ret.add(route);
+        }
+        return ret;
+    }
+    
+    /**
+     * Get the exception handler for the request
+     * @param request
+     * @param t
+     * @return
+     */
     public RouteEntry getExceptionHandler(BalsaRequest request, Throwable t)
     {
         for (RouteEntry route : this.routes)

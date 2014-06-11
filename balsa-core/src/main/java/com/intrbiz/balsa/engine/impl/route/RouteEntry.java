@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
 import com.intrbiz.balsa.BalsaContext;
+import com.intrbiz.balsa.engine.impl.route.Route.Filter;
 import com.intrbiz.balsa.engine.route.RouteExecutor;
 import com.intrbiz.balsa.error.BalsaInternalError;
 import com.intrbiz.balsa.listener.BalsaRequest;
@@ -48,6 +49,16 @@ public class RouteEntry implements Comparable<RouteEntry>
     public boolean isExceptionHandler()
     {
         return this.route.isExceptionHandler();
+    }
+
+    public boolean isFilter()
+    {
+        return this.route.isFilter();
+    }
+
+    public Filter getFilter()
+    {
+        return this.route.getFilter();
     }
 
     public boolean match(BalsaRequest request)
@@ -95,9 +106,7 @@ public class RouteEntry implements Comparable<RouteEntry>
         try
         {
             this.route.getRouter().before();
-            //
             if (this.executor != null) this.executor.execute(context);
-            //
             this.route.getRouter().after();
         }
         finally

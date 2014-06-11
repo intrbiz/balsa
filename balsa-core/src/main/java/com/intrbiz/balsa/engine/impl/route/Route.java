@@ -9,7 +9,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.intrbiz.balsa.engine.route.Router;
+import com.intrbiz.metadata.After;
 import com.intrbiz.metadata.Any;
+import com.intrbiz.metadata.Before;
 import com.intrbiz.metadata.Catch;
 import com.intrbiz.metadata.Delete;
 import com.intrbiz.metadata.Get;
@@ -20,6 +22,12 @@ import com.intrbiz.metadata.Put;
 
 public class Route implements Comparable<Route>
 {
+    public enum Filter
+    {
+        BEFORE,
+        AFTER
+    }
+    
     private final String prefix;
 
     private final String method;
@@ -33,6 +41,8 @@ public class Route implements Comparable<Route>
     private final Method handler;
 
     private final Router<?> router;
+    
+    private final Filter filter;
 
     private CompiledPattern compiledPattern;
 
@@ -40,7 +50,7 @@ public class Route implements Comparable<Route>
 
     private int order = 0;
 
-    public Route(String prefix, String method, String pattern, boolean regex, String[] as, Method handler, Router<?> router)
+    public Route(String prefix, String method, String pattern, boolean regex, String[] as, Method handler, Router<?> router, Filter filter)
     {
         super();
         this.prefix = prefix;
@@ -50,6 +60,17 @@ public class Route implements Comparable<Route>
         this.as = as;
         this.handler = handler;
         this.router = router;
+        this.filter = filter;
+    }
+    
+    public boolean isFilter()
+    {
+        return this.filter != null;
+    }
+    
+    public Filter getFilter()
+    {
+        return this.filter;
     }
 
     public String prefix()
@@ -195,8 +216,10 @@ public class Route implements Comparable<Route>
         // load the RouteBuilder
         RouteBuilder rb = getRouteBuilder(a);
         if (rb == null) return null;
+        // is this a filter?
+        Filter filter = isFilter(method);
         // build the route
-        Route r = rb.build(prefix, router, method, a);
+        Route r = rb.build(prefix, router, method, a, filter);
         if (r == null) return null;
         // annotations across all routes
         // is it an error route
@@ -208,6 +231,13 @@ public class Route implements Comparable<Route>
         // compile the pattern
         r.setCompiledPattern(compilePattern(r.getPrefix(), r.getPattern(), r.isRegex(), r.getAs()));
         return r;
+    }
+    
+    public static Filter isFilter(Method m)
+    {
+        if (m.getAnnotation(Before.class) != null) return Filter.BEFORE;
+        if (m.getAnnotation(After.class) != null)  return Filter.AFTER;
+        return null;
     }
 
     public static boolean isRoute(Method m)
@@ -355,56 +385,56 @@ public class Route implements Comparable<Route>
      */
     public static interface RouteBuilder
     {
-        Route build(String prefix, Router<?> router, Method method, Annotation a);
+        Route build(String prefix, Router<?> router, Method method, Annotation a, Filter filter);
     }
 
     public static class AnyRouteBuilder implements RouteBuilder
     {
         @Override
-        public Route build(String prefix, Router<?> router, Method method, Annotation a)
+        public Route build(String prefix, Router<?> router, Method method, Annotation a, Filter filter)
         {
             Any url = (Any) a;
-            return new Route(prefix, "ANY", url.value(), url.regex(), url.as(), method, router);
+            return new Route(prefix, "ANY", url.value(), url.regex(), url.as(), method, router, filter);
         }
     }
 
     public static class GetRouteBuilder implements RouteBuilder
     {
         @Override
-        public Route build(String prefix, Router<?> router, Method method, Annotation a)
+        public Route build(String prefix, Router<?> router, Method method, Annotation a, Filter filter)
         {
             Get url = (Get) a;
-            return new Route(prefix, "GET", url.value(), url.regex(), url.as(), method, router);
+            return new Route(prefix, "GET", url.value(), url.regex(), url.as(), method, router, filter);
         }
     }
 
     public static class PostRouteBuilder implements RouteBuilder
     {
         @Override
-        public Route build(String prefix, Router<?> router, Method method, Annotation a)
+        public Route build(String prefix, Router<?> router, Method method, Annotation a, Filter filter)
         {
             Post url = (Post) a;
-            return new Route(prefix, "POST", url.value(), url.regex(), url.as(), method, router);
+            return new Route(prefix, "POST", url.value(), url.regex(), url.as(), method, router, filter);
         }
     }
 
     public static class PutRouteBuilder implements RouteBuilder
     {
         @Override
-        public Route build(String prefix, Router<?> router, Method method, Annotation a)
+        public Route build(String prefix, Router<?> router, Method method, Annotation a, Filter filter)
         {
             Put url = (Put) a;
-            return new Route(prefix, "Put", url.value(), url.regex(), url.as(), method, router);
+            return new Route(prefix, "Put", url.value(), url.regex(), url.as(), method, router, filter);
         }
     }
 
     public static class DeleteRouteBuilder implements RouteBuilder
     {
         @Override
-        public Route build(String prefix, Router<?> router, Method method, Annotation a)
+        public Route build(String prefix, Router<?> router, Method method, Annotation a, Filter filter)
         {
             Delete url = (Delete) a;
-            return new Route(prefix, "DELETE", url.value(), url.regex(), url.as(), method, router);
+            return new Route(prefix, "DELETE", url.value(), url.regex(), url.as(), method, router, filter);
         }
     }
 }

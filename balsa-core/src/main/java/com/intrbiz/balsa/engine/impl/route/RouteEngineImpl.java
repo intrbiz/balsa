@@ -10,6 +10,7 @@ import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.RouteEngine;
 import com.intrbiz.balsa.engine.impl.AbstractBalsaEngine;
+import com.intrbiz.balsa.engine.impl.route.Route.Filter;
 import com.intrbiz.balsa.engine.impl.route.exec.ExecBuilder;
 import com.intrbiz.balsa.engine.route.RouteExecutor;
 import com.intrbiz.balsa.engine.route.Router;
@@ -22,23 +23,23 @@ import com.intrbiz.balsa.listener.BalsaRequest;
  *
  */
 public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
-{    
+{
     private List<Router<?>> routers = new ArrayList<Router<?>>();
-    
+
     private List<PrefixContainer> prefixes = new ArrayList<PrefixContainer>();
-    
+
     private Logger logger = Logger.getLogger(RouteEngineImpl.class);
-    
+
     public RouteEngineImpl()
     {
         super();
     }
-    
+
     public String getEngineName()
     {
         return "Balsa-Route-Engine";
     }
-    
+
     public List<Router<?>> getRouters()
     {
         return Collections.unmodifiableList(this.routers);
@@ -51,7 +52,7 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
         // compile the routes
         this.compileRouter(router);
     }
-    
+
     protected void compileRouter(Router<?> router) throws BalsaException
     {
         // get the prefix for the router
@@ -82,7 +83,7 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
             logger.debug("\t" + routeHandler.getRoute().getMethod() + " " + routeHandler.getRoute().getCompiledPattern() + " ==> " + routeHandler.getRoute().getHandler());
         }
     }
-    
+
     protected PrefixContainer createContainer(String prefix)
     {
         for (PrefixContainer container : this.prefixes)
@@ -94,7 +95,7 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
         Collections.sort(this.prefixes);
         return container;
     }
-    
+
     public String toString()
     {
         StringBuilder s = new StringBuilder("RoutingEngine\r\n");
@@ -108,8 +109,7 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
         }
         return s.toString();
     }
-    
-    
+
     public void route(BalsaContext context) throws Throwable
     {
         // ROUTE!
@@ -122,14 +122,46 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
                 RouteEntry handler = prefix.getHandler(request);
                 if (handler != null)
                 {
+                    // before filter
+                    for (PrefixContainer filterPrefix : this.prefixes)
+                    {
+                        if (filterPrefix.match(request))
+                        {
+                            List<RouteEntry> filters = filterPrefix.getFilters(request, Filter.BEFORE);
+                            if (filters != null)
+                            {
+                                for (RouteEntry filter : filters)
+                                {
+                                    filter.execute(context);
+                                }
+                            }
+                        }
+                    }
+                    // the route
                     handler.execute(context);
+                    // before filter
+                    for (PrefixContainer filterPrefix : this.prefixes)
+                    {
+                        if (filterPrefix.match(request))
+                        {
+                            List<RouteEntry> filters = filterPrefix.getFilters(request, Filter.AFTER);
+                            if (filters != null)
+                            {
+                                for (RouteEntry filter : filters)
+                                {
+                                    filter.execute(context);
+                                }
+                            }
+                        }
+                    }
+                    // all done
                     return;
-                }    
+                }
             }
         }
         throw new BalsaNotFound();
     }
-    
+
     public void routeException(BalsaContext context, Throwable t) throws Throwable
     {
         // Abort the current response
@@ -144,9 +176,41 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
                 RouteEntry handler = prefix.getExceptionHandler(request, t);
                 if (handler != null)
                 {
+                    // before filter
+                    for (PrefixContainer filterPrefix : this.prefixes)
+                    {
+                        if (filterPrefix.match(request))
+                        {
+                            List<RouteEntry> filters = filterPrefix.getExceptionFilters(request, Filter.BEFORE);
+                            if (filters != null)
+                            {
+                                for (RouteEntry filter : filters)
+                                {
+                                    filter.execute(context);
+                                }
+                            }
+                        }
+                    }
+                    // the exception route
                     handler.executeException(context);
+                    // after filter
+                    for (PrefixContainer filterPrefix : this.prefixes)
+                    {
+                        if (filterPrefix.match(request))
+                        {
+                            List<RouteEntry> filters = filterPrefix.getExceptionFilters(request, Filter.AFTER);
+                            if (filters != null)
+                            {
+                                for (RouteEntry filter : filters)
+                                {
+                                    filter.execute(context);
+                                }
+                            }
+                        }
+                    }
+                    // all done
                     return;
-                }    
+                }
             }
         }
         // We cannot handle the error captain
