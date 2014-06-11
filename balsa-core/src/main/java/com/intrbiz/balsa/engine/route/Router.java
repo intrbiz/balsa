@@ -108,6 +108,40 @@ public abstract class Router<A extends BalsaApplication>
     {
         return Balsa().model(name, model);
     }
+    
+    /**
+     * Get the named variable
+     * @param name the variable name
+     * @return
+     * returns Object
+     */
+    public <T> T var(String name)
+    {
+        return Balsa().var(name);
+    }
+    
+    /**
+     * Get the named variable of the given type
+     * @param name the variable name
+     * @param type the variable type
+     * @return
+     * returns T
+     */
+    public <T> T var(String name, Class<T> type)
+    {
+        return Balsa().var(name, type);
+    }
+    
+    /**
+     * Store a variable
+     * @param name the variable name
+     * @param object the variable
+     * returns void
+     */
+    public <T> T var(String name, T object)
+    {
+        return Balsa().var(name, object);
+    }
 
     /**
      * Get the value of the request parameter given
