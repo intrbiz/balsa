@@ -51,6 +51,8 @@ public class BalsaContext
     private final BalsaResponse response;
 
     private final Map<String, Object> models = new TreeMap<String, Object>();
+    
+    private final Map<String, Object> vars = new TreeMap<String, Object>();
 
     private Throwable exception = null;
 
@@ -78,12 +80,12 @@ public class BalsaContext
             public Object getEntity(String name, Object source)
             {
                 if ("balsa".equals(name)) return this;
-                Object value = BalsaContext.this.model(name);
+                Object value = BalsaContext.this.getEntity(name);
                 if (value != null) return value;
                 // next session
                 if (BalsaContext.this.session != null)
                 {
-                    value = BalsaContext.this.session.getEntity(name, source);
+                    value = BalsaContext.this.session.getEntity(name);
                 }
                 return value;
             }
@@ -297,6 +299,7 @@ public class BalsaContext
     @SuppressWarnings("unchecked")
     public <T> T model(String name, Class<T> type, boolean create)
     {
+        if (name == null) throw new IllegalArgumentException("Name cannot be null");
         // find the bean
         T model = (T) this.models.get(name);
         if (model == null && create)
@@ -313,16 +316,19 @@ public class BalsaContext
 
     public <T> T model(String name, Class<T> type)
     {
+        if (name == null) throw new IllegalArgumentException("Name cannot be null");
         return this.model(name, type, true);
     }
 
     public Object model(String name)
     {
+        if (name == null) throw new IllegalArgumentException("Name cannot be null");
         return this.models.get(name);
     }
 
     public <T> T model(String name, T model)
     {
+        if (name == null) throw new IllegalArgumentException("Name cannot be null");
         this.models.put(name, model);
         return model;
     }
@@ -330,6 +336,69 @@ public class BalsaContext
     public <E> BeanProvider<E> provider(Class<E> type)
     {
         return this.application.provider(type);
+    }
+    
+    /**
+     * Get the named variable
+     * @param name the variable name
+     * @return
+     * returns Object
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T var(String name)
+    {
+        if (name == null) throw new IllegalArgumentException("Name cannot be null");
+        return (T) this.vars.get(name);
+    }
+    
+    /**
+     * Get the named variable of the given type
+     * @param name the variable name
+     * @param type the variable type
+     * @return
+     * returns T
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T var(String name, Class<T> type)
+    {
+        Object var = this.var(name);
+        if (type.isInstance(var)) return (T) var;
+        return null;
+    }
+    
+    /**
+     * Store a variable
+     * @param name the variable name
+     * @param object the variable
+     * returns void
+     */
+    public <T> T var(String name, T object)
+    {
+        if (name == null) throw new IllegalArgumentException("Name cannot be null");
+        this.vars.put(name, object);
+        return object;
+    }
+    
+    /**
+     * Remove a variable of the given name
+     * @param name
+     */
+    public void removeVar(String name)
+    {
+        if (name == null) throw new IllegalArgumentException("Name cannot be null");
+        this.vars.remove(name);
+    }
+    
+    /**
+     * Get the model or variable with the given name
+     * @param name the model or variable name
+     * @return
+     */
+    public Object getEntity(String name)
+    {
+        Object value = this.model(name);
+        if (value == null) value = this.var(name);
+        return value;
     }
 
     /**

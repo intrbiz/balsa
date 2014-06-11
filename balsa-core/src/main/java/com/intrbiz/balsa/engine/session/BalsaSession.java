@@ -6,7 +6,7 @@ public interface BalsaSession
 {   
     public static final String COOKIE_NAME = "BalsaSession";
     
-    Object getEntity(String name, Object source);
+    Object getEntity(String name);
     
     /**
      * The session id

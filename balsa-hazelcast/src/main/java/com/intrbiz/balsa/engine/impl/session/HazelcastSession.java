@@ -75,7 +75,8 @@ public class HazelcastSession implements BalsaSession, Serializable
         return (Principal) this.getAttributeMap().get(this.principalId());
     }
 
-    public Object getEntity(String name, Object source)
+    @Override
+    public Object getEntity(String name)
     {
         Object value = this.model(name);
         if (value == null) value = this.var(name);
