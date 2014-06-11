@@ -738,8 +738,7 @@ public class BalsaContext
      */
     public <T> T sessionVar(String name, T object)
     {
-        this.session().var(name, object);
-        return object;
+        return this.session().var(name, object);
     }
 
     /**

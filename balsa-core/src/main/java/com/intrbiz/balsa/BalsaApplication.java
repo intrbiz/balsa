@@ -580,7 +580,6 @@ public abstract class BalsaApplication
         // configure the session engine
         if (this.getSessionEngine() != null)
         {
-            this.getSessionEngine().setPoolSize(Runtime.getRuntime().availableProcessors() * 2);
             this.getSessionEngine().setSessionLifetime(Integer.getInteger("balsa.session-lifetime", SessionEngine.DEFAULT_SESSION_LIFETIME));
         }
         // settings based on environment
@@ -686,7 +685,7 @@ public abstract class BalsaApplication
         /* Default Listeners */
         this.listener(new BalsaSCGIListener());
         // dev env addds HTTP listener
-        if (this.isDevEnv())
+        if (this.isDevEnv() && Boolean.parseBoolean(System.getProperty("balsa.http", "true")))
         {
             this.listener(new BalsaHTTPListener());
             filter(new PublicResourceFilter(new File(System.getProperty("balsa.public.path", PublicResourceFilter.DEV_PUBLIC_PATH))));

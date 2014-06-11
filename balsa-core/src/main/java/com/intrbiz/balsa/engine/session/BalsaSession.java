@@ -16,18 +16,6 @@ public interface BalsaSession
     String id();
     
     /**
-     * The last time the session was accessed (in Unix time)
-     * @return
-     * returns long
-     */
-    long lastAccess();
-    
-    /**
-     * Mark access on the session
-     */
-    void access();
-    
-    /**
      * Get the named session variable
      * @param name the variable name
      * @return
@@ -50,7 +38,7 @@ public interface BalsaSession
      * @param object the variable
      * returns void
      */
-    void var(String name, Object object);
+    <T> T var(String name, T object);
     
     void removeVar(String name);
     
@@ -66,6 +54,7 @@ public interface BalsaSession
     <T> T model(String name, Class<T> type);
     <T> T model(String name, Class<T> type, boolean create);
     <T> T model(String name, T model);
+    <T> T model(String name);
     
     void removeModel(String name);
     

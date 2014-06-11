@@ -12,6 +12,7 @@ import org.junit.Test;
 import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.SessionEngine;
+import com.intrbiz.balsa.engine.impl.session.SimpleSession;
 import com.intrbiz.balsa.engine.session.BalsaSession;
 
 public class SessionTests
@@ -173,22 +174,32 @@ public class SessionTests
         BalsaSession session1 = this.sessionEngine.getSession(sessionId);
         assertNotNull(session1);
         //
-        long t1 = session1.lastAccess();
-        assertTrue("Access time > 0", t1 > 0);
-        //
-        Thread.sleep(50);
-        //
-        BalsaSession session2 = this.sessionEngine.getSession(sessionId);
-        long t2 = session2.lastAccess();
-        assertTrue("Access time > 0", t2 > 0);
-        assertTrue("Access time t2 > t1", t2 > t1);
-        //
-        Thread.sleep(50);
-        //
-        session2.access();
-        long t3 = session2.lastAccess();
-        assertTrue("Access time > 0", t3 > 0);
-        assertTrue("Access time t3 > t2", t3 > t2);
+        if (session1 instanceof SimpleSession)
+        {
+            //
+            long t1 = ((SimpleSession) session1).lastAccess();
+            assertTrue("Access time > 0", t1 > 0);
+            //
+            Thread.sleep(50);
+            //
+            BalsaSession session2 = this.sessionEngine.getSession(sessionId);
+            assertNotNull(session2);
+            //
+            if (session2 instanceof SimpleSession)
+            {
+                //
+                long t2 = ((SimpleSession) session2).lastAccess();
+                assertTrue("Access time > 0", t2 > 0);
+                assertTrue("Access time t2 > t1", t2 > t1);
+                //
+                Thread.sleep(50);
+                //
+                ((SimpleSession) session2).access();
+                long t3 = ((SimpleSession) session2).lastAccess();
+                assertTrue("Access time > 0", t3 > 0);
+                assertTrue("Access time t3 > t2", t3 > t2);
+            }
+        }
     }
 
     @After

@@ -1,56 +1,92 @@
 package com.intrbiz.balsa.engine.impl.session;
 
+import java.security.Principal;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.intrbiz.balsa.BalsaApplication;
+import com.intrbiz.balsa.engine.session.BalsaSession;
 import com.yammer.metrics.core.TimerContext;
 
-public class SimpleSession extends AbstractSession
+public class SimpleSession implements BalsaSession
 {
-    private final BalsaApplication application;
-
-    private final String id;
-
     private volatile long lastAccess;
+    
+    private final BalsaApplication application;
 
     private final ConcurrentMap<String, Object> vars;
 
     private final ConcurrentMap<String, Object> model;
     
     private final TimerContext timer;
+    
+    protected Principal currentPrincipal;
 
-    public SimpleSession(BalsaApplication application, String id, int poolSize, TimerContext timer)
+    protected String id;
+
+    public SimpleSession(BalsaApplication application, String id, TimerContext timer)
     {
         super();
-        this.application = application;
         this.id = id;
         this.lastAccess = System.currentTimeMillis();
+        this.application = application;
         this.timer = timer;
-        this.vars = new ConcurrentHashMap<String, Object>(20, 0.75F, poolSize);
-        this.model = new ConcurrentHashMap<String, Object>(20, 0.75F, poolSize);
+        this.vars = new ConcurrentHashMap<String, Object>(20, 0.75F, Runtime.getRuntime().availableProcessors());
+        this.model = new ConcurrentHashMap<String, Object>(20, 0.75F, Runtime.getRuntime().availableProcessors());
     }
     
-    TimerContext getTimer()
-    {
-        return this.timer;
-    }
-
-    public void access()
-    {
-        this.lastAccess = System.currentTimeMillis();
-    }
-
     @Override
     public String id()
     {
         return this.id;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
+    public <T> T var(String name, Class<T> type)
+    {
+        Object var = this.var(name);
+        if (type.isInstance(var)) return (T) var;
+        return null;
+    }
+
+    public <T> T model(String name, Class<T> type)
+    {
+        return this.model(name, type, true);
+    }
+
+    @Override
+    public void setCurrentPrincipal(Principal principal)
+    {
+        this.currentPrincipal = principal;
+    }
+
+    @Override
+    public Principal currentPrincipal()
+    {
+        return this.currentPrincipal;
+    }
+    
+    public Object getEntity(String name, Object source)
+    {
+        Object value = this.model(name);
+        if (value == null) value = this.var(name);
+        return value;
+    }
+    
+    public void access()
+    {
+        this.lastAccess = System.currentTimeMillis();
+    }
+    
     public long lastAccess()
     {
         return this.lastAccess;
+    }
+    
+    TimerContext getTimer()
+    {
+        return this.timer;
     }
 
     @SuppressWarnings("unchecked")
@@ -62,17 +98,20 @@ public class SimpleSession extends AbstractSession
     }
 
     @Override
-    public void var(String name, Object object)
+    public <T> T var(String name, T object)
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
-        if (object == null)
-        {
-            this.vars.remove(name);
-        }
-        else
-        {
-            this.vars.put(name, object);
-        }
+        if (object != null) this.vars.put(name, object);
+        return object;
+    }
+    
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T> T model(String name)
+    {
+        if (name == null) throw new IllegalArgumentException("Name cannot be null");
+        // find the bean
+        return (T) this.model.get(name);
     }
 
     @Override
@@ -86,10 +125,7 @@ public class SimpleSession extends AbstractSession
         {
             // create the bean
             bean = this.application.activateModel(type);
-            if (bean != null)
-            {
-                this.model.put(name, bean);
-            }
+            if (bean != null) this.model.put(name, bean);
         }
         return bean;
     }
@@ -131,13 +167,5 @@ public class SimpleSession extends AbstractSession
         {
             this.application.deactivateModel(bean);
         }
-    }
-    
-    public Object getEntity(String name, Object source)
-    {
-        Object value = this.model.get(name);
-        if (value != null) return value;
-        value = this.vars.get(name);
-        return value;
     }
 }

@@ -6,10 +6,6 @@ public interface SessionEngine extends BalsaEngine
 {
     public static final int DEFAULT_SESSION_LIFETIME = 30;
     
-    int getPoolSize();
-    
-    void setPoolSize(int poolSize);
-    
     int getSessionLifetime();
 
     void setSessionLifetime(int sessionLifetime);
