@@ -117,6 +117,7 @@
     <module>balsa-pegdown</module>
     <module>balsa-test</module>
     <module>balsa-packaging</module>
+    <module>balsa-hazelcast</module>
   </modules>
 <!--
 	<repositories>
