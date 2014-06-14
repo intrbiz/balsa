@@ -32,6 +32,12 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
     {
         super();
     }
+    
+    public HazelcastSessionEngine(HazelcastInstance hazelcastInstance)
+    {
+        super();
+        this.hazelcastInstance = hazelcastInstance;
+    }
 
     @Override
     public String getEngineName()
@@ -57,35 +63,38 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
         super.start();
         try
         {
-            // setup hazelcast
-            String hazelcastConfigFile = System.getProperty("balsa.hazelcast.config");
-            if (hazelcastConfigFile != null)
+            if (this.hazelcastInstance == null)
             {
-                // when using a config file, you must configure the balsa.sessions map
-                this.hazelcastConfig = new XmlConfigBuilder(hazelcastConfigFile).build();
+                // setup hazelcast
+                String hazelcastConfigFile = System.getProperty("hazelcast.config");
+                if (hazelcastConfigFile != null)
+                {
+                    // when using a config file, you must configure the balsa.sessions map
+                    this.hazelcastConfig = new XmlConfigBuilder(hazelcastConfigFile).build();
+                }
+                else
+                {
+                    // setup the default configuration
+                    this.hazelcastConfig = new Config();
+                    // add update configuration for our maps
+                    MapConfig sessionMapConfig = this.hazelcastConfig.getMapConfig("balsa.sessions");
+                    // session lifetime is in minutes
+                    sessionMapConfig.setMaxIdleSeconds(this.getSessionLifetime() * 60);
+                    sessionMapConfig.setEvictionPolicy(EvictionPolicy.LRU);
+                    sessionMapConfig.setEvictionPercentage(Integer.getInteger("balsa.hazelcast.eviction-percentage", 0));
+                    this.hazelcastConfig.addMapConfig(sessionMapConfig);
+                }
+                // set the instance name
+                this.hazelcastConfig.setInstanceName(this.getBalsaApplication().getInstanceName());
+                // create the instance
+                this.hazelcastInstance = Hazelcast.getOrCreateHazelcastInstance(this.hazelcastConfig);
             }
-            else
-            {
-                // setup the default configuration
-                this.hazelcastConfig = new Config();
-                // add update configuration for our maps
-                MapConfig sessionMapConfig = this.hazelcastConfig.getMapConfig("balsa.sessions");
-                // session lifetime is in minutes
-                sessionMapConfig.setMaxIdleSeconds(this.getSessionLifetime() * 60);
-                sessionMapConfig.setEvictionPolicy(EvictionPolicy.LRU);
-                sessionMapConfig.setEvictionPercentage(Integer.getInteger("balsa.hazelcast.eviction-percentage", 0));
-                this.hazelcastConfig.addMapConfig(sessionMapConfig);
-            }
-            // set the instance name
-            this.hazelcastConfig.setInstanceName(System.getProperty("balsa.hazelcast.instance", this.getBalsaApplication().getClass().getSimpleName().toLowerCase() + "." + this.getBalsaApplication().getEnv()));
-            // create the instance
-            this.hazelcastInstance = Hazelcast.getOrCreateHazelcastInstance(this.hazelcastConfig);
             // create the maps
             this.sessionMap = this.hazelcastInstance.getMap("balsa.sessions");
             this.attributeMap = this.hazelcastInstance.getMap("balsa.sessions.attributes");
             // eviction listener
             // this will remove attributes when a session is removed / evicted
-            this.sessionMap.addEntryListener(new EntryListener<String, HazelcastSession>()
+            this.sessionMap.addLocalEntryListener(new EntryListener<String, HazelcastSession>()
             {
 
                 @Override
@@ -119,7 +128,7 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
                     this.entryRemoved(event);
                 }
 
-            }, false);
+            });
         }
         catch (Exception e)
         {
