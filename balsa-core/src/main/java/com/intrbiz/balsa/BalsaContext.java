@@ -210,6 +210,7 @@ public class BalsaContext
             this.application.deactivateModel(bean);
         }
         this.models.clear();
+        this.vars.clear();
         this.conversionErrors.clear();
         this.validationErrors.clear();
         this.exception = null;
