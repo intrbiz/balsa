@@ -712,4 +712,9 @@ public abstract class BalsaApplication
         if (this.getSessionEngine() != null) this.getSessionEngine().stop();
         this.shutdown();
     }
+    
+    public String getInstanceName()
+    {
+        return System.getProperty("balsa.instance.name", this.getClass().getSimpleName().toLowerCase() + "." + this.getEnv());
+    }
 }
