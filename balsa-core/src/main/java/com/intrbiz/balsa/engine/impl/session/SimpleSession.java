@@ -41,30 +41,18 @@ public class SimpleSession implements BalsaSession
         return this.id;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <T> T var(String name, Class<T> type)
-    {
-        Object var = this.var(name);
-        if (type.isInstance(var)) return (T) var;
-        return null;
-    }
-
-    public <T> T model(String name, Class<T> type)
-    {
-        return this.model(name, type, true);
-    }
-
-    @Override
-    public void setCurrentPrincipal(Principal principal)
+    public <T extends Principal> T currentPrincipal(T principal)
     {
         this.currentPrincipal = principal;
+        return principal;
     }
 
     @Override
-    public Principal currentPrincipal()
+    @SuppressWarnings("unchecked")
+    public <T extends Principal> T currentPrincipal()
     {
-        return this.currentPrincipal;
+        return (T) this.currentPrincipal;
     }
     
     @Override

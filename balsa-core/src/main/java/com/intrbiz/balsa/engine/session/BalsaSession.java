@@ -24,15 +24,6 @@ public interface BalsaSession
     <T> T var(String name);
     
     /**
-     * Get the named session variable of the given type
-     * @param name the variable name
-     * @param type the variable type
-     * @return
-     * returns T
-     */
-    <T> T var(String name, Class<T> type);
-    
-    /**
      * Store a variable in the session
      * @param name the variable name
      * @param object the variable
@@ -55,7 +46,6 @@ public interface BalsaSession
      *            the model class
      * @return returns Object the model
      */
-    <T> T model(String name, Class<T> type);
     <T> T model(String name, Class<T> type, boolean create);
     <T> T model(String name, T model);
     <T> T model(String name);
@@ -75,7 +65,7 @@ public interface BalsaSession
      * Get the currently authenticated principal for this session
      * @return
      */
-    Principal currentPrincipal();
+    <T extends Principal> T currentPrincipal();
     
     /**
      * Store the currently authenticated principal
@@ -85,5 +75,5 @@ public interface BalsaSession
      * 
      * @param principal
      */
-    void setCurrentPrincipal(Principal principal);
+    <T extends Principal> T currentPrincipal(T principal);
 }

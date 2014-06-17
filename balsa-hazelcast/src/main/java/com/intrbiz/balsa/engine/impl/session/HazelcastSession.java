@@ -42,37 +42,19 @@ public class HazelcastSession implements BalsaSession, Serializable
         this.sessionId = sessionId;
     }
 
+    @Override
+    public <T extends Principal> T currentPrincipal(T principal)
+    {
+        if (principal == null) this.getAttributeMap().remove(this.principalId());
+        else this.getAttributeMap().put(this.principalId(), principal);
+        return principal;
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
-    @Override
-    public <T> T var(String name, Class<T> type)
+    public <T extends Principal> T currentPrincipal()
     {
-        Object var = this.var(name);
-        if (type.isInstance(var)) return (T) var;
-        return null;
-    }
-
-    public <T> T model(String name, Class<T> type)
-    {
-        return this.model(name, type, true);
-    }
-
-    @Override
-    public void setCurrentPrincipal(Principal principal)
-    {
-        if (principal == null)
-        {
-            this.getAttributeMap().remove(this.principalId());
-        }
-        else
-        {
-            this.getAttributeMap().put(this.principalId(), principal);
-        }
-    }
-
-    @Override
-    public Principal currentPrincipal()
-    {
-        return (Principal) this.getAttributeMap().get(this.principalId());
+        return (T) this.getAttributeMap().get(this.principalId());
     }
 
     @Override

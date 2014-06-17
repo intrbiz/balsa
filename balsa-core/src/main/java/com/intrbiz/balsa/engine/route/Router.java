@@ -93,12 +93,7 @@ public abstract class Router<A extends BalsaApplication>
      * @param type
      *            the bean class
      * @return returns Object the bean
-     */
-    protected final <T> T model(String name, Class<T> type)
-    {
-        return Balsa().model(name, type);
-    }
-    
+     */    
     protected final <T> T model(String name, Class<T> type, boolean create)
     {
         return Balsa().model(name, type, create);
@@ -118,18 +113,6 @@ public abstract class Router<A extends BalsaApplication>
     public <T> T var(String name)
     {
         return Balsa().var(name);
-    }
-    
-    /**
-     * Get the named variable of the given type
-     * @param name the variable name
-     * @param type the variable type
-     * @return
-     * returns T
-     */
-    public <T> T var(String name, Class<T> type)
-    {
-        return Balsa().var(name, type);
     }
     
     /**
@@ -354,18 +337,6 @@ public abstract class Router<A extends BalsaApplication>
     }
     
     /**
-     * Get the named session variable of the given type
-     * @param name the variable name
-     * @param type the variable type
-     * @return
-     * returns T
-     */
-    public <T> T sessionVar(String name, Class<T> type)
-    {
-        return Balsa().sessionVar(name, type);
-    }
-    
-    /**
      * Store a variable in the session
      * @param name the variable name
      * @param object the variable
@@ -385,11 +356,6 @@ public abstract class Router<A extends BalsaApplication>
      *            the model class
      * @return returns Object the model
      */
-    protected final <T> T sessionModel(String name, Class<T> type)
-    {
-        return Balsa().sessionModel(name, type);
-    }
-    
     protected final <T> T sessionModel(String name, Class<T> type, boolean create)
     {
         return Balsa().sessionModel(name, type, create);

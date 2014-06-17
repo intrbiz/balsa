@@ -87,7 +87,7 @@ public class SessionTests
         assertTrue("Got var of correct type", o instanceof String);
         assertSame("Got same var", o, value);
         //
-        String s = session.var(name, String.class);
+        String s = session.var(name);
         assertNotNull("Got var", s);
         assertTrue("Got var of correct type", s instanceof String);
         assertSame("Got same var", s, value);
@@ -108,7 +108,7 @@ public class SessionTests
         // get
         Object o = session.var(name);
         assertTrue("Got null var", o == null);
-        String s = session.var(name, String.class);
+        String s = session.var(name);
         assertTrue("Got null var", s == null);
     }
     
@@ -159,10 +159,10 @@ public class SessionTests
         // put
         session.var(name, value);
         // get
-        String s = session.var(name, String.class);
+        String s = session.var(name);
         assertSame("Got same var", s, value);
         //
-        String m = session.model(name, String.class);
+        String m = session.model(name);
         assertNull("Model cannot get var", m);
     }
     

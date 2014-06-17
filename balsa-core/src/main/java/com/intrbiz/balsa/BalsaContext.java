@@ -315,12 +315,6 @@ public class BalsaContext
         return model;
     }
 
-    public <T> T model(String name, Class<T> type)
-    {
-        if (name == null) throw new IllegalArgumentException("Name cannot be null");
-        return this.model(name, type, true);
-    }
-
     public Object model(String name)
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
@@ -350,21 +344,6 @@ public class BalsaContext
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
         return (T) this.vars.get(name);
-    }
-    
-    /**
-     * Get the named variable of the given type
-     * @param name the variable name
-     * @param type the variable type
-     * @return
-     * returns T
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T var(String name, Class<T> type)
-    {
-        Object var = this.var(name);
-        if (type.isInstance(var)) return (T) var;
-        return null;
     }
     
     /**
@@ -689,14 +668,14 @@ public class BalsaContext
         return this.currentPrincipal() != null;
     }
 
-    public Principal currentPrincipal()
+    public <T extends Principal> T currentPrincipal()
     {
         return this.session().currentPrincipal();
     }
 
     public void deauthenticate()
     {
-        this.session().setCurrentPrincipal(null);
+        this.session().currentPrincipal(null);
     }
 
     public Principal authenticate(Credentials credentials) throws BalsaSecurityException
@@ -705,7 +684,7 @@ public class BalsaContext
         Principal principal = this.app().getSecurityEngine().authenticate(credentials);
         if (principal == null) throw new BalsaSecurityException("Failed to authenticate user");
         // store the principal
-        this.session().setCurrentPrincipal(principal);
+        this.session().currentPrincipal(principal);
         //
         return principal;
     }
@@ -785,20 +764,6 @@ public class BalsaContext
     }
 
     /**
-     * Get the named session variable of the given type
-     * 
-     * @param name
-     *            the variable name
-     * @param type
-     *            the variable type
-     * @return returns T
-     */
-    public <T> T sessionVar(String name, Class<T> type)
-    {
-        return this.session().var(name, type);
-    }
-
-    /**
      * Store a variable in the session
      * 
      * @param name
@@ -820,11 +785,6 @@ public class BalsaContext
      *            the model class
      * @return returns Object the model
      */
-    public <T> T sessionModel(String name, Class<T> type)
-    {
-        return this.session().model(name, type);
-    }
-
     public <T> T sessionModel(String name, Class<T> type, boolean create)
     {
         return this.session().model(name, type, create);
