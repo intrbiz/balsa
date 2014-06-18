@@ -8,6 +8,7 @@
 	<java-component name="content"  classname="com.intrbiz.balsa.view.core.template.ContentComponent" />
 	<java-component name="include"  classname="com.intrbiz.balsa.view.core.template.IncludeComponent" />
 	<java-component name="fragment" classname="com.intrbiz.balsa.view.core.fragment.FragmentComponent" />
+	<java-component name="container"  classname="com.intrbiz.balsa.view.core.template.ContainerComponent" />
 	
 	<java-component name="html"     classname="com.intrbiz.balsa.view.core.html.HTMLComponent" />
 	<java-component name="a"        classname="com.intrbiz.balsa.view.core.html.AComponent" />

@@ -7,6 +7,7 @@
 	<renderer component="com.intrbiz.balsa.view.core.template.ContentComponent"  classname="com.intrbiz.balsa.view.core.template.ContentRenderer" />
 	<renderer component="com.intrbiz.balsa.view.core.template.IncludeComponent"  classname="com.intrbiz.balsa.view.core.template.IncludeRenderer" />
 	<renderer component="com.intrbiz.balsa.view.core.fragment.FragmentComponent" classname="com.intrbiz.balsa.view.core.fragment.FragmentRenderer" />
+	<renderer component="com.intrbiz.balsa.view.core.template.ContainerComponent"  classname="com.intrbiz.balsa.view.core.template.ContainerRenderer" />
 	
 	<renderer component="com.intrbiz.balsa.view.core.html.HTMLComponent"         classname="com.intrbiz.balsa.view.core.html.HTMLRenderer" />
 	<renderer component="com.intrbiz.balsa.view.core.html.AComponent"            classname="com.intrbiz.balsa.view.core.html.ARenderer" />
