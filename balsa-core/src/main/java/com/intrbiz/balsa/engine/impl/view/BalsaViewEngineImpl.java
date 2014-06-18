@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
+import com.codahale.metrics.Timer;
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.ViewEngine;
@@ -22,9 +22,8 @@ import com.intrbiz.balsa.error.view.BalsaViewNotFound;
 import com.intrbiz.cache.IBCache;
 import com.intrbiz.cache.WeakCache;
 import com.intrbiz.express.ExpressException;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Timer;
-import com.yammer.metrics.core.TimerContext;
+import com.intrbiz.gerald.source.IntelligenceSource;
+import com.intrbiz.gerald.witchcraft.Witchcraft;
 
 public class BalsaViewEngineImpl extends AbstractBalsaEngine implements ViewEngine
 {
@@ -34,11 +33,11 @@ public class BalsaViewEngineImpl extends AbstractBalsaEngine implements ViewEngi
 
     private boolean cacheOn = true;
 
-    private Timer sourceDuration = Metrics.newTimer(ViewEngine.class, "source-duration", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    private final Timer sourceDuration;
 
-    private Timer parseDuration = Metrics.newTimer(ViewEngine.class, "parse-duration", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    private final Timer parseDuration;
 
-    private Timer loadDuration = Metrics.newTimer(ViewEngine.class, "load-duration", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    private final Timer loadDuration;
 
     protected List<BalsaViewRewriteRule> rewriteRules = new CopyOnWriteArrayList<BalsaViewRewriteRule>();
 
@@ -52,6 +51,11 @@ public class BalsaViewEngineImpl extends AbstractBalsaEngine implements ViewEngi
     {
         super();
         this.viewMetrics = viewMetrics;
+        // setup metrics
+        IntelligenceSource source = Witchcraft.get().source("com.intrbiz.balsa");
+        this.sourceDuration = source.getRegistry().timer(Witchcraft.name(ViewEngine.class, "source-duration"));
+        this.parseDuration  = source.getRegistry().timer(Witchcraft.name(ViewEngine.class, "parse-duration"));
+        this.loadDuration   = source.getRegistry().timer(Witchcraft.name(ViewEngine.class, "load-duration"));
         // defaults
         this.addSource(new FileViewSource());
         this.addParser(BalsaViewSource.Formats.BALSA, new BalsaViewParserImpl());
@@ -64,7 +68,7 @@ public class BalsaViewEngineImpl extends AbstractBalsaEngine implements ViewEngi
 
     protected BalsaViewSource.Resource source(String name, BalsaContext context) throws BalsaException
     {
-        TimerContext tctx = this.sourceDuration.time();
+        Timer.Context tctx = this.sourceDuration.time();
         try
         {
             // simple linear search for the resource
@@ -84,7 +88,7 @@ public class BalsaViewEngineImpl extends AbstractBalsaEngine implements ViewEngi
 
     protected BalsaView parse(BalsaView previous, BalsaViewSource.Resource resource, BalsaContext context) throws BalsaException
     {
-        TimerContext tctx = this.parseDuration.time();
+        Timer.Context tctx = this.parseDuration.time();
         try
         {
             BalsaViewParser parser = this.parsers.get(resource.getFormat());
@@ -139,7 +143,7 @@ public class BalsaViewEngineImpl extends AbstractBalsaEngine implements ViewEngi
         BalsaView head = this.cacheOn ? this.cache.get(key) : null;
         if (head != null) return head;
         //
-        TimerContext tctx = this.loadDuration.time();
+        Timer.Context tctx = this.loadDuration.time();
         try
         {
             BalsaView tail = null;

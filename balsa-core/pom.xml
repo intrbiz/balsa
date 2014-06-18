@@ -44,11 +44,6 @@
 			<version>4.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>com.yammer.metrics</groupId>
-			<artifactId>metrics-core</artifactId>
-			<version>2.2.0</version>
-		</dependency>
-		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 			<version>2.1.2</version>
@@ -82,6 +77,11 @@
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
 			<version>4.0.12.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>com.intrbiz.gerald</groupId>
+			<artifactId>gerald-witchcraft</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 

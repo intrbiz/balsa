@@ -1,10 +1,11 @@
 package com.intrbiz.balsa.listener.scgi;
 
-import java.util.concurrent.TimeUnit;
-
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.BalsaContext;
@@ -22,11 +23,8 @@ import com.intrbiz.balsa.scgi.middleware.CookieMiddleware;
 import com.intrbiz.balsa.scgi.middleware.LoggingMiddleware;
 import com.intrbiz.balsa.scgi.middleware.MiddlewareProcessor;
 import com.intrbiz.balsa.scgi.middleware.QueryStringMiddleware;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.Meter;
-import com.yammer.metrics.core.Timer;
-import com.yammer.metrics.core.TimerContext;
+import com.intrbiz.gerald.source.IntelligenceSource;
+import com.intrbiz.gerald.witchcraft.Witchcraft;
 
 public class BalsaSCGIListener extends BalsaListener
 {
@@ -34,33 +32,39 @@ public class BalsaSCGIListener extends BalsaListener
     
     private SCGIListener listener;
     
-    private final Counter totalRequests = Metrics.newCounter(BalsaListener.class, "total-requests");
+    private final Counter totalRequests;
     
-    private final Counter activeRequests = Metrics.newCounter(BalsaListener.class, "active-requests");
+    private final Counter activeRequests;
     
-    private final Meter requests = Metrics.newMeter(BalsaListener.class, "requests", "requests", TimeUnit.SECONDS);
+    private final Meter requests;
     
-    private final Timer duration = Metrics.newTimer(BalsaListener.class, "request-duration", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    private final Timer duration;
     
     private JsonFactory jsonFactory = new JsonFactory();
     
     private XMLOutputFactory xmlOutFactory = XMLOutputFactory.newFactory();
     
     private XMLInputFactory xmlInFactory = XMLInputFactory.newFactory();
-
-    public BalsaSCGIListener()
-    {
-        super(DEFAULT_PORT);
-    }
-
+    
     public BalsaSCGIListener(int port, int poolSize)
     {
         super(port, poolSize);
+        // setup metrics
+        IntelligenceSource source = Witchcraft.get().source("com.intrbiz.balsa");
+        this.totalRequests = source.getRegistry().counter(Witchcraft.name(BalsaListener.class, "total-requests"));
+        this.activeRequests = source.getRegistry().counter(Witchcraft.name(BalsaListener.class, "active-requests"));
+        this.requests = source.getRegistry().meter(Witchcraft.name(BalsaListener.class, "requests"));
+        this.duration = source.getRegistry().timer(Witchcraft.name(BalsaListener.class, "request-duration"));
     }
 
     public BalsaSCGIListener(int port)
     {
-        super(port);
+        this(port, SCGIListener.DEFAULT_POOL_SIZE);
+    }
+    
+    public BalsaSCGIListener()
+    {
+        this(DEFAULT_PORT);
     }
 
     public String getEngineName()
@@ -98,7 +102,7 @@ public class BalsaSCGIListener extends BalsaListener
                 BalsaContext ctx = new BalsaContext(app, req, res);
                 BalsaContext.set(ctx);
                 //
-                TimerContext tctx = duration.time();
+                Timer.Context tctx = duration.time();
                 totalRequests.inc();
                 activeRequests.inc();
                 requests.mark();

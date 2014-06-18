@@ -1,17 +1,15 @@
 package com.intrbiz.balsa.engine.impl.view;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
+import com.codahale.metrics.Timer;
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.ViewEngine;
 import com.intrbiz.balsa.engine.view.BalsaView;
 import com.intrbiz.balsa.util.BalsaWriter;
 import com.intrbiz.express.ExpressException;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Timer;
-import com.yammer.metrics.core.TimerContext;
+import com.intrbiz.gerald.witchcraft.Witchcraft;
 
 public class ViewMetricsWrapper extends BalsaView
 {
@@ -24,7 +22,7 @@ public class ViewMetricsWrapper extends BalsaView
         super(null);
         this.id = id;
         this.realView = realView;
-        this.encodeTimer = Metrics.newTimer(ViewEngine.class, "encode", this.id, TimeUnit.MICROSECONDS, TimeUnit.SECONDS);
+        this.encodeTimer = Witchcraft.get().source("com.intrbiz.balsa").getRegistry().timer(Witchcraft.scoped(ViewEngine.class, "encode", this.id));
     }
 
     public void decode(BalsaContext context) throws BalsaException, ExpressException
@@ -34,7 +32,7 @@ public class ViewMetricsWrapper extends BalsaView
 
     public void encode(BalsaContext context, BalsaWriter to) throws IOException, BalsaException, ExpressException
     {
-        TimerContext tCtx = this.encodeTimer.time();
+        Timer.Context tCtx = this.encodeTimer.time();
         try
         {
             realView.encode(context, to);

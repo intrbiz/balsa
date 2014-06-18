@@ -3,17 +3,16 @@ package com.intrbiz.balsa.engine.impl.session;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.Timer;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.SessionEngine;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Counter;
-import com.yammer.metrics.core.Meter;
-import com.yammer.metrics.core.Timer;
-import com.yammer.metrics.core.TimerContext;
+import com.intrbiz.gerald.source.IntelligenceSource;
+import com.intrbiz.gerald.witchcraft.Witchcraft;
 
 public class SimpleSessionEngine extends AbstractSessionEngine implements Runnable
 {
@@ -29,17 +28,23 @@ public class SimpleSessionEngine extends AbstractSessionEngine implements Runnab
     
     /* Metrics */
     
-    private final Counter activeSessions = Metrics.newCounter(SessionEngine.class, "active-sessions");
+    private final Counter activeSessions;
     
-    private final Meter createdSessions = Metrics.newMeter(SessionEngine.class, "created-sessions", "sessions", TimeUnit.MINUTES);
+    private final Meter createdSessions;
     
-    private final Meter destroyedSessions = Metrics.newMeter(SessionEngine.class, "destroyed-sessions", "sessions", TimeUnit.MINUTES);
+    private final Meter destroyedSessions;
     
-    private final Timer sessionLifeTimer = Metrics.newTimer(SessionEngine.class, "session-lifetime", TimeUnit.MINUTES, TimeUnit.HOURS);
+    private final Timer sessionLifeTimer;
 
     public SimpleSessionEngine()
     {
         super();
+        // setup metrics
+        IntelligenceSource source = Witchcraft.get().source("com.intrbiz.balsa");
+        this.activeSessions    = source.getRegistry().counter(Witchcraft.name(SessionEngine.class, "active-sessions"));
+        this.createdSessions   = source.getRegistry().meter(Witchcraft.name(SessionEngine.class, "created-sessions"));
+        this.destroyedSessions = source.getRegistry().meter(Witchcraft.name(SessionEngine.class, "destroyed-sessions"));
+        this.sessionLifeTimer  = source.getRegistry().timer(Witchcraft.name(SessionEngine.class, "session-lifetime"));
     }
     
     public String getEngineName()
@@ -53,7 +58,7 @@ public class SimpleSessionEngine extends AbstractSessionEngine implements Runnab
         //
         this.activeSessions.inc();
         this.createdSessions.mark();
-        TimerContext timer = this.sessionLifeTimer.time();
+        Timer.Context timer = this.sessionLifeTimer.time();
         //
         SimpleSession session = new SimpleSession(this.application, sessionId, timer);
         //

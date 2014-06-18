@@ -1,17 +1,15 @@
 package com.intrbiz.balsa.engine.impl.route;
 
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
+import com.codahale.metrics.Timer;
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.engine.impl.route.Route.Filter;
 import com.intrbiz.balsa.engine.route.RouteExecutor;
 import com.intrbiz.balsa.error.BalsaInternalError;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.parameter.StringParameter;
-import com.yammer.metrics.Metrics;
-import com.yammer.metrics.core.Timer;
-import com.yammer.metrics.core.TimerContext;
+import com.intrbiz.gerald.witchcraft.Witchcraft;
 
 /**
  * An entry in the routing engine
@@ -33,7 +31,7 @@ public class RouteEntry implements Comparable<RouteEntry>
         this.route = route;
         this.executor = executor;
         //
-        this.requestDuration = Metrics.newTimer(new RouteMetricName(route, "request-duration"), TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+        this.requestDuration = Witchcraft.get().source("com.intrbiz.balsa").getRegistry().timer(RouteMetric.name(route, "request-duration"));
     }
 
     public PrefixContainer getPrefix()
@@ -102,7 +100,7 @@ public class RouteEntry implements Comparable<RouteEntry>
     public void execute(BalsaContext context) throws Throwable
     {
         if (this.route.isExceptionHandler()) throw new IllegalAccessException("An exception handler can only be used to handle errors!");
-        TimerContext tctx = this.requestDuration.time();
+        Timer.Context tctx = this.requestDuration.time();
         try
         {
             this.route.getRouter().before();
@@ -118,7 +116,7 @@ public class RouteEntry implements Comparable<RouteEntry>
     public void executeException(BalsaContext context) throws Throwable
     {
         if (!this.route.isExceptionHandler()) throw new IllegalAccessException("An exception handler can only be used to handle errors!");
-        TimerContext tctx = this.requestDuration.time();
+        Timer.Context tctx = this.requestDuration.time();
         try
         {
             if (this.executor != null) this.executor.execute(context);

@@ -4,9 +4,9 @@ import java.security.Principal;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.codahale.metrics.Timer;
 import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.engine.session.BalsaSession;
-import com.yammer.metrics.core.TimerContext;
 
 public class SimpleSession implements BalsaSession
 {
@@ -18,13 +18,13 @@ public class SimpleSession implements BalsaSession
 
     private final ConcurrentMap<String, Object> model;
     
-    private final TimerContext timer;
+    private final Timer.Context timer;
     
     protected Principal currentPrincipal;
 
     protected String id;
 
-    public SimpleSession(BalsaApplication application, String id, TimerContext timer)
+    public SimpleSession(BalsaApplication application, String id, Timer.Context timer)
     {
         super();
         this.id = id;
@@ -73,7 +73,7 @@ public class SimpleSession implements BalsaSession
         return this.lastAccess;
     }
     
-    TimerContext getTimer()
+    Timer.Context getTimer()
     {
         return this.timer;
     }
