@@ -312,6 +312,16 @@ public abstract class Router<A extends BalsaApplication>
     {
         return Balsa().authenticate(credentials);
     }
+    
+    protected Principal authenticateRequest(String username, String password)
+    {
+        return Balsa().authenticateRequest(username, password);
+    }
+    
+    protected Principal authenticateRequest(Credentials credentials)
+    {
+        return Balsa().authenticateRequest(credentials);
+    }
 
     /**
      * Check that the current user has the given permission

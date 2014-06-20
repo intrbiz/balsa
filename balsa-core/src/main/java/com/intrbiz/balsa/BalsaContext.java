@@ -67,6 +67,8 @@ public class BalsaContext
     private final List<ConversionException> conversionErrors = new LinkedList<ConversionException>();
     
     private final List<ValidationException> validationErrors = new LinkedList<ValidationException>();
+    
+    private Principal currentPrincipal;
 
     public BalsaContext(BalsaApplication application, BalsaRequest request, BalsaResponse response)
     {
@@ -214,6 +216,9 @@ public class BalsaContext
         this.conversionErrors.clear();
         this.validationErrors.clear();
         this.exception = null;
+        this.view = null;
+        this.session = null;
+        this.currentPrincipal = null;
     }
 
     public void activate()
@@ -660,38 +665,72 @@ public class BalsaContext
 
     /**
      * Check that the current principal is valid (not public)
-     * 
-     * returns boolean
      */
     public boolean validPrincipal()
     {
         return this.currentPrincipal() != null;
     }
 
+    /**
+     * Get the current logged in principal from the request or the session
+     */
+    @SuppressWarnings("unchecked")
     public <T extends Principal> T currentPrincipal()
     {
-        return this.session().currentPrincipal();
+        return this.currentPrincipal != null ? (T) this.currentPrincipal : this.session().currentPrincipal();
     }
 
+    /**
+     * Deauthenticate the current logged in principal
+     */
     public void deauthenticate()
     {
-        this.session().currentPrincipal(null);
+        this.currentPrincipal = null;
+        if (this.session != null) this.session.currentPrincipal(null);
     }
 
-    public Principal authenticate(Credentials credentials) throws BalsaSecurityException
+    /**
+     * Authenticate for the life of this session
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Principal> T authenticate(Credentials credentials) throws BalsaSecurityException
     {
         // use the security engine to authenticate the user
         Principal principal = this.app().getSecurityEngine().authenticate(credentials);
         if (principal == null) throw new BalsaSecurityException("Failed to authenticate user");
         // store the principal
         this.session().currentPrincipal(principal);
-        //
-        return principal;
+        return (T) principal;
     }
 
-    public Principal authenticate(String username, String password) throws BalsaSecurityException
+    /**
+     * Authenticate for the life of this session
+     */
+    public <T extends Principal> T authenticate(String username, String password) throws BalsaSecurityException
     {
         return this.authenticate(new PasswordCredentials.Simple(username, password));
+    }
+    
+    /**
+     * Authenticate for the life of this request only, this avoids creating a session
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Principal> T authenticateRequest(Credentials credentials) throws BalsaSecurityException
+    {
+        // use the security engine to authenticate the user
+        Principal principal = this.app().getSecurityEngine().authenticate(credentials);
+        if (principal == null) throw new BalsaSecurityException("Failed to authenticate user");
+        // store the principal
+        this.currentPrincipal = principal;
+        return (T) principal;
+    }
+    
+    /**
+     * Authenticate for the life of this request only, this avoids creating a session
+     */
+    public <T extends Principal> T authenticateRequest(String username, String password) throws BalsaSecurityException
+    {
+        return this.authenticateRequest(new PasswordCredentials.Simple(username, password));
     }
 
     /**
