@@ -14,6 +14,8 @@ import org.junit.runners.model.Statement;
 
 import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.scgi.SCGIClient;
+import com.intrbiz.gerald.source.IntelligenceSource;
+import com.intrbiz.gerald.witchcraft.Witchcraft;
 
 /**
  * Create, configure and start a Balsa application so that 
@@ -111,8 +113,15 @@ public class BalsaTestServer<T extends BalsaApplication> implements TestRule
         // logging?
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(this.logLevel);
+        // clear down any metrics
+        for (IntelligenceSource source : Witchcraft.get().getSources())
+        {
+            Witchcraft.get().remove(source.getName());
+        }
         // set the port
         System.setProperty("balsa.scgi.port", String.valueOf(this.port));
+        // disable the HTTP listener
+        System.setProperty("balsa.http", "false");
         // start the application
         this.application = this.appClass.newInstance();
         this.application.start();
