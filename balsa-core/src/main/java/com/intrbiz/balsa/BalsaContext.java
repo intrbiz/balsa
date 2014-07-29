@@ -21,7 +21,6 @@ import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.listener.BalsaResponse;
 import com.intrbiz.balsa.parameter.Parameter;
-import com.intrbiz.balsa.parameter.StringParameter;
 import com.intrbiz.balsa.util.BalsaWriter;
 import com.intrbiz.balsa.util.HTMLWriter;
 import com.intrbiz.converter.ConversionException;
@@ -396,8 +395,20 @@ public class BalsaContext
     public String param(String name)
     {
         Parameter p = this.request.getParameter(name);
-        if (p instanceof StringParameter) return p.getStringValue();
+        if (p != null) return p.getStringValue();
         return null;
+    }
+    
+    /**
+     * Get the value of the request parameter given
+     * @param name the parameter name
+     * @return the List&lt;String&gt; parameter value or null
+     */
+    public List<String> listParam(String name)
+    {
+        Parameter p = this.request.getParameter(name);
+        if (p != null) return p.getStringListValue();
+        return new LinkedList<String>();
     }
 
     /**

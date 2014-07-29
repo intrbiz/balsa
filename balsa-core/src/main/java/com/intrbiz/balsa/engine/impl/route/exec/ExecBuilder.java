@@ -17,6 +17,7 @@ import com.intrbiz.balsa.engine.impl.route.exec.argument.ConverterBuilder;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.CookieArgument;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.HeaderArgument;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.JSONArgument;
+import com.intrbiz.balsa.engine.impl.route.exec.argument.ListParameterArgument;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.NullArgument;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.ParameterArgument;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.ValidatorBuilder;
@@ -110,6 +111,11 @@ public class ExecBuilder
     public ExecBuilder parameterArgument(String name)
     {
         return argument(new ParameterArgument().name(name));
+    }
+    
+    public ExecBuilder listParameterArgument(String name)
+    {
+        return argument(new ListParameterArgument().name(name));
     }
 
     public ExecBuilder headerArgument(String name)

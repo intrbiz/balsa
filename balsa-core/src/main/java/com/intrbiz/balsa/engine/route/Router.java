@@ -4,6 +4,7 @@ import static com.intrbiz.balsa.BalsaContext.*;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.List;
 
 import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.BalsaContext;
@@ -136,6 +137,16 @@ public abstract class Router<A extends BalsaApplication>
     protected final String param(String name)
     {
         return Balsa().param(name);
+    }
+    
+    /**
+     * Get the value of the request parameter given
+     * @param name the parameter name
+     * @return the List&lt;String&gt; parameter value or null
+     */
+    public List<String> listParam(String name)
+    {
+        return Balsa().listParam(name);
     }
 
     /**

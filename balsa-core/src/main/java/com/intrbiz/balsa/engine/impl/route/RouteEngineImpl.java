@@ -73,7 +73,7 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
             }
             catch (Exception e)
             {
-                throw new BalsaException(e);
+                throw new BalsaException("Failed to build route executor for route: " + route, e);
             }
         }
         // print container
