@@ -22,4 +22,10 @@ public @interface XML {
      * @return
      */
     HTTPStatus status() default HTTPStatus.OK;
+    
+    /**
+     * If the method returns null, set the HTTP response satus to 404 not found
+     * @return
+     */
+    boolean notFoundIfNull() default false;
 }

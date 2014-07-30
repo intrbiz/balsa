@@ -14,7 +14,9 @@ public class XMLResponse extends ResponseBuilder
 {
     private Class<?> type;
 
-    private HTTPStatus status;
+    private HTTPStatus status = HTTPStatus.OK;
+    
+    private boolean notFoundIfNull = false;
 
     public XMLResponse()
     {
@@ -44,7 +46,7 @@ public class XMLResponse extends ResponseBuilder
         //
         StringBuilder sb = cls.getExecutorLogic();
         sb.append("    // encode the response to XML\r\n");
-        sb.append("    XMLStreamWriter writer = context.response().status(HTTPStatus." + this.status.name() + ").xml().getXMLWriter();\r\n");
+        sb.append("    XMLStreamWriter writer = context.response().status(" + (this.notFoundIfNull ? "res == null ? HTTPStatus.NotFound : " : "") + "HTTPStatus." + this.status.name() + ").xml().getXMLWriter();\r\n");
         sb.append("    Marshaller m = this.xmlResCtx.createMarshaller();\r\n");
         sb.append("    m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);\r\n");
         sb.append("    m.marshal(res, writer);\r\n");
@@ -55,6 +57,7 @@ public class XMLResponse extends ResponseBuilder
     {
         this.type(returnType);
         this.status = ((XML) a).status();
+        this.notFoundIfNull = ((XML) a).notFoundIfNull();
     }
 
     public Class<?> getType()
