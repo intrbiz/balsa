@@ -235,6 +235,12 @@ public interface BalsaRequest extends ParameterSet, CookieSet
     public void addParameter(Parameter parameter);
     
     /**
+     * Remove a parameter
+     * @param parameter the parameter name to remove 
+     */
+    void removeParameter(String name);
+    
+    /**
      * Get the names of the request parameters
      * @return
      * returns Set<String>

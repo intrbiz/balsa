@@ -220,6 +220,11 @@ public final class BalsaSCGIRequest implements BalsaRequest
     {
         this.req.addParameter(parameter);
     }
+    
+    public void removeParameter(String name)
+    {
+        this.req.removeParameter(name);
+    }
 
     @Override
     public Set<String> getParameterNames()

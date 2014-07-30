@@ -328,6 +328,11 @@ public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
     {
         this.parameters.put(parameter.getName(), parameter);
     }
+    
+    public void removeParameter(String name)
+    {
+        this.parameters.remove(name);
+    }
 
     @Override
     public Set<String> getParameterNames()
