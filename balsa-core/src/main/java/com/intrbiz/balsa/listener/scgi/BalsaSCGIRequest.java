@@ -251,6 +251,21 @@ public final class BalsaSCGIRequest implements BalsaRequest
         this.req.cookie(name, value);
     }
 
+    public Map<String, String> cookies()
+    {
+        return this.req.cookies();
+    }
+
+    public Set<String> cookieNames()
+    {
+        return this.req.cookieNames();
+    }
+
+    public void removeCookie(String name)
+    {
+        this.req.removeCookie(name);
+    }
+
     @Override
     public InputStream getInput()
     {

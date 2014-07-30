@@ -360,6 +360,24 @@ public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
     }
 
     @Override
+    public Map<String, String> cookies()
+    {
+        return this.cookies;
+    }
+
+    @Override
+    public Set<String> cookieNames()
+    {
+        return this.cookies.keySet();
+    }
+
+    @Override
+    public void removeCookie(String name)
+    {
+        this.cookies.remove(name);
+    }
+
+    @Override
     public InputStream getInput()
     {
         return null;

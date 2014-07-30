@@ -12,11 +12,13 @@ import javax.xml.stream.XMLStreamReader;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.intrbiz.balsa.parameter.Parameter;
+import com.intrbiz.balsa.util.CookieSet;
+import com.intrbiz.balsa.util.ParameterSet;
 
 /**
  * The current request
  */
-public interface BalsaRequest
+public interface BalsaRequest extends ParameterSet, CookieSet
 {   
     /**
      * Set the value of a request variable
@@ -263,12 +265,30 @@ public interface BalsaRequest
     public String cookie(String name);
     
     /**
-     * Set a cookie
+     * Add a cookie to this request
      * @param name the cookie name
      * @param value the cookie value
      * returns void
      */
     public void cookie(String name, String value);
+    
+    /**
+     * Get a map of all cookies
+     * @return the Map of name to value of cookies
+     */
+    Map<String, String> cookies();
+    
+    /**
+     * Get the set of all cookie names
+     * @return a Set of cookie names
+     */
+    Set<String> cookieNames();
+    
+    /**
+     * Remove a cookie
+     * @param name the cookie name
+     */
+    void removeCookie(String name);
     
     /*
      * Body
