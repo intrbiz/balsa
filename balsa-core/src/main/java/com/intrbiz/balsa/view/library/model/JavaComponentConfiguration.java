@@ -11,6 +11,8 @@ import com.intrbiz.balsa.view.component.Component;
 @XmlRootElement(name = "java-component")
 public class JavaComponentConfiguration extends ComponentConfiguration
 {
+    private static final long serialVersionUID = 1L;
+    
     private String classname;
 
     public JavaComponentConfiguration()

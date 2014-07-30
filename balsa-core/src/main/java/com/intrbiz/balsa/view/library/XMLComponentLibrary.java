@@ -27,6 +27,8 @@ import com.intrbiz.configuration.Configuration;
 @XmlRootElement(name = "component-library")
 public class XMLComponentLibrary extends Configuration implements ComponentLibrary
 {
+    private static final long serialVersionUID = 1L;
+
     private List<ComponentConfiguration> components = new LinkedList<ComponentConfiguration>();
 
     private List<PostProcessorConfiguration> postProcessors = new LinkedList<PostProcessorConfiguration>();

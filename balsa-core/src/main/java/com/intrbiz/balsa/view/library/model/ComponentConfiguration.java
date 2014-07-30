@@ -8,6 +8,8 @@ import com.intrbiz.configuration.Configuration;
 
 public abstract class ComponentConfiguration extends Configuration
 {
+    private static final long serialVersionUID = 1L;
+    
     private String name;
 
     public ComponentConfiguration()

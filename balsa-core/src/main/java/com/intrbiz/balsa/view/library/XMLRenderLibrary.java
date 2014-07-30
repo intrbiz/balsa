@@ -23,6 +23,8 @@ import com.intrbiz.configuration.Configuration;
 @XmlRootElement(name = "render-library")
 public class XMLRenderLibrary extends Configuration implements RenderLibrary
 {
+    private static final long serialVersionUID = 1L;
+    
     private String info;
 
     private String license;
