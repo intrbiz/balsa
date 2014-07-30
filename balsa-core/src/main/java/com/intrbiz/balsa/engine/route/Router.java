@@ -12,6 +12,7 @@ import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.security.Credentials;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.listener.BalsaResponse;
+import com.intrbiz.balsa.util.CookieBuilder;
 import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.Template;
 
@@ -435,6 +436,16 @@ public abstract class Router<A extends BalsaApplication>
     protected final String cookie(String name)
     {
         return Balsa().cookie(name);
+    }
+    
+    /**
+     * Set a cookie.  Cookies are set using a fluent interface, 
+     * for example: <code>cookie().name("name").value("value").set()</code>
+     * @return A CookieBuilder to create and set the cookie.
+     */
+    public CookieBuilder<BalsaResponse> cookie()
+    {
+        return Balsa().cookie();
     }
     
     /**

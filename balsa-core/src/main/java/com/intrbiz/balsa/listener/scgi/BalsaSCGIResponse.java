@@ -21,6 +21,7 @@ import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.listener.BalsaResponse;
 import com.intrbiz.balsa.scgi.SCGIResponse;
 import com.intrbiz.balsa.util.BalsaWriter;
+import com.intrbiz.balsa.util.CookieBuilder;
 import com.intrbiz.balsa.util.HTMLWriter;
 
 public final class BalsaSCGIResponse implements BalsaResponse
@@ -215,6 +216,24 @@ public final class BalsaSCGIResponse implements BalsaResponse
     {
         this.res.header(name, value);
         return this;
+    }
+
+    public CookieBuilder<BalsaResponse> setCookie()
+    {
+        return new CookieBuilder<BalsaResponse>()
+        {
+            @Override
+            public BalsaResponse set()
+            {
+                header("Set-Cookie", this.build());
+                return BalsaSCGIResponse.this;
+            }
+        };
+    }
+    
+    public CookieBuilder<BalsaResponse> cookie()
+    {
+        return this.setCookie();
     }
 
     @Override

@@ -38,12 +38,13 @@ import com.intrbiz.balsa.http.HTTP.Expires;
 import com.intrbiz.balsa.http.HTTP.HTTPStatus;
 import com.intrbiz.balsa.listener.BalsaResponse;
 import com.intrbiz.balsa.util.BalsaWriter;
+import com.intrbiz.balsa.util.CookieBuilder;
 import com.intrbiz.balsa.util.HTMLWriter;
 
 public class BalsaHTTPResponse implements BalsaResponse
 {
     // Thu, 01 Jan 1970 00:00:00 GMT
-    public static final SimpleDateFormat HEADER_DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+    public final SimpleDateFormat HEADER_DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
 
     private HTTPStatus status = HTTPStatus.OK;
 
@@ -254,6 +255,24 @@ public class BalsaHTTPResponse implements BalsaResponse
     {
         this.header(name, HEADER_DATE_FORMAT.format(value));
         return this;
+    }
+    
+    public CookieBuilder<BalsaResponse> setCookie()
+    {
+        return new CookieBuilder<BalsaResponse>()
+        {
+            @Override
+            public BalsaResponse set()
+            {
+                header("Set-Cookie", this.build());
+                return BalsaHTTPResponse.this;
+            }
+        };
+    }
+    
+    public CookieBuilder<BalsaResponse> cookie()
+    {
+        return this.setCookie();
     }
 
     @Override

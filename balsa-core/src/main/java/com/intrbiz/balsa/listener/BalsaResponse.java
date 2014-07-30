@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.intrbiz.balsa.error.BalsaInternalError;
 import com.intrbiz.balsa.http.HTTP.HTTPStatus;
 import com.intrbiz.balsa.util.BalsaWriter;
+import com.intrbiz.balsa.util.CookieBuilder;
 import com.intrbiz.balsa.util.HTMLWriter;
 
 /**
@@ -164,6 +165,18 @@ public interface BalsaResponse
     public BalsaResponse header(String name, String value);
     
     public BalsaResponse header(String name, Date value);
+    
+    /**
+     * Add a Cookie to the HTTP response
+     * return A CookieBuilder to fluently construct the cookie
+     */
+    public CookieBuilder<BalsaResponse> setCookie();
+    
+    /**
+     * Add a Cookie to the HTTP response
+     * return A CookieBuilder to fluently construct the cookie
+     */
+    public CookieBuilder<BalsaResponse> cookie();
 
     /**
      * Issue a redirect to the given location

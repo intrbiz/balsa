@@ -22,6 +22,7 @@ import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.listener.BalsaResponse;
 import com.intrbiz.balsa.parameter.Parameter;
 import com.intrbiz.balsa.util.BalsaWriter;
+import com.intrbiz.balsa.util.CookieBuilder;
 import com.intrbiz.balsa.util.HTMLWriter;
 import com.intrbiz.converter.ConversionException;
 import com.intrbiz.express.DefaultContext;
@@ -145,7 +146,7 @@ public class BalsaContext
             this.setSession(this.app().getSessionEngine().getSession(sessionId));
             // send the cookie
             if (this.response().isHeadersSent()) throw new BalsaInternalError("Cannot create session, headers have already been sent.");
-            this.response().header("Set-Cookie", BalsaSession.COOKIE_NAME + "=" + sessionId + "; Path=" + this.path("/") + "; HttpOnly");
+            this.response().cookie().name(BalsaSession.COOKIE_NAME).value(sessionId).path(this.path("/")).httpOnly().set();
         }
         return session;
     }
@@ -431,6 +432,16 @@ public class BalsaContext
     public String cookie(String name)
     {
         return this.request().cookie(name);
+    }
+    
+    /**
+     * Set a cookie.  Cookies are set using a fluent interface, 
+     * for example: <code>cookie().name("name").value("value").set()</code>
+     * @return A CookieBuilder to create and set the cookie.
+     */
+    public CookieBuilder<BalsaResponse> cookie()
+    {
+        return this.response.cookie();
     }
 
     /**
