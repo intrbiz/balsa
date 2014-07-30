@@ -32,8 +32,8 @@ import com.intrbiz.balsa.parameter.Parameter;
 import com.intrbiz.balsa.parameter.StringParameter;
 import com.intrbiz.balsa.util.CookiesParser;
 import com.intrbiz.balsa.util.CookiesParser.CookieSet;
+import com.intrbiz.balsa.util.ParameterSet;
 import com.intrbiz.balsa.util.QueryStringParser;
-import com.intrbiz.balsa.util.QueryStringParser.ParameterSet;
 
 public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
 {
