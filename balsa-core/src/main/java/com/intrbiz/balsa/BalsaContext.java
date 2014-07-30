@@ -30,8 +30,6 @@ import com.intrbiz.express.ExpressEntityResolver;
 import com.intrbiz.express.action.ActionHandler;
 import com.intrbiz.validator.ValidationException;
 
-;
-
 /**
  * The balsa Context - represents the state of the Balsa application at any given moment in time.
  * 
