@@ -30,8 +30,8 @@ import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.parameter.ListParameter;
 import com.intrbiz.balsa.parameter.Parameter;
 import com.intrbiz.balsa.parameter.StringParameter;
+import com.intrbiz.balsa.util.CookieSet;
 import com.intrbiz.balsa.util.CookiesParser;
-import com.intrbiz.balsa.util.CookiesParser.CookieSet;
 import com.intrbiz.balsa.util.ParameterSet;
 import com.intrbiz.balsa.util.QueryStringParser;
 
