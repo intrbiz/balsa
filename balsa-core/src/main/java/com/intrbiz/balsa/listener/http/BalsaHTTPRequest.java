@@ -238,6 +238,12 @@ public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
     {
         return "http";
     }
+    
+    @Override
+    public boolean isSecure()
+    {
+        return false;
+    }
 
     @Override
     public String getRequestUri()

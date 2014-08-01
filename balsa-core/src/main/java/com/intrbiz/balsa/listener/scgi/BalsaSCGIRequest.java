@@ -130,6 +130,12 @@ public final class BalsaSCGIRequest implements BalsaRequest
     {
         return this.req.getRequestScheme();
     }
+    
+    public boolean isSecure()
+    {
+        String scheme = this.getRequestScheme();
+        return scheme != null && scheme.equalsIgnoreCase("https"); 
+    }
 
     @Override
     public String getRequestUri()

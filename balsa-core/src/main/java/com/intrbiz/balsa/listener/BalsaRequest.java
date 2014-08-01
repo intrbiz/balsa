@@ -118,6 +118,13 @@ public interface BalsaRequest extends ParameterSet, CookieSet
      * returns String
      */
     public String getRequestScheme();
+    
+    /**
+     * Is this request happening over a secure connection to 
+     * the end user, IE: the connection is over HTTPS.
+     * @return true if the connection to the end user is secure 
+     */
+    public boolean isSecure();
 
     /**
      * The URI of the web request, EG: /test/
