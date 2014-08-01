@@ -146,7 +146,7 @@ public class BalsaContext
             this.setSession(this.app().getSessionEngine().getSession(sessionId));
             // send the cookie
             if (this.response().isHeadersSent()) throw new BalsaInternalError("Cannot create session, headers have already been sent.");
-            this.response().cookie().name(BalsaSession.COOKIE_NAME).value(sessionId).path(this.path("/")).httpOnly().set();
+            this.response().cookie().name(BalsaSession.COOKIE_NAME).value(sessionId).path(this.path("/")).httpOnly().secure(request().isSecure()).set();
         }
         return session;
     }
