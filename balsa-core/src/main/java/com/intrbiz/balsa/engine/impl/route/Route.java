@@ -181,7 +181,7 @@ public class Route implements Comparable<Route>
     @Override
     public int compareTo(Route o)
     {
-        return ((o.isRegex() ? 5000 : 0) + (this.isExceptionHandler() ? 10000 : 0) + this.order) - ((o.isRegex() ? 5000 : 0) + (o.isExceptionHandler() ? 10000 : 0) + o.order);
+        return Integer.compare(((this.isRegex() ? 5000 : 0) + (this.isExceptionHandler() ? 10000 : 0) + this.order), ((o.isRegex() ? 5000 : 0) + (o.isExceptionHandler() ? 10000 : 0) + o.order));
     }
 
     public String toString()
