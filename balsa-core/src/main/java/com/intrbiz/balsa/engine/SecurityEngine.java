@@ -73,6 +73,22 @@ public interface SecurityEngine extends BalsaEngine
     String generateAccessTokenForURL(String url, long expiresAt);
     
     /**
+     * Generate a token which can be used to authenticate a Principal at a latter date.  
+     * The token will expire after the default configured lifetime of this SecurityEngine.
+     * @param principal the Principal that the token will represent
+     * @return the token
+     */
+    String generateAuthenticationTokenForPrincipal(Principal principal);
+    
+    /**
+     * Generate a token which can be used to authenticate a Principal at a latter date.
+     * @param principal the Principal that the token will represent
+     * @param expiresAt the time (System.currentTimeMillis()) at which this token will expire
+     * @return the token
+     */
+    String generateAuthenticationTokenForPrincipal(Principal principal, long expiresAt);
+    
+    /**
      * Check if the given access token is valid
      * @param token
      * @return
