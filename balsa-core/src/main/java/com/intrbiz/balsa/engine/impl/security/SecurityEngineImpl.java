@@ -17,6 +17,7 @@ import com.intrbiz.balsa.engine.security.Credentials;
 import com.intrbiz.balsa.engine.security.GenericAuthenticationToken;
 import com.intrbiz.balsa.engine.security.PasswordCredentials;
 import com.intrbiz.balsa.error.BalsaSecurityException;
+import com.intrbiz.balsa.util.Util;
 import com.intrbiz.crypto.SecretKey;
 import com.intrbiz.crypto.cookie.CookieBaker;
 import com.intrbiz.crypto.cookie.CryptoCookie;
@@ -35,6 +36,8 @@ public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityE
     protected long lifetime;
     
     protected TimeUnit lifetimeUnit;
+    
+    protected int rebakeLimit;
     
     protected Flag[] flags;
     
@@ -59,13 +62,14 @@ public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityE
         this.tokenLength = 32;
         this.lifetime = 1;
         this.lifetimeUnit = TimeUnit.HOURS;
+        this.rebakeLimit = 24; // 1 day
         this.flags = new Flag[0];
         this.setupBaker();
     }
     
-    protected void setupBaker()
+    protected final void setupBaker()
     {
-        this.baker = new CookieBaker(this.applicationKey, this.tokenLength, this.lifetime, this.lifetimeUnit, this.flags);
+        this.baker = new CookieBaker(this.applicationKey, this.tokenLength, this.lifetime, this.lifetimeUnit, this.rebakeLimit, this.flags);
     }
 
     @Override
@@ -80,24 +84,32 @@ public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityE
         if (credentials instanceof PasswordCredentials)
         {
             PasswordCredentials pw = (PasswordCredentials) credentials;
-                logger.info("Authentication for principal: " + pw.getPrincipalName());
-                // do the login
-                Principal principal = this.doPasswordLogin(pw.getPrincipalName(), pw.getPassword());
-                // did we get a principal
-                if (principal == null)
-                {
-                    logger.error("No such principal " + pw.getPrincipalName() + " could be found.");
-                    this.invalidLogins.inc();
-                    throw new BalsaSecurityException("No such principal");
-                }
-                // all good
-                this.validLogins.inc();
-                return principal;
+            logger.debug("Authentication for principal: " + pw.getPrincipalName());
+            if (Util.isEmpty(pw.getPrincipalName()))
+            {
+                throw new BalsaSecurityException("Username not provided");
+            }
+            if (pw.getPassword() == null || pw.getPassword().length == 0)
+            {
+                throw new BalsaSecurityException("Password not provided");
+            }
+            // do the login
+            Principal principal = this.doPasswordLogin(pw.getPrincipalName(), pw.getPassword());
+            // did we get a principal
+            if (principal == null)
+            {
+                logger.error("No such principal " + pw.getPrincipalName() + " could be found.");
+                this.invalidLogins.inc();
+                throw new BalsaSecurityException("No such principal");
+            }
+            // all good
+            this.validLogins.inc();
+            return principal;
         }
         else if (credentials instanceof GenericAuthenticationToken)
         {
             String token = ((GenericAuthenticationToken) credentials).getToken();
-            logger.info("Authenticating token: " + token);
+            logger.debug("Authenticating token: " + token);
             // do we have a token?
             if (token == null)
             {
@@ -197,6 +209,38 @@ public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityE
         byte[] token = this.tokenForPrincipal(principal);
         if (token == null || token.length == 0) throw new BalsaSecurityException("Cannot generate authentication token for principal");
         return this.baker.bake(token, expiresAt).toString();
+    }
+    
+    @Override
+    public String regenerateAuthenticationTokenForPrincipal(String token)
+    {
+        try
+        {
+            CryptoCookie cookie = CryptoCookie.fromString(token);
+            CryptoCookie rebaked = this.baker.rebake(cookie);
+            if (rebaked == null) throw new BalsaSecurityException("Cannot regenerate authentication token");
+            return rebaked.toString();
+        }
+        catch (IOException e)
+        {
+            throw new BalsaSecurityException("Cannot regenerate authentication token, the given token is malformed", e);
+        }
+    }
+    
+    @Override
+    public String regenerateAuthenticationTokenForPrincipal(String token, long expiresAt)
+    {
+        try
+        {
+            CryptoCookie cookie = CryptoCookie.fromString(token);
+            CryptoCookie rebaked = this.baker.rebake(cookie, expiresAt);
+            if (rebaked == null) throw new BalsaSecurityException("Cannot regenerate authentication token");
+            return rebaked.toString();
+        }
+        catch (IOException e)
+        {
+            throw new BalsaSecurityException("Cannot regenerate authentication token, the given token is malformed", e);
+        }
     }
 
     @Override

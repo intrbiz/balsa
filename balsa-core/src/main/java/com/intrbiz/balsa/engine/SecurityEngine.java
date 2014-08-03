@@ -89,6 +89,25 @@ public interface SecurityEngine extends BalsaEngine
     String generateAuthenticationTokenForPrincipal(Principal principal, long expiresAt);
     
     /**
+     * Regenerate a previously generated authentication token, the Principal remains the same 
+     * however the expiry time is extended.  A BalsaSecurityException will be thrown if the 
+     * given token cannot be extended. 
+     * @param token the token to regenerate
+     * @return the regenerated token
+     */
+    String regenerateAuthenticationTokenForPrincipal(String token);
+
+    /**
+     * Regenerate a previously generated authentication token, the Principal remains the same 
+     * however the expiry time is extended to the given expiry time.  A BalsaSecurityException 
+     * will be thrown if the given token cannot be extended. 
+     * @param token the token to regenerate
+     * @param expiresAt the time (System.currentTimeMillis()) at which this token will expire 
+     * @return the regenerated token
+     */
+    String regenerateAuthenticationTokenForPrincipal(String token, long expiresAt);
+    
+    /**
      * Check if the given access token is valid
      * @param token
      * @return
