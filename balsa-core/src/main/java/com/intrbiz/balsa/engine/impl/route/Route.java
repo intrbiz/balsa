@@ -3,12 +3,14 @@ package com.intrbiz.balsa.engine.impl.route;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.intrbiz.balsa.engine.route.Router;
+import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.metadata.After;
 import com.intrbiz.metadata.Any;
 import com.intrbiz.metadata.Before;
@@ -16,6 +18,7 @@ import com.intrbiz.metadata.Catch;
 import com.intrbiz.metadata.Delete;
 import com.intrbiz.metadata.Get;
 import com.intrbiz.metadata.IsRoute;
+import com.intrbiz.metadata.IsRoutePredicate;
 import com.intrbiz.metadata.Order;
 import com.intrbiz.metadata.Post;
 import com.intrbiz.metadata.Put;
@@ -45,6 +48,8 @@ public class Route implements Comparable<Route>
     private final Filter filter;
 
     private CompiledPattern compiledPattern;
+    
+    private RoutePredicate[] predicates = null;
 
     private Class<? extends Throwable>[] exceptions = null;
 
@@ -136,6 +141,29 @@ public class Route implements Comparable<Route>
     public void setCompiledPattern(CompiledPattern compiledPattern)
     {
         this.compiledPattern = compiledPattern;
+    }
+    
+    public RoutePredicate[] getPredicates()
+    {
+        return this.predicates;
+    }
+    
+    public boolean hasPredicates()
+    {
+        return this.predicates != null;
+    }
+    
+    public void setPredicates(List<RoutePredicate> predicates)
+    {
+        if (predicates == null || predicates.isEmpty())
+        {
+            this.predicates = null;
+        }
+        else
+        {
+            Collections.sort(predicates);
+            this.predicates = predicates.toArray(new RoutePredicate[predicates.size()]);
+        }
     }
 
     @Override
@@ -230,6 +258,22 @@ public class Route implements Comparable<Route>
         if (order != null) r.setOrder(order.value());
         // compile the pattern
         r.setCompiledPattern(compilePattern(r.getPrefix(), r.getPattern(), r.isRegex(), r.getAs()));
+        // build the predicates
+        List<Annotation> predicateAnnotations = getRoutePredicateAnnotations(method);
+        if (! predicateAnnotations.isEmpty())
+        {
+            List<RoutePredicate> predicates = new LinkedList<RoutePredicate>();
+            for (Annotation predicateAnnotation : predicateAnnotations)
+            {
+                RoutePredicateBuilder predicateBuilder = getRoutePredicateBuilder(predicateAnnotation);
+                if (predicateBuilder != null)
+                {
+                    RoutePredicate predicate = predicateBuilder.build(prefix, router, method, predicateAnnotation, filter);
+                    if (predicate != null) predicates.add(predicate);
+                }
+            }
+            r.setPredicates(predicates);
+        }
         return r;
     }
     
@@ -436,5 +480,78 @@ public class Route implements Comparable<Route>
             Delete url = (Delete) a;
             return new Route(prefix, "DELETE", url.value(), url.regex(), url.as(), method, router, filter);
         }
+    }
+    
+    /**
+     * A precondition which will be applied to 
+     * assert that the given request is applicable 
+     * to a route.
+     * 
+     * Route predicates enable routes to accept or reject 
+     * specific requests because they do not match 
+     * a specific conditions.
+     * 
+     */
+    public static abstract class RoutePredicate implements Comparable<RoutePredicate>
+    {   
+        public enum PredicateAction {
+            ACCEPT,
+            REJECT,
+            NEXT
+        }
+        
+        protected final int order;
+        
+        protected RoutePredicate(final int order)
+        {
+            super();
+            this.order = order;
+        }
+        
+        public int getOrder()
+        {
+            return this.order;
+        }
+        
+        @Override
+        public int compareTo(RoutePredicate o)
+        {
+            return Integer.compare(this.order, o.order);
+        }
+
+        public abstract PredicateAction apply(BalsaRequest request);
+    }
+    
+    /**
+     * Build a route predicate given an annotated method
+     */
+    public static interface RoutePredicateBuilder
+    {
+        RoutePredicate build(String prefix, Router<?> router, Method method, Annotation predicateAnnotation, Filter filter);
+    }
+    
+    public static List<Annotation> getRoutePredicateAnnotations(Method method)
+    {
+        List<Annotation> builders = new LinkedList<Annotation>();
+        for (Annotation a : method.getAnnotations())
+        {
+            if (a.annotationType().isAnnotationPresent(IsRoutePredicate.class)) builders.add(a);
+        }
+        return builders;
+    }
+
+    public static RoutePredicateBuilder getRoutePredicateBuilder(Annotation a)
+    {
+        IsRoutePredicate irp = a.annotationType().getAnnotation(IsRoutePredicate.class);
+        if (irp == null) return null;
+        try
+        {
+            return irp.value().newInstance();
+        }
+        catch (Exception e)
+        {
+            // eat
+        }
+        return null;
     }
 }

@@ -5,6 +5,8 @@ import java.util.regex.Matcher;
 import com.codahale.metrics.Timer;
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.engine.impl.route.Route.Filter;
+import com.intrbiz.balsa.engine.impl.route.Route.RoutePredicate;
+import com.intrbiz.balsa.engine.impl.route.Route.RoutePredicate.PredicateAction;
 import com.intrbiz.balsa.engine.route.RouteExecutor;
 import com.intrbiz.balsa.error.BalsaInternalError;
 import com.intrbiz.balsa.listener.BalsaRequest;
@@ -66,6 +68,16 @@ public class RouteEntry implements Comparable<RouteEntry>
             Matcher m = this.route.getCompiledPattern().pattern.matcher(request.getPathInfo());
             if (m.matches())
             {
+                // assert any predicates
+                if (this.route.hasPredicates())
+                {
+                    for (RoutePredicate predicate : this.route.getPredicates())
+                    {
+                        PredicateAction action = predicate.apply(request);
+                        if (action == PredicateAction.ACCEPT) break;
+                        if (action == PredicateAction.REJECT) return false;
+                    }
+                }
                 // extract parameters
                 if (this.route.getCompiledPattern().as.length > 0)
                 {
