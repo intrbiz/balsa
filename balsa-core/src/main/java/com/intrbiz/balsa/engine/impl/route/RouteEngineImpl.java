@@ -80,7 +80,7 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
         logger.debug(container.getPrefix());
         for (RouteEntry routeHandler : container.getRoutes())
         {
-            logger.debug("\t" + routeHandler.getRoute().getMethod() + " " + routeHandler.getRoute().getCompiledPattern() + " ==> " + routeHandler.getRoute().getHandler());
+            logger.debug("\t" + routeHandler.getRoute().getMethod() + " " + routeHandler.getRoute().getCompiledPattern() + " ==> " + routeHandler.getRoute().getHandler() + " order " + routeHandler.getRoute().computeOrder());
         }
     }
 
