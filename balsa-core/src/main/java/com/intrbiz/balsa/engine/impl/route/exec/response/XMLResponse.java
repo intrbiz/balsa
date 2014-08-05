@@ -7,6 +7,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.intrbiz.balsa.engine.impl.route.exec.ExecutorClass;
+import com.intrbiz.balsa.error.http.BalsaNotFound;
 import com.intrbiz.balsa.http.HTTP.HTTPStatus;
 import com.intrbiz.metadata.XML;
 
@@ -38,6 +39,7 @@ public class XMLResponse extends ResponseBuilder
         cls.addImport(Marshaller.class.getCanonicalName());
         cls.addImport(HTTPStatus.class.getCanonicalName());
         cls.addImport(this.type.getCanonicalName());
+        if (this.notFoundIfNull) cls.addImport(BalsaNotFound.class.getCanonicalName());
         //
         cls.addField(JAXBContext.class.getSimpleName(), "xmlResCtx");
         //
@@ -46,7 +48,11 @@ public class XMLResponse extends ResponseBuilder
         //
         StringBuilder sb = cls.getExecutorLogic();
         sb.append("    // encode the response to XML\r\n");
-        sb.append("    XMLStreamWriter writer = context.response().status(" + (this.notFoundIfNull ? "res == null ? HTTPStatus.NotFound : " : "") + "HTTPStatus." + this.status.name() + ").xml().getXMLWriter();\r\n");
+        if (this.notFoundIfNull)
+        {
+            sb.append("    if (res == null) throw new BalsaNotFound();");
+        }
+        sb.append("    XMLStreamWriter writer = context.response().status(HTTPStatus." + this.status.name() + ").xml().getXMLWriter();\r\n");
         sb.append("    Marshaller m = this.xmlResCtx.createMarshaller();\r\n");
         sb.append("    m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);\r\n");
         sb.append("    m.marshal(res, writer);\r\n");

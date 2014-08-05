@@ -5,6 +5,7 @@ import java.lang.annotation.Annotation;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intrbiz.balsa.engine.impl.route.exec.ExecutorClass;
+import com.intrbiz.balsa.error.http.BalsaNotFound;
 import com.intrbiz.balsa.http.HTTP.HTTPStatus;
 import com.intrbiz.metadata.JSON;
 
@@ -34,6 +35,7 @@ public class JSONResponse extends ResponseBuilder
         cls.addImport(JsonGenerator.class.getCanonicalName());
         cls.addImport(HTTPStatus.class.getCanonicalName());
         cls.addImport(this.type.getCanonicalName());
+        if (this.notFoundIfNull) cls.addImport(BalsaNotFound.class.getCanonicalName());
         //
         cls.addField(ObjectMapper.class.getSimpleName(), "jsonResMapper");
         //
@@ -43,7 +45,11 @@ public class JSONResponse extends ResponseBuilder
         //
         StringBuilder sb = cls.getExecutorLogic();
         sb.append("    // encode the response to JSON\r\n");
-        sb.append("    JsonGenerator writer = context.response().status(" + (this.notFoundIfNull ? "res == null ? HTTPStatus.NotFound : " : "") + "HTTPStatus." + this.status.name() + ").json().getJsonWriter();\r\n");
+        if (this.notFoundIfNull)
+        {
+            sb.append("    if (res == null) throw new BalsaNotFound();");
+        }
+        sb.append("    JsonGenerator writer = context.response().status(HTTPStatus." + this.status.name() + ").json().getJsonWriter();\r\n");
         sb.append("    this.jsonResMapper.writeValue(writer, res);\r\n");
     }
 
