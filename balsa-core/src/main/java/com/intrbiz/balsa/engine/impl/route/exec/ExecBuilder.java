@@ -58,6 +58,8 @@ public class ExecBuilder
     private ValidatorBuilder[] validators;
 
     private Method handler;
+    
+    private boolean exceptionHandler;
 
     private Router<?> router;
 
@@ -77,9 +79,10 @@ public class ExecBuilder
         return this.id;
     }
 
-    public ExecBuilder handler(Method handler)
+    public ExecBuilder handler(Method handler, boolean exceptionHandler)
     {
         this.handler = handler;
+        this.exceptionHandler = exceptionHandler;
         this.arity = handler.getParameterTypes().length;
         this.arguments = new ArgumentBuilder[this.arity];
         this.converters = new ConverterBuilder[this.arity];
@@ -306,8 +309,11 @@ public class ExecBuilder
                 parameterVariables[i] = conv.getVariable();   
             }
         }
-        sb.append("    // throw a conversion exception?\r\n");
-        sb.append("    if (context.hasConversionErrors()) throw new BalsaConversionError();\r\n");
+        if (! this.exceptionHandler)
+        {
+            sb.append("    // throw a conversion exception?\r\n");
+            sb.append("    if (context.hasConversionErrors()) throw new BalsaConversionError();\r\n");
+        }
         // apply any validators
         sb.append("    // validate any parameters\r\n");
         for (int i = 0; i < this.validators.length; i++)
@@ -318,8 +324,11 @@ public class ExecBuilder
                 vald.compile(cls, parameterVariables[i]);   
             }
         }
-        sb.append("    // throw a validation exception?\r\n");
-        sb.append("    if (context.hasValidationErrors()) throw new BalsaValidationError();\r\n");
+        if (! this.exceptionHandler)
+        {
+            sb.append("    // throw a validation exception?\r\n");
+            sb.append("    if (context.hasValidationErrors()) throw new BalsaValidationError();\r\n");
+        }
         // wrappers
         for (RouteWrapperBuilder wb : this.wrapperBuilders)
         {
@@ -381,7 +390,7 @@ public class ExecBuilder
         //
         ExecBuilder b = new ExecBuilder();
         b.router(router);
-        b.handler(method);
+        b.handler(method, route.isExceptionHandler());
         // security checks
         // check specified on the router
         for (Annotation secAnno : getSecurityAnnotation(router.getClass().getAnnotations()))
