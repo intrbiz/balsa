@@ -1,5 +1,6 @@
 package com.intrbiz.balsa.test.route.model;
 
+import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.engine.route.Router;
 import com.intrbiz.metadata.Get;
 import com.intrbiz.metadata.Param;
@@ -13,7 +14,7 @@ import com.intrbiz.metadata.RequireValidPrincipal;
 @Prefix("/")
 @RequireSession()
 @RequireValidPrincipal()
-public class RestrictedRouter extends Router
+public class RestrictedRouter extends Router<BalsaApplication>
 {
     @Get("/restricted")
     @RequireValidPrincipal()

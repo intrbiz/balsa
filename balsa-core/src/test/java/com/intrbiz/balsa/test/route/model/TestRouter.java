@@ -7,13 +7,13 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
+import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.engine.route.Router;
 import com.intrbiz.metadata.Any;
 import com.intrbiz.metadata.AsDate;
 import com.intrbiz.metadata.Cookie;
 import com.intrbiz.metadata.Get;
 import com.intrbiz.metadata.Header;
-import com.intrbiz.metadata.IsMandatory;
 import com.intrbiz.metadata.IsaDate;
 import com.intrbiz.metadata.IsaInt;
 import com.intrbiz.metadata.IsaUUID;
@@ -23,7 +23,7 @@ import com.intrbiz.metadata.Prefix;
 import com.intrbiz.metadata.XML;
 
 @Prefix("/")
-public class TestRouter extends Router
+public class TestRouter extends Router<BalsaApplication>
 {
     @Get("/test/:param")
     public void test(String param)
@@ -55,7 +55,7 @@ public class TestRouter extends Router
     }
     
     @Get("/test/asuuid/:param")
-    public void testAsUUID(@Param("param") @IsaUUID @IsMandatory UUID param)
+    public void testAsUUID(@Param("param") @IsaUUID(mandatory = true) UUID param)
     {
     }
     
