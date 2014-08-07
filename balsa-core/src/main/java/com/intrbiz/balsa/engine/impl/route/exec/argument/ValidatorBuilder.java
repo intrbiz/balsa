@@ -46,7 +46,7 @@ public class ValidatorBuilder
         sb.append("    // validating ").append(rawVariable).append("\r\n");
         // validate
         sb.append("    try {\r\n");
-        sb.append("      ").append("this.").append(this.field).append(".validate(").append(rawVariable).append(");\r\n");
+        sb.append("      ").append(rawVariable).append(" = ").append("this.").append(this.field).append(".validate(").append(rawVariable).append(");\r\n");
         sb.append("    } catch(ValidationException vex) {\r\n");
         sb.append("      context.addValidationError(vex);\r\n");
         sb.append("    }\r\n");
