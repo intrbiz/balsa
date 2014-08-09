@@ -23,7 +23,7 @@ public final class NullArgument extends ArgumentBuilder<NullArgument>
     {
         cls.addImport(this.parameterType.getCanonicalName());
         // allocate the variable we are going to use
-        this.variable = cls.allocateExecutorVariable(this.parameterType.getSimpleName());
+        this.variable = cls.allocateExecutorVariable(this.parameterType.getSimpleName(), "null");
         // write the code
         StringBuilder sb = cls.getExecutorLogic();
         sb.append("    // bind parameter ").append(this.index).append("\r\n");

@@ -41,7 +41,7 @@ public final class SessionVarArgument extends ArgumentBuilder<SessionVarArgument
     {
         // allocate the variable we are going to use
         cls.addImport(this.type.getCanonicalName());
-        this.variable = cls.allocateExecutorVariable(this.type.getSimpleName());
+        this.variable = cls.allocateExecutorVariable(this.type.getSimpleName(), "session_var");
         // write the code
         StringBuilder sb = cls.getExecutorLogic();
         sb.append("    // bind parameter ").append(this.index).append("\r\n");

@@ -1,5 +1,7 @@
 package com.intrbiz.balsa.engine.impl.route.exec.argument;
 
+import java.util.List;
+
 import com.intrbiz.balsa.engine.impl.route.exec.ExecutorClass;
 import com.intrbiz.validator.ValidationException;
 import com.intrbiz.validator.Validator;
@@ -12,11 +14,14 @@ public class ValidatorBuilder
     
     protected String field;
     
-    public ValidatorBuilder(int parameterIndex, Validator<?> validator)
+    protected boolean list;
+    
+    public ValidatorBuilder(int parameterIndex, Validator<?> validator, boolean list)
     {
         super();
         this.parameterIndex = parameterIndex;
         this.validator = validator;
+        this.list = list;
     }
 
     public Validator<?> getValidator()
@@ -28,6 +33,11 @@ public class ValidatorBuilder
     {
         return this.validator == null ? null : this.validator.getType();
     }
+    
+    public boolean isList()
+    {
+        return this.list;
+    }
 
     public void compile(ExecutorClass cls, String rawVariable)
     {
@@ -35,6 +45,7 @@ public class ValidatorBuilder
         cls.addImport(Validator.class.getCanonicalName());
         cls.addImport(this.validator.getClass().getCanonicalName());
         cls.addImport(ValidationException.class.getCanonicalName());
+        if (this.list) cls.addImport(List.class.getCanonicalName());
         // the converter field
         this.field = cls.allocateField(this.validator.getClass().getSimpleName(), "validator");
         // add construction logic
@@ -46,7 +57,7 @@ public class ValidatorBuilder
         sb.append("    // validating ").append(rawVariable).append("\r\n");
         // validate
         sb.append("    try {\r\n");
-        sb.append("      ").append(rawVariable).append(" = ").append("this.").append(this.field).append(".validate(").append(rawVariable).append(");\r\n");
+        sb.append("      ").append(rawVariable).append(" = ").append("this.").append(this.field).append(".validate" + (this.list ? "List" : "") + "(").append(rawVariable).append(");\r\n");
         sb.append("    } catch(ValidationException vex) {\r\n");
         sb.append("      context.addValidationError(vex);\r\n");
         sb.append("    }\r\n");

@@ -43,7 +43,7 @@ public final class JSONArgument extends ArgumentBuilder<JSONArgument>
         StringBuilder csb = cls.getConstructorLogic();
         csb.append("    this.jsonInCtx = new ObjectMapper();\r\n");
         // allocate the variable we are going to use
-        this.variable = cls.allocateExecutorVariable(this.type.getSimpleName());
+        this.variable = cls.allocateExecutorVariable(this.type.getSimpleName(), "model");
         // write the code
         StringBuilder sb = cls.getExecutorLogic();
         sb.append("    // bind parameter ").append(this.index).append("\r\n");

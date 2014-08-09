@@ -32,7 +32,7 @@ public final class CookieArgument extends ArgumentBuilder<CookieArgument>
     public void compile(ExecutorClass cls)
     {
         // allocate the variable we are going to use
-        this.variable = cls.allocateExecutorVariable("String");
+        this.variable = cls.allocateExecutorVariable("String", "cookie");
         // write the code
         StringBuilder sb = cls.getExecutorLogic();
         sb.append("    // bind parameter ").append(this.index).append("\r\n");

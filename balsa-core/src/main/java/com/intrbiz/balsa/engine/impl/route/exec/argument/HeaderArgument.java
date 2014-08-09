@@ -32,7 +32,7 @@ public final class HeaderArgument extends ArgumentBuilder<HeaderArgument>
     public void compile(ExecutorClass cls)
     {
         // allocate the variable we are going to use
-        this.variable = cls.allocateExecutorVariable("String");
+        this.variable = cls.allocateExecutorVariable("String", "header");
         // write the code
         StringBuilder sb = cls.getExecutorLogic();
         sb.append("    // bind parameter ").append(this.index).append("\r\n");

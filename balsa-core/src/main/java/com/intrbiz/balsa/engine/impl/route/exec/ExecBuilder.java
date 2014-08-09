@@ -47,6 +47,8 @@ public class ExecBuilder
     
     private final int id = ID_SEQ.incrementAndGet();
     
+    private Logger logger = Logger.getLogger(ExecBuilder.class);
+    
     private int arity = 0;
 
     private int currentArgumentIndex = 0;
@@ -237,7 +239,7 @@ public class ExecBuilder
         // add
         if (this.currentArgumentIndex <= 0) throw new IllegalStateException("No arguments are defined, cannot add a converter");
         if (this.arguments[this.currentArgumentIndex -1] == null) throw new IllegalArgumentException("Cannot attach the converter to a null argument");
-        this.converters[this.currentArgumentIndex -1] = new ConverterBuilder(this.currentArgumentIndex -1, converter);
+        this.converters[this.currentArgumentIndex -1] = new ConverterBuilder(this.currentArgumentIndex -1, converter, List.class.isAssignableFrom(this.handler.getParameterTypes()[this.currentArgumentIndex -1]));
         return this;
     }
     
@@ -246,7 +248,7 @@ public class ExecBuilder
         // add
         if (this.currentArgumentIndex <= 0) throw new IllegalStateException("No arguments are defined, cannot add a validator");
         if (this.arguments[this.currentArgumentIndex -1] == null) throw new IllegalArgumentException("Cannot attach the validator to a null argument");
-        this.validators[this.currentArgumentIndex -1] = new ValidatorBuilder(this.currentArgumentIndex -1, validator);
+        this.validators[this.currentArgumentIndex -1] = new ValidatorBuilder(this.currentArgumentIndex -1, validator, List.class.isAssignableFrom(this.handler.getParameterTypes()[this.currentArgumentIndex -1]));
         return this;
     }
 
@@ -266,8 +268,15 @@ public class ExecBuilder
             }
             else
             {
-                ab.verify(cb.getFromType());
-                cb.verify(this.handler.getParameterTypes()[i]);
+                if (List.class.isAssignableFrom(this.handler.getParameterTypes()[i]))
+                {
+                    logger.debug("Skiping verification of parameter " + i + " as it is a List type");
+                }
+                else
+                {
+                    ab.verify(cb.getFromType());
+                    cb.verify(this.handler.getParameterTypes()[i]);
+                }
             }
         }
         return this;
@@ -306,7 +315,7 @@ public class ExecBuilder
             if (conv != null)
             {
                 conv.compile(cls, parameterVariables[i]);
-                parameterVariables[i] = conv.getVariable();   
+                parameterVariables[i] = conv.getVariable();
             }
         }
         if (! this.exceptionHandler)

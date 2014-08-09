@@ -34,7 +34,7 @@ public final class ListParameterArgument extends ArgumentBuilder<ListParameterAr
     {
         // allocate the variable we are going to use
         cls.addImport(List.class.getCanonicalName());
-        this.variable = cls.allocateExecutorVariable("List<String>");
+        this.variable = cls.allocateExecutorVariable("List<String>", "list_param");
         // write the code
         StringBuilder sb = cls.getExecutorLogic();
         sb.append("    // bind parameter ").append(this.index).append("\r\n");

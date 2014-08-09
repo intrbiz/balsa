@@ -50,7 +50,7 @@ public final class XMLArgument extends ArgumentBuilder<XMLArgument>
         StringBuilder csb = cls.getConstructorLogic();
         csb.append("    this.xmlInCtx = JAXBContext.newInstance(").append(this.type.getSimpleName()).append(".class);\r\n");
         // allocate the variable we are going to use
-        this.variable = cls.allocateExecutorVariable(this.type.getSimpleName());
+        this.variable = cls.allocateExecutorVariable(this.type.getSimpleName(), "xml");
         // write the code
         StringBuilder sb = cls.getExecutorLogic();
         sb.append("    // bind parameter ").append(this.index).append("\r\n");

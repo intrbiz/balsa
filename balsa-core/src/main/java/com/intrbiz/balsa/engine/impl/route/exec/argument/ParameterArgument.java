@@ -32,7 +32,7 @@ public final class ParameterArgument extends ArgumentBuilder<ParameterArgument>
     public void compile(ExecutorClass cls)
     {
         // allocate the variable we are going to use
-        this.variable = cls.allocateExecutorVariable("String");
+        this.variable = cls.allocateExecutorVariable("String", "param");
         // write the code
         StringBuilder sb = cls.getExecutorLogic();
         sb.append("    // bind parameter ").append(this.index).append("\r\n");
