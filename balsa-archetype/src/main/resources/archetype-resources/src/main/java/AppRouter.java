@@ -11,7 +11,7 @@ import com.intrbiz.metadata.Template;
 // Routes for the URL root
 @Prefix("/")
 @Template("layout/main")
-public class AppRouter extends Router
+public class AppRouter extends Router<App>
 {
     @Any("/")
     public void index()
