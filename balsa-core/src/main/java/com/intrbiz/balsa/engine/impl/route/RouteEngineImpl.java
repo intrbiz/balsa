@@ -29,6 +29,8 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
     private List<PrefixContainer> prefixes = new ArrayList<PrefixContainer>();
 
     private Logger logger = Logger.getLogger(RouteEngineImpl.class);
+    
+    private int totalRoutes = 0;
 
     public RouteEngineImpl()
     {
@@ -43,6 +45,11 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
     public List<Router<?>> getRouters()
     {
         return Collections.unmodifiableList(this.routers);
+    }
+    
+    public int getTotalRoutes()
+    {
+        return this.totalRoutes;
     }
 
     public void router(Router<?> router) throws BalsaException
@@ -70,6 +77,7 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
                 RouteExecutor<?> exec = execBuilder.executor();
                 //
                 container.registerRoute(new RouteEntry(container, route, exec));
+                this.totalRoutes++;
             }
             catch (Exception e)
             {
@@ -82,6 +90,7 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
         {
             logger.debug("\t" + routeHandler.getRoute().getMethod() + " " + routeHandler.getRoute().getCompiledPattern() + " ==> " + routeHandler.getRoute().getHandler() + " order " + routeHandler.getRoute().computeOrder());
         }
+        logger.debug("Total routes: " + this.totalRoutes);
     }
 
     protected PrefixContainer createContainer(String prefix)
