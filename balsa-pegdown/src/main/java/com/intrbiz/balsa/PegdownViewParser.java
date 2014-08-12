@@ -56,6 +56,7 @@ public class PegdownViewParser implements BalsaViewParser
             root.accept(visitor);
             visitor.endDocument();
             view.setRoot(visitor.getRoot());
+            view.getRoot().load(context);
             // return the view
             return view;
         }
