@@ -1,10 +1,10 @@
 package com.intrbiz.balsa.pegdown;
 
 import java.io.StringReader;
+import java.util.List;
 import java.util.Stack;
 
 import org.apache.log4j.Logger;
-import org.pegdown.LinkRenderer;
 import org.pegdown.ast.AbbreviationNode;
 import org.pegdown.ast.AutoLinkNode;
 import org.pegdown.ast.BlockQuoteNode;
@@ -45,6 +45,7 @@ import org.pegdown.ast.Visitor;
 import org.pegdown.ast.WikiLinkNode;
 
 import com.intrbiz.balsa.BalsaContext;
+import com.intrbiz.balsa.util.Util;
 import com.intrbiz.balsa.view.component.Component;
 import com.intrbiz.balsa.view.component.View;
 import com.intrbiz.balsa.view.core.fragment.FragmentComponent;
@@ -72,10 +73,6 @@ public class ToBalsaVisitor implements Visitor
 
     private Component title;
 
-    // link rendering
-
-    protected final LinkRenderer linkRenderer;
-
     // table state
 
     protected TableNode currentTableNode;
@@ -92,7 +89,6 @@ public class ToBalsaVisitor implements Visitor
     {
         super();
         this.view = view;
-        this.linkRenderer = new LinkRenderer();
     }
 
     public void startDocument()
@@ -204,7 +200,7 @@ public class ToBalsaVisitor implements Visitor
 
     public void visit(AutoLinkNode node)
     {
-        pushLink(linkRenderer.render(node));
+        pushLink(node.getText(), null, node.getText());
     }
 
     public void visit(BlockQuoteNode node)
@@ -244,7 +240,7 @@ public class ToBalsaVisitor implements Visitor
 
     public void visit(ExpLinkNode node)
     {
-        pushLink(linkRenderer.render(node, "TODO: TEXT"));
+        pushLink(node.url, node.title, node.getChildren());
     }
 
     public void visit(HeaderNode node)
@@ -303,7 +299,7 @@ public class ToBalsaVisitor implements Visitor
 
     public void visit(MailLinkNode node)
     {
-        pushLink(linkRenderer.render(node));
+        pushLink("mailto:" + node.getText(), null, node.getText());
     }
 
     public void visit(OrderedListNode node)
@@ -370,10 +366,12 @@ public class ToBalsaVisitor implements Visitor
                 this.write("&ndash;");
                 break;
             case HRule:
-                this.write("<hr/>");
+                this.push(this.genericComponent("hr"));
+                this.pop("hr");
                 break;
             case Linebreak:
-                this.write("<br/>");
+                this.push(this.genericComponent("br"));
+                this.pop("br");
                 break;
             case Nbsp:
                 this.write("&nbsp;");
@@ -416,9 +414,7 @@ public class ToBalsaVisitor implements Visitor
         String tag = inTableHeader ? "th" : "td";
         // List<TableColumnNode> columns = currentTableNode.getColumns();
         // TableColumnNode column = columns.get(Math.min(currentTableColumn, columns.size() - 1));
-        //
         this.pushTag(node, tag);
-        //
         currentTableColumn += node.getColSpan();
     }
 
@@ -457,7 +453,8 @@ public class ToBalsaVisitor implements Visitor
 
     public void visit(WikiLinkNode node)
     {
-        pushLink(linkRenderer.render(node));
+        String url = node.getText().replace(' ', '-');
+        pushLink(url, null, node.getText());
     }
 
     public void visit(TextNode node)
@@ -509,16 +506,27 @@ public class ToBalsaVisitor implements Visitor
         this.push(this.addAttribute(this.genericComponent("img"), "src", url));
         this.pop("img");
     }
-
-    protected void pushLink(LinkRenderer.Rendering rendering)
+    
+    protected void pushLink(String url, String title, String text)
     {
         GenericComponent a = this.genericComponent("a");
-        this.addAttribute(a, "href", rendering.href);
-        for (LinkRenderer.Attribute attr : rendering.attributes)
+        this.addAttribute(a, "href", url);
+        if (! Util.isEmpty(title)) this.addAttribute(a, "title", title);
+        this.push(a);
+        this.write(text);
+        this.pop("a");
+    }
+    
+    protected void pushLink(String url, String title, List<Node> text)
+    {
+        GenericComponent a = this.genericComponent("a");
+        this.addAttribute(a, "href", url);
+        if (! Util.isEmpty(title)) this.addAttribute(a, "title", title);
+        this.push(a);
+        for (Node node : text)
         {
-            this.addAttribute(a, attr.name, attr.value);
+            node.accept(this);
         }
-        this.write(rendering.text);
         this.pop("a");
     }
 
