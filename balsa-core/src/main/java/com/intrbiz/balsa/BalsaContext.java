@@ -504,19 +504,19 @@ public class BalsaContext
     {
         try
         {
-            if (to == null) to = this.response().getViewWriter();
-            // load and encode the view
             try
             {
                 this.view = this.app().getViewEngine().load(templates, views, this);
+                // encode
+                if (to == null) to = this.response().getViewWriter();
                 this.view.encode(this, to);
+                // flush the response
+                to.flush();
             }
             finally
             {
                 this.view = null;
             }
-            // flush the response
-            to.flush();
         }
         catch (IOException e)
         {
