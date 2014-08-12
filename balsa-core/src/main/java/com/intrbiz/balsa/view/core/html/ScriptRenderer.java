@@ -14,9 +14,9 @@ public class ScriptRenderer extends GenericRenderer
     @Override
     protected void encodeText(Component component, BalsaContext context, BalsaWriter out) throws IOException, BalsaException
     {
-        out.putPadLn("/* <![CDATA[ */");
         if (component.getText() != null)
         {
+            out.putPadLn("/* <![CDATA[ */");
             try
             {
                 out.putPadLn(String.valueOf(component.getText().get(context.getExpressContext(), this)));
@@ -25,7 +25,7 @@ public class ScriptRenderer extends GenericRenderer
             {
                 throw new BalsaException("EL error", e);
             }
+            out.putPadLn("/* ]]> */");
         }
-        out.putPadLn("/* ]]> */");
     }
 }

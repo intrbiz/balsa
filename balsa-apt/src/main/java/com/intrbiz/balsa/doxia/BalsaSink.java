@@ -7,13 +7,11 @@ import org.apache.maven.doxia.sink.Sink;
 import org.apache.maven.doxia.sink.SinkEventAttributes;
 
 import com.intrbiz.balsa.view.component.Component;
-import com.intrbiz.balsa.view.component.TextNode;
 import com.intrbiz.balsa.view.component.View;
 import com.intrbiz.balsa.view.core.fragment.FragmentComponent;
 import com.intrbiz.balsa.view.core.fragment.FragmentRenderer;
 import com.intrbiz.balsa.view.core.generic.GenericComponent;
 import com.intrbiz.balsa.view.core.generic.GenericRenderer;
-import com.intrbiz.balsa.view.core.generic.GenericTextRenderer;
 import com.intrbiz.balsa.view.core.html.PreComponent;
 import com.intrbiz.balsa.view.core.html.PreRenderer;
 import com.intrbiz.express.operator.StringLiteral;
@@ -102,10 +100,7 @@ public class BalsaSink implements Sink
 
     protected BalsaSink write(String w)
     {
-        TextNode tn = new TextNode();
-        tn.setText(w);
-        tn.setRenderer(new GenericTextRenderer());
-        peek().addChild(tn);
+        peek().addText(w);
         return this;
     }
 

@@ -8,4 +8,14 @@ public class PreComponent extends Component
     {
         super();
     }
+    
+    public boolean coalesceText()
+    {
+        return true;
+    }
+    
+    public boolean preformattedText()
+    {
+        return true;
+    }
 }

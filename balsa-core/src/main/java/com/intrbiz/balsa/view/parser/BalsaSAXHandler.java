@@ -19,14 +19,13 @@ import com.intrbiz.express.ExpressException;
 import com.intrbiz.express.value.ValueExpression;
 
 /**
- * A SAX handler which build parses XML into balsa component trees
- * 
+ * A SAX handler which parses XML into Balsa component tree
  */
 public class BalsaSAXHandler extends DefaultHandler
 {
     private Stack<Component> stack = new Stack<Component>();
-
-    private Stack<StringBuilder> text = new Stack<StringBuilder>();
+    
+    private Stack<StringBuilder> textStack = new Stack<StringBuilder>();
 
     private ComponentLibraryRegister componentLibraryRegister;
 
@@ -72,9 +71,35 @@ public class BalsaSAXHandler extends DefaultHandler
     {
         if (length > 0)
         {
-            // append the text to the current text buffer
-            StringBuilder sb = this.text.peek();
-            if (sb != null) sb.append(ch, start, length);
+            Component parent = this.stack.peek();
+            if (parent != null)
+            {
+                if (parent.coalesceText())
+                {
+                    StringBuilder sb = this.textStack.peek();
+                    if (sb != null) sb.append(ch, start, length);
+                }
+                else
+                {
+                    String text = new String(ch, start, length).trim();
+                    if (text.length() > 0)
+                    {
+                        parent.addText(this.parseText(text));
+                    }
+                }
+            }
+        }
+    }
+    
+    private ValueExpression parseText(String text) throws SAXException
+    {
+        try
+        {
+            return new ValueExpression(this.balsaContext.getExpressContext(), text);
+        }
+        catch (ExpressException e)
+        {
+            throw new SAXException("Failed to parse text EL expression", e);
         }
     }
 
@@ -88,38 +113,32 @@ public class BalsaSAXHandler extends DefaultHandler
         else
         {
             Component comp = this.stack.pop();
-            //
-            StringBuilder compText = this.text.pop();
-            if (compText != null)
+            // coalesced text
+            if (comp.coalesceText())
             {
-                String strText = compText.toString();
-                // trim ?
-                if (!"pre".equals(comp.getName())) strText = strText.trim();
-                if (strText.length() > 0)
+                StringBuilder compText = this.textStack.pop();
+                if (compText != null)
                 {
-                    try
+                    String text = comp.preformattedText() ? compText.toString() : compText.toString().trim();
+                    if (text.length() > 0)
                     {
-                        ValueExpression ve = new ValueExpression(this.balsaContext.getExpressContext(), strText);
-                        comp.setText(ve);
-                    }
-                    catch (ExpressException e)
-                    {
-                        throw new SAXException("Failed to parse text EL expression", e);
+                        comp.setText(this.parseText(text));
                     }
                 }
             }
-            //
-            if (comp.getName() == null || !comp.getName().equalsIgnoreCase(localName)) { throw new SAXException("Could not close the element \"" + localName + "\".  It looks like the document is not well formed!"); }
+            // validate closing
+            if (comp.getName() == null || !comp.getName().equalsIgnoreCase(localName))
+            {
+                throw new SAXException("Could not close the element \"" + localName + "\".  It looks like the document is not well formed!");
+            }
+            // merge
             if (this.stack.isEmpty())
             {
                 this.stack.push(comp);
             }
             else
             {
-                Component parent = this.stack.pop();
-                parent.addChild(comp);
-                comp.setParent(parent);
-                this.stack.push(parent);
+                this.stack.peek().addChild(comp);
             }
         }
     }
@@ -142,7 +161,7 @@ public class BalsaSAXHandler extends DefaultHandler
                 comp.getAttributes().put(name, valExp);
             }
             this.stack.push(comp);
-            this.text.push(new StringBuilder());
+            if (comp.coalesceText()) this.textStack.push(new StringBuilder());
         }
         catch (Exception je)
         {

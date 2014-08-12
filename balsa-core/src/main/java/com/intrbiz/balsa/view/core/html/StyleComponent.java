@@ -8,4 +8,9 @@ public class StyleComponent extends Component
     {
         super();
     }
+    
+    public boolean coalesceText()
+    {
+        return true;
+    }
 }

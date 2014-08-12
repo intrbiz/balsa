@@ -1,6 +1,6 @@
 package com.intrbiz.balsa.view.component;
 
-import static com.intrbiz.balsa.BalsaContext.Balsa;
+import static com.intrbiz.balsa.BalsaContext.*;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -16,6 +16,7 @@ import com.intrbiz.balsa.engine.view.BalsaView;
 import com.intrbiz.balsa.util.BalsaWriter;
 import com.intrbiz.balsa.view.renderer.Renderer;
 import com.intrbiz.express.ExpressException;
+import com.intrbiz.express.operator.Add;
 import com.intrbiz.express.operator.StringLiteral;
 import com.intrbiz.express.value.ValueExpression;
 
@@ -61,6 +62,11 @@ public abstract class Component
      * The renderer to be used to render this component
      */
     protected Renderer renderer;
+    
+    /**
+     * Does this component have any text nodes
+     */
+    private boolean textNodes = false;
 
     public Component()
     {
@@ -109,6 +115,21 @@ public abstract class Component
     public final void setChildren(List<Component> children)
     {
         this.children = children;
+    }
+    
+    /**
+     * Get the sibling of this component 
+     * @param relativePosition the position relative to this component
+     * @return the sibling or null
+     */
+    public final Component getSibling(int relativePosition)
+    {
+        if (this.parent == null || this.parent.children == null) return null;
+        int index = this.parent.children.indexOf(this);
+        if (index == -1) return null;
+        index += relativePosition;
+        if (index < 0 || index >= this.parent.children.size()) return null;
+        return this.parent.children.get(index);
     }
 
     /**
@@ -160,6 +181,72 @@ public abstract class Component
     public void setText(ValueExpression text)
     {
         this.text = text;
+    }
+    
+    public void setText(String text)
+    {
+        this.setText(new ValueExpression(new StringLiteral(text, false)));
+    }
+    
+    public boolean canMergeText()
+    {
+        return this.children.isEmpty();
+    }
+    
+    public void mergeText(String text)
+    {
+        if (this.text == null)
+        {
+            this.setText(text);
+        }
+        else
+        {
+            this.setText(new ValueExpression(new Add(this.getText().getOperator(), new StringLiteral(text, false))));
+        }
+    }
+    
+    public void mergeText(ValueExpression text)
+    {
+        if (this.text == null)
+        {
+            this.setText(text);
+        }
+        else
+        {
+            this.setText(new ValueExpression(new Add(this.getText().getOperator(), text.getOperator())));
+        }
+    }
+    
+    public void addText(ValueExpression text)
+    {
+        if (this.text == null && this.children.isEmpty())
+        {
+            this.setText(text);
+        }
+        else if (this.canMergeText())
+        {
+            this.mergeText(text);
+        }
+        else
+        {
+            this.addChild(new TextNode(text));
+        }
+    }
+    
+    public void addText(String text)
+    {
+        if (this.text == null && this.children.isEmpty())
+        {
+            this.setText(text);
+        }
+        else if (this.canMergeText())
+        {
+            this.mergeText(text);
+        }
+        else
+        {
+            this.addChild(new TextNode(text));
+        }
     }
 
     /**
@@ -270,18 +357,49 @@ public abstract class Component
 
     /**
      * An event invoked as soon as the view is loaded
-     * 
-     * @param context
-     * @throws BalsaException
-     *             returns void
      */
     public void load(BalsaContext context) throws BalsaException
     {
         if (this.getRenderer() != null) this.getRenderer().load(this, context);
         for (Component child : this.getChildren())
         {
+            if (child instanceof TextNode) this.textNodes = true;
             child.load(context);
         }
+    }
+    
+    /**
+     * Does this component have any text nodes
+     * Note: this is pre-computed during load()
+     */
+    public final boolean hasTextNodes()
+    {
+        return this.textNodes;
+    }
+    
+    /**
+     * Does this component have any text
+     * @return
+     */
+    public final boolean hasText()
+    {
+        return this.text != null;
+    }
+    
+    /**
+     * Should the parse coalesce text for this node
+     */
+    public boolean coalesceText()
+    {
+        return false;
+    }
+    
+    /**
+     * Should the parser try to keep the text formatting
+     */
+    public boolean preformattedText()
+    {
+        return false;
     }
 
     public String toString()

@@ -52,7 +52,6 @@ import com.intrbiz.balsa.view.core.fragment.FragmentComponent;
 import com.intrbiz.balsa.view.core.fragment.FragmentRenderer;
 import com.intrbiz.balsa.view.core.generic.GenericComponent;
 import com.intrbiz.balsa.view.core.generic.GenericRenderer;
-import com.intrbiz.balsa.view.core.generic.GenericTextRenderer;
 import com.intrbiz.balsa.view.core.html.PreComponent;
 import com.intrbiz.balsa.view.core.html.PreRenderer;
 import com.intrbiz.balsa.view.parser.Parser;
@@ -171,10 +170,7 @@ public class ToBalsaVisitor implements Visitor
 
     protected ToBalsaVisitor write(String w)
     {
-        com.intrbiz.balsa.view.component.TextNode tn = new com.intrbiz.balsa.view.component.TextNode();
-        tn.setText(w);
-        tn.setRenderer(new GenericTextRenderer());
-        peek().addChild(tn);
+        peek().addText(w);
         return this;
     }
 
@@ -446,8 +442,8 @@ public class ToBalsaVisitor implements Visitor
     public void visit(VerbatimNode node)
     {
         PreComponent pre = this.preComponent();
+        pre.setText("\r\n" + node.getText());
         this.push(pre);
-        this.write("\r\n" + node.getText());
         this.pop("pre");
     }
 

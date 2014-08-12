@@ -8,4 +8,9 @@ public class ScriptComponent extends Component
     {
         super();
     }
+    
+    public boolean coalesceText()
+    {
+        return true;
+    }
 }
