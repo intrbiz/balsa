@@ -559,6 +559,37 @@ public class BalsaContext
     {
         return this.encodeBuffered(null, views);
     }
+    
+    public void encodeInclude(BalsaWriter to, String... views) throws BalsaException
+    {
+        try
+        {
+            BalsaView view = this.app().getViewEngine().load(null, views, this);
+            // encode
+            if (to == null) to = this.response().getViewWriter();
+            view.encode(this, to);
+        }
+        catch (IOException e)
+        {
+            throw new BalsaIOError("IO error while encoding view", e);
+        }
+    }
+    
+    public String encodeIncludeBuffered(String... views) throws BalsaException
+    {
+        try
+        {
+            StringWriter sw = new StringWriter();
+            HTMLWriter hw = new HTMLWriter(sw);
+            this.encodeInclude(hw, views);
+            hw.close();
+            return sw.toString();
+        }
+        catch (IOException e)
+        {
+            throw new BalsaIOError("IO error while encoding buffered view", e);
+        }
+    }
 
     /**
      * Translate the given URL into an absolute URL using information from the request.

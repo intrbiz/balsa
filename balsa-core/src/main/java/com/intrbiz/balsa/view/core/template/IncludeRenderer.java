@@ -25,7 +25,7 @@ public class IncludeRenderer extends Renderer
         List<String> views = inc.getViews(context);
         if (! views.isEmpty())
         {
-            context.encodeOnly(to, views.toArray(new String[0]));
+            context.encodeInclude(to, views.toArray(new String[views.size()]));
         }
     }
 }
