@@ -55,6 +55,7 @@ import com.intrbiz.balsa.view.core.generic.GenericRenderer;
 import com.intrbiz.balsa.view.core.html.PreComponent;
 import com.intrbiz.balsa.view.core.html.PreRenderer;
 import com.intrbiz.balsa.view.parser.Parser;
+import com.intrbiz.express.operator.BooleanLiteral;
 import com.intrbiz.express.operator.StringLiteral;
 import com.intrbiz.express.value.ValueExpression;
 
@@ -63,6 +64,8 @@ public class ToBalsaVisitor implements Visitor
     private final Logger logger = Logger.getLogger(ToBalsaVisitor.class);
 
     //
+    
+    private boolean hideTitle;
 
     private View view;
 
@@ -84,10 +87,16 @@ public class ToBalsaVisitor implements Visitor
 
     protected Stack<Integer> sections = new Stack<Integer>();
 
-    public ToBalsaVisitor(View view)
+    public ToBalsaVisitor(View view, boolean hideTitle)
     {
         super();
         this.view = view;
+        this.hideTitle = hideTitle;
+    }
+    
+    public ToBalsaVisitor(View view)
+    {
+        this(view, true);
     }
 
     public void startDocument()
@@ -115,6 +124,12 @@ public class ToBalsaVisitor implements Visitor
         {
             String titleText = this.getText(this.title);
             this.addAttribute(this.root, "title", titleText);
+            this.view.getMetadata().setAttribute("title", titleText);
+            // suppress the title from being rendered
+            if (this.hideTitle)
+            {
+                this.title.addAttribute("rendered", new ValueExpression(new BooleanLiteral(false)));
+            }
         }
     }
 
@@ -529,8 +544,16 @@ public class ToBalsaVisitor implements Visitor
     protected String getText(Component comp)
     {
         StringBuilder sb = new StringBuilder();
+        if (comp.getText() != null)
+        {
+            sb.append(comp.getText().get(null, null));
+        }
         for (Component child : comp.getChildren())
         {
+            if (child.getText() != null)
+            {
+                sb.append(child.getText().get(null, null));
+            }
             if (child instanceof com.intrbiz.balsa.view.component.TextNode)
             {
                 com.intrbiz.balsa.view.component.TextNode node = (com.intrbiz.balsa.view.component.TextNode) child;

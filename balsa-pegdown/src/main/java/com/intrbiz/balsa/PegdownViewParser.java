@@ -18,14 +18,19 @@ import com.intrbiz.balsa.view.component.View;
 public class PegdownViewParser implements BalsaViewParser
 {
     private boolean parseMetadata = true;
+    
+    private boolean hideTitle = true;
+    
+    public PegdownViewParser(boolean parseMetadata, boolean hideTitle)
+    {
+        super();
+        this.parseMetadata = parseMetadata;
+        this.hideTitle = hideTitle;
+    }
 
     public PegdownViewParser()
     {
-    }
-
-    public PegdownViewParser(boolean parseMetadata)
-    {
-        this.parseMetadata = parseMetadata;
+        this(true, true);
     }
 
     public boolean isParseMetadata()
@@ -51,7 +56,7 @@ public class PegdownViewParser implements BalsaViewParser
             if (this.parseMetadata) viewText = ViewMetadataParser.extractMetadata(viewText, view.getMetadata());
             RootNode root = parser.parse(viewText.toCharArray());
             // visit
-            ToBalsaVisitor visitor = new ToBalsaVisitor(view);
+            ToBalsaVisitor visitor = new ToBalsaVisitor(view, this.hideTitle);
             visitor.startDocument();
             root.accept(visitor);
             visitor.endDocument();
