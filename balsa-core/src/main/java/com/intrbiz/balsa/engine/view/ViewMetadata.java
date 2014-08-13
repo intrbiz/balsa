@@ -15,17 +15,17 @@ public final class ViewMetadata
     
     public String getAttribute(String name)
     {
-        return this.metadata.get(name);
+        return this.metadata.get(name.toLowerCase());
     }
     
     public void setAttribute(String name, String value)
     {
-        this.metadata.put(name, value);
+        this.metadata.put(name.toLowerCase(), value);
     }
     
     public boolean containsAttribute(String name)
     {
-        return this.metadata.containsKey(name);
+        return this.metadata.containsKey(name.toLowerCase());
     }
     
     public Set<String> getAttributeNames()
@@ -35,6 +35,6 @@ public final class ViewMetadata
     
     public void removeAttribute(String name)
     {
-        this.metadata.remove(name);
+        this.metadata.remove(name.toLowerCase());
     }
 }
