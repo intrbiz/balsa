@@ -7,6 +7,7 @@ import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.ViewEngine;
 import com.intrbiz.balsa.engine.view.BalsaView;
+import com.intrbiz.balsa.engine.view.ViewMetadata;
 import com.intrbiz.balsa.util.BalsaWriter;
 import com.intrbiz.express.ExpressException;
 import com.intrbiz.gerald.witchcraft.Witchcraft;
@@ -81,5 +82,11 @@ public class ViewMetricsWrapper extends BalsaView
     public String toString()
     {
         return "BalsaView[" + this.id + "]";
+    }
+
+    @Override
+    public ViewMetadata getMetadata()
+    {
+        return realView.getMetadata();
     }
 }
