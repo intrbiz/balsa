@@ -10,7 +10,10 @@ public abstract class RouteWrapperBuilder
 {   
     public abstract void fromAnnotation(Annotation a);
     
-    public abstract ArgumentBuilder<?> argument(Method method, int index, Class<?> arguementType, Annotation[] annotations);
+    public ArgumentBuilder<?> argument(Method method, int index, Class<?> arguementType, Annotation[] annotations)
+    {
+        return null;
+    }
     
     public abstract void compileBefore(ExecutorClass cls);
     
