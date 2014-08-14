@@ -256,8 +256,10 @@ public class Route implements Comparable<Route>
         if (r == null) return null;
         // annotations across all routes
         // is it an error route
-        Catch error = method.getAnnotation(Catch.class);
-        if (error != null) r.exceptions(error);
+        for (Catch error : method.getAnnotationsByType(Catch.class))
+        {
+            if (error != null) r.exceptions(error);
+        }
         // is there an order
         Order order = method.getAnnotation(Order.class);
         if (order != null) r.setOrder(order.value());
