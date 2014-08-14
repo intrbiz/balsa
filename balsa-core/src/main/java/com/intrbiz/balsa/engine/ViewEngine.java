@@ -39,6 +39,11 @@ public interface ViewEngine extends BalsaEngine
      * The engine should not cache views
      */
     void cacheOff();
+    
+    /**
+     * Clear any cached views
+     */
+    void clearCache();
 
     
     void clearSources();

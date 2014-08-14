@@ -226,6 +226,12 @@ public class BalsaViewEngineImpl extends AbstractBalsaEngine implements ViewEngi
         this.cache.clear();
         this.logger.warn("View caching has been disabled");
     }
+    
+    @Override
+    public void clearCache()
+    {
+        this.cache.clear();
+    }
 
     @Override
     public void clearSources()
