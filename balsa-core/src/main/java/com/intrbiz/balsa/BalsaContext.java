@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.log4j.Logger;
+
 import com.intrbiz.balsa.bean.BeanProvider;
 import com.intrbiz.balsa.engine.security.Credentials;
 import com.intrbiz.balsa.engine.security.PasswordCredentials;
@@ -97,6 +99,14 @@ public class BalsaContext
             }
         });
     }
+    
+    /**
+     * Create a request-less BalsaContext
+     */
+    public BalsaContext(BalsaApplication application)
+    {
+        this(application, null, null);
+    }
 
     /**
      * Get the current instance of the balsa context.
@@ -115,6 +125,32 @@ public class BalsaContext
             currentInstance.remove();
         else
             currentInstance.set(context);
+    }
+    
+    /**
+     * Bind this BalsaContext instance to the current thread
+     * @return
+     */
+    public BalsaContext bind()
+    {
+        BalsaContext.set(this);
+        return this;
+    }
+    
+    /**
+     * Clear current instance of the balsa context.
+     */
+    public final static void clear()
+    {
+        currentInstance.remove();
+    }
+    
+    /**
+     * Unbind the BalsaContext for the current thread
+     */
+    public void unbind()
+    {
+        BalsaContext.clear();
     }
 
     public final ExpressContext getExpressContext()
@@ -204,19 +240,26 @@ public class BalsaContext
      */
     public void deactivate()
     {
-        // return all beans to the providers
-        for (Object bean : this.models.values())
+        try
         {
-            this.application.deactivateModel(bean);
+            // return all beans to the providers
+            for (Object bean : this.models.values())
+            {
+                this.application.deactivateModel(bean);
+            }
+            this.models.clear();
+            this.vars.clear();
+            this.conversionErrors.clear();
+            this.validationErrors.clear();
+            this.exception = null;
+            this.view = null;
+            this.session = null;
+            this.currentPrincipal = null;
         }
-        this.models.clear();
-        this.vars.clear();
-        this.conversionErrors.clear();
-        this.validationErrors.clear();
-        this.exception = null;
-        this.view = null;
-        this.session = null;
-        this.currentPrincipal = null;
+        catch (Exception e)
+        {
+            Logger.getLogger(BalsaContext.class).fatal("Error whilst deactivating context", e);
+        }
     }
 
     public void activate()

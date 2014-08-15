@@ -48,12 +48,24 @@ public class BalsaHTTPHandler extends ChannelInboundHandlerAdapter
             // process
             try
             {
-                this.proc.process(bctx);
-                bres.sendResponse(ctx);
+                bctx.activate();
+                try
+                {
+                    this.proc.process(bctx);
+                    bres.sendResponse(ctx);
+                }
+                finally
+                {
+                    bctx.deactivate();
+                }
+            }
+            catch (Error e)
+            {
+                throw e;
             }
             catch (Throwable t)
             {
-                t.printStackTrace();
+                logger.debug("Error handling HTTP request", t);
             }
         }
     }

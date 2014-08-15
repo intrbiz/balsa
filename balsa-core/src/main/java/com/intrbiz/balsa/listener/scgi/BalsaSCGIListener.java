@@ -106,12 +106,14 @@ public class BalsaSCGIListener extends BalsaListener
                 totalRequests.inc();
                 activeRequests.inc();
                 requests.mark();
+                ctx.activate();
                 try
                 {
                     proc.process(ctx);
                 }
                 finally
                 {
+                    ctx.deactivate();
                     tctx.stop();
                     activeRequests.dec();
                 }
