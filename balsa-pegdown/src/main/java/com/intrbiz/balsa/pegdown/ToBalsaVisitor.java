@@ -471,6 +471,7 @@ public class ToBalsaVisitor implements Visitor
         if (Util.isEmpty(codeType))
         {
             PreComponent pre = this.preComponent();
+            this.addAttribute(pre, "class", "plain");
             pre.setText("\r\n" + node.getText());
             this.push(pre);
             this.pop("pre");
