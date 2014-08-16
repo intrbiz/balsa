@@ -94,12 +94,12 @@ public class TextNode extends Component
         if (this.parent != null)
         {
             Component previousSibling = this.getSibling(-1);
-            if (previousSibling instanceof TextNode || (previousSibling == null && this.parent.hasText()))
+            if (previousSibling instanceof TextNode || (previousSibling != null && previousSibling.isSpan()) || (previousSibling == null && this.parent.hasText()))
             {
                 this.outputPadding = false;
             }
             Component nextSibling = this.getSibling(1);
-            if (nextSibling instanceof TextNode)
+            if (nextSibling instanceof TextNode || (nextSibling != null && nextSibling.isSpan()))
             {
                 this.outputNewline = false;
             }

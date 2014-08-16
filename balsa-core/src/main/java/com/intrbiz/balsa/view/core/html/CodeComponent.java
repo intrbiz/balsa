@@ -18,4 +18,9 @@ public class CodeComponent extends Component
     {
         return true;
     }
+    
+    public boolean isSpan()
+    {
+       return true; 
+    }
 }

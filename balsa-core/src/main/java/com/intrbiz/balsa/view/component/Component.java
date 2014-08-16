@@ -401,6 +401,14 @@ public abstract class Component
     {
         return false;
     }
+    
+    /**
+     * Is this component text span level
+     */
+    public boolean isSpan()
+    {
+       return false; 
+    }
 
     public String toString()
     {

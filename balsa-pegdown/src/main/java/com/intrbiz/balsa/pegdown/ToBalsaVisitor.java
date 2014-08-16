@@ -237,7 +237,9 @@ public class ToBalsaVisitor implements Visitor
 
     public void visit(CodeNode node)
     {
-        pushTag(node, "code");
+        this.push(this.codeComponent());
+        this.write(node.getText());
+        this.pop("code");
     }
 
     public void visit(DefinitionListNode node)
