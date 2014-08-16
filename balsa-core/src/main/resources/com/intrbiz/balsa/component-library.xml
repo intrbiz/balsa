@@ -15,6 +15,7 @@
 	<java-component name="style"    classname="com.intrbiz.balsa.view.core.html.StyleComponent" />
 	<java-component name="script"   classname="com.intrbiz.balsa.view.core.html.ScriptComponent" />
 	<java-component name="pre"      classname="com.intrbiz.balsa.view.core.html.PreComponent" />
+	<java-component name="code"     classname="com.intrbiz.balsa.view.core.html.CodeComponent" />
 	<java-component name="textarea" classname="com.intrbiz.balsa.view.core.html.TextAreaComponent" />
 	
 	<java-component name="data-set" classname="com.intrbiz.balsa.view.core.data.DataSetComponent" />
