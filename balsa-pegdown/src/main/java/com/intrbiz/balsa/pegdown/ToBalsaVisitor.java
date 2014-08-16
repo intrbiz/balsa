@@ -52,6 +52,8 @@ import com.intrbiz.balsa.view.core.fragment.FragmentComponent;
 import com.intrbiz.balsa.view.core.fragment.FragmentRenderer;
 import com.intrbiz.balsa.view.core.generic.GenericComponent;
 import com.intrbiz.balsa.view.core.generic.GenericRenderer;
+import com.intrbiz.balsa.view.core.html.CodeComponent;
+import com.intrbiz.balsa.view.core.html.CodeRenderer;
 import com.intrbiz.balsa.view.core.html.PreComponent;
 import com.intrbiz.balsa.view.core.html.PreRenderer;
 import com.intrbiz.balsa.view.parser.Parser;
@@ -165,6 +167,15 @@ public class ToBalsaVisitor implements Visitor
         component.setView(this.view);
         component.setName("pre");
         component.setRenderer(new PreRenderer());
+        return component;
+    }
+    
+    protected CodeComponent codeComponent()
+    {
+        CodeComponent component = new CodeComponent();
+        component.setView(this.view);
+        component.setName("code");
+        component.setRenderer(new CodeRenderer());
         return component;
     }
 
@@ -456,10 +467,25 @@ public class ToBalsaVisitor implements Visitor
 
     public void visit(VerbatimNode node)
     {
-        PreComponent pre = this.preComponent();
-        pre.setText("\r\n" + node.getText());
-        this.push(pre);
-        this.pop("pre");
+        String codeType = this.view.getMetadata().getAttribute("code");
+        if (Util.isEmpty(codeType))
+        {
+            PreComponent pre = this.preComponent();
+            pre.setText("\r\n" + node.getText());
+            this.push(pre);
+            this.pop("pre");
+        }
+        else
+        {
+            PreComponent pre = this.preComponent();
+            this.push(pre);
+            CodeComponent code = this.codeComponent();
+            this.addAttribute(code, "class", codeType);
+            code.setText(node.getText());
+            this.push(code);
+            this.pop("code");
+            this.pop("pre");
+        }
     }
 
     public void visit(WikiLinkNode node)
