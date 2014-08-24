@@ -40,6 +40,11 @@
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+		    <groupId>com.intrbiz.util</groupId>
+		    <artifactId>bootstrap</artifactId>
+		    <version>1.0.0-SNAPSHOT</version>
+	    </dependency>
 	</dependencies>
 	
 	<build>
@@ -54,9 +59,9 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>com.intrbiz.balsa</groupId>
-				<artifactId>balsa-packaging</artifactId>
-				<version>4.0.0-SNAPSHOT</version>
+				<groupId>com.intrbiz.util</groupId>
+				<artifactId>packaging</artifactId>
+				<version>1.0.0-SNAPSHOT</version>
 				<configuration>
 					<appClass>${package}.App</appClass>
 				</configuration>
@@ -64,7 +69,7 @@
 					<execution>
 						<phase>package</phase>
 						<goals>
-							<goal>balsa</goal>
+							<goal>intrbiz-package</goal>
 						</goals>
 					</execution>
 				</executions>
