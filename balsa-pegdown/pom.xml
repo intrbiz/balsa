@@ -18,12 +18,10 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>
-      <version>4.11</version>
     </dependency>
     <dependency>
     	<groupId>org.pegdown</groupId>
     	<artifactId>pegdown</artifactId>
-    	<version>1.4.1</version>
     </dependency>
     <dependency>
     	<groupId>com.intrbiz.balsa</groupId>

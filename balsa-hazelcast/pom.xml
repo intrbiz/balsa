@@ -19,7 +19,6 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
-			<version>4.11</version>
 		</dependency>
 		<dependency>
 			<groupId>com.intrbiz.balsa</groupId>
@@ -28,7 +27,6 @@
 		<dependency>
 			<groupId>com.hazelcast</groupId>
 			<artifactId>hazelcast</artifactId>
-			<version>3.2.2</version>
 		</dependency>
 	</dependencies>
 </project>
