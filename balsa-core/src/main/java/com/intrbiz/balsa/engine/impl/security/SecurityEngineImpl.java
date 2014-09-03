@@ -43,11 +43,11 @@ public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityE
     
     protected CookieBaker baker;
     
-    protected final Timer authenticateTimer;
+    private final Timer authenticateTimer;
     
-    protected final Counter validLogins;
+    private final Counter validLogins;
     
-    protected final Counter invalidLogins;
+    private final Counter invalidLogins;
     
     public SecurityEngineImpl()
     {
@@ -81,72 +81,79 @@ public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityE
     @Override
     public Principal authenticate(Credentials credentials) throws BalsaSecurityException
     {
-        if (credentials instanceof PasswordCredentials)
+        final Timer.Context tCtx = this.authenticateTimer.time();
+        try
         {
-            PasswordCredentials pw = (PasswordCredentials) credentials;
-            logger.debug("Authentication for principal: " + pw.getPrincipalName());
-            if (Util.isEmpty(pw.getPrincipalName()))
+            if (credentials instanceof PasswordCredentials)
             {
-                throw new BalsaSecurityException("Username not provided");
-            }
-            if (pw.getPassword() == null || pw.getPassword().length == 0)
-            {
-                throw new BalsaSecurityException("Password not provided");
-            }
-            // do the login
-            Principal principal = this.doPasswordLogin(pw.getPrincipalName(), pw.getPassword());
-            // did we get a principal
-            if (principal == null)
-            {
-                logger.error("No such principal " + pw.getPrincipalName() + " could be found.");
-                this.invalidLogins.inc();
-                throw new BalsaSecurityException("No such principal");
-            }
-            // all good
-            this.validLogins.inc();
-            return principal;
-        }
-        else if (credentials instanceof GenericAuthenticationToken)
-        {
-            String token = ((GenericAuthenticationToken) credentials).getToken();
-            logger.debug("Authenticating token: " + token);
-            // do we have a token?
-            if (token == null)
-            {
-                this.invalidLogins.inc();
-                throw new BalsaSecurityException("Invalid token");
-            }
-            // parse and verify the cookie
-            try
-            {
-                CryptoCookie cookie = CryptoCookie.fromString(token);
-                if (!this.baker.verify(cookie))
+                PasswordCredentials pw = (PasswordCredentials) credentials;
+                logger.debug("Authentication for principal: " + pw.getPrincipalName());
+                if (Util.isEmpty(pw.getPrincipalName()))
                 {
-                    this.invalidLogins.inc();
-                    logger.error("Failed to verify authentication token");
-                    throw new BalsaSecurityException("Invalid token, failed to verify token"); 
+                    throw new BalsaSecurityException("Username not provided");
                 }
-                // convert the token to a principal
-                Principal principal = this.principalForToken(cookie.getToken());
+                if (pw.getPassword() == null || pw.getPassword().length == 0)
+                {
+                    throw new BalsaSecurityException("Password not provided");
+                }
+                // do the login
+                Principal principal = this.doPasswordLogin(pw.getPrincipalName(), pw.getPassword());
                 // did we get a principal
                 if (principal == null)
                 {
-                    logger.error("No such principal could be found for token");
-                    this.invalidLogins.inc();
+                    logger.error("No such principal " + pw.getPrincipalName() + " could be found.");
                     throw new BalsaSecurityException("No such principal");
                 }
                 // all good
                 this.validLogins.inc();
                 return principal;
             }
-            catch (IOException e)
+            else if (credentials instanceof GenericAuthenticationToken)
             {
-                this.invalidLogins.inc();
-                throw new BalsaSecurityException("Invalid token format", e);
+                String token = ((GenericAuthenticationToken) credentials).getToken();
+                logger.debug("Authenticating token: " + token);
+                // do we have a token?
+                if (token == null)
+                {
+                    throw new BalsaSecurityException("Invalid token");
+                }
+                // parse and verify the cookie
+                try
+                {
+                    CryptoCookie cookie = CryptoCookie.fromString(token);
+                    if (!this.baker.verify(cookie))
+                    {
+                        logger.error("Failed to verify authentication token");
+                        throw new BalsaSecurityException("Invalid token, failed to verify token"); 
+                    }
+                    // convert the token to a principal
+                    Principal principal = this.principalForToken(cookie.getToken());
+                    // did we get a principal
+                    if (principal == null)
+                    {
+                        logger.error("No such principal could be found for token");
+                        throw new BalsaSecurityException("No such principal");
+                    }
+                    // all good
+                    this.validLogins.inc();
+                    return principal;
+                }
+                catch (IOException e)
+                {
+                    throw new BalsaSecurityException("Invalid token format", e);
+                }
             }
+            throw new BalsaSecurityException("No such principal");
         }
-        this.invalidLogins.inc();
-        throw new BalsaSecurityException("No such principal");
+        catch (BalsaSecurityException e)
+        {
+            this.invalidLogins.inc();
+            throw e;
+        }
+        finally
+        {
+            tCtx.stop();
+        }
     }
 
     @Override
