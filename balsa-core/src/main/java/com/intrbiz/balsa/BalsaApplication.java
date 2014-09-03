@@ -119,7 +119,9 @@ public abstract class BalsaApplication
     
     private String[] templates = new String[0];
     
-    private String env = "dev";
+    private String env = getApplicationEnv();
+    
+    private String instanceName = getApplicationInstanceName(this.getClass());
 
     public BalsaApplication()
     {
@@ -520,11 +522,6 @@ public abstract class BalsaApplication
         return this.env;
     }
     
-    public void setEnv(String env)
-    {
-        this.env = env;
-    }
-    
     public boolean isDevEnv()
     {
         return "dev".equals(this.getEnv());
@@ -559,8 +556,6 @@ public abstract class BalsaApplication
      */
     public final void start() throws Exception
     {
-        // env config parameter
-        this.env = System.getProperty("balsa.env", "dev");
         // configure logging
         this.configureLogging();
         // defaults
@@ -715,6 +710,16 @@ public abstract class BalsaApplication
     
     public String getInstanceName()
     {
-        return System.getProperty("balsa.instance.name", this.getClass().getSimpleName().toLowerCase() + "." + this.getEnv());
+        return this.instanceName;
+    }
+    
+    public static String getApplicationInstanceName(Class<? extends BalsaApplication> applicationClass)
+    {
+        return System.getProperty("balsa.instance.name", applicationClass.getSimpleName().toLowerCase() + "." + getApplicationEnv());
+    }
+    
+    public static String getApplicationEnv()
+    {
+        return System.getProperty("balsa.env", "dev");
     }
 }
