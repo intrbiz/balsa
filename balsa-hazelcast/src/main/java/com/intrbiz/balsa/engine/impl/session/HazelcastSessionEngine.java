@@ -44,6 +44,11 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
     {
         return "Hazelcast-Balsa-Session-Engine";
     }
+    
+    public HazelcastInstance getHazelcastInstance()
+    {
+        return this.hazelcastInstance;
+    }
 
     @Override
     public HazelcastSession getSession(String sessionId)
