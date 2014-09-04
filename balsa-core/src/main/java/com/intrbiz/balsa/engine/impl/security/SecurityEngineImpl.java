@@ -21,6 +21,7 @@ import com.intrbiz.balsa.util.Util;
 import com.intrbiz.crypto.SecretKey;
 import com.intrbiz.crypto.cookie.CookieBaker;
 import com.intrbiz.crypto.cookie.CryptoCookie;
+import com.intrbiz.crypto.cookie.CookieBaker.Expires;
 import com.intrbiz.crypto.cookie.CryptoCookie.Flag;
 import com.intrbiz.gerald.source.IntelligenceSource;
 import com.intrbiz.gerald.witchcraft.Witchcraft;
@@ -134,6 +135,8 @@ public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityE
                         logger.error("No such principal could be found for token");
                         throw new BalsaSecurityException("No such principal");
                     }
+                    // validate
+                    this.validateAccessToken(token, cookie, principal);
                     // all good
                     this.validLogins.inc();
                     return principal;
@@ -216,6 +219,14 @@ public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityE
         byte[] token = this.tokenForPrincipal(principal);
         if (token == null || token.length == 0) throw new BalsaSecurityException("Cannot generate authentication token for principal");
         return this.baker.bake(token, expiresAt).toString();
+    }
+    
+    @Override
+    public String generatePerpetualAuthenticationTokenForPrincipal(Principal principal)
+    {
+        byte[] token = this.tokenForPrincipal(principal);
+        if (token == null || token.length == 0) throw new BalsaSecurityException("Cannot generate authentication token for principal");
+        return this.baker.bake(token, Expires.never()).toString();
     }
     
     @Override
@@ -318,5 +329,21 @@ public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityE
     protected Principal doPasswordLogin(String username, char[] password) throws BalsaSecurityException
     {
         return null;
+    }
+    
+    /**
+     * Validate the given access token. By default perpetual access tokens are rejected, 
+     * 
+     * @param token the original string token passed by the application to authenticate with
+     * @param cookie the parsed CryptoCookie value of the token, containing information such as the expiry time
+     * @param principal the Principal that is represented by the token
+     * @throws BalsaSecurityException if the token is considered invalid
+     */
+    protected void validateAccessToken(String token, CryptoCookie cookie, Principal principal) throws BalsaSecurityException
+    {
+        if (cookie.getExpiryTime() == Expires.never())
+        {
+            throw new BalsaSecurityException("Perpetual access tokens are not permitted");
+        }
     }
 }

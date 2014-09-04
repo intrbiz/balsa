@@ -89,6 +89,15 @@ public interface SecurityEngine extends BalsaEngine
     String generateAuthenticationTokenForPrincipal(Principal principal, long expiresAt);
     
     /**
+     * Generate a token which can be used to authenticate a Principal at a latter date, perpetually.
+     * Generation of perpetual tokens is valid, however by default they cannot be used for authentication, 
+     * this can be overridden by a specific security engine implementation.
+     * @param principal the Principal that the token will represent
+     * @return the token
+     */
+    String generatePerpetualAuthenticationTokenForPrincipal(Principal principal);
+    
+    /**
      * Regenerate a previously generated authentication token, the Principal remains the same 
      * however the expiry time is extended.  A BalsaSecurityException will be thrown if the 
      * given token cannot be extended. 
