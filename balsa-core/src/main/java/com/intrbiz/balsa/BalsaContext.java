@@ -9,10 +9,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 
 import org.apache.log4j.Logger;
 
 import com.intrbiz.balsa.bean.BeanProvider;
+import com.intrbiz.balsa.engine.SecurityEngine.ValidationLevel;
 import com.intrbiz.balsa.engine.security.Credentials;
 import com.intrbiz.balsa.engine.security.PasswordCredentials;
 import com.intrbiz.balsa.engine.session.BalsaSession;
@@ -264,6 +266,8 @@ public class BalsaContext
 
     public void activate()
     {
+        // initialise the default principal
+        this.currentPrincipal = this.app().getSecurityEngine().defaultPrincipal();
     }
     
     // conversion errors
@@ -756,13 +760,35 @@ public class BalsaContext
     {
         if (!constraint) throw securityException;
     }
+    
+    public <E extends Exception> void require(boolean constraint, Supplier<E> securityException) throws E
+    {
+        if (!constraint) throw securityException.get();
+    }
 
     /**
-     * Check that the current principal is valid (not public)
+     * Check that the current principal is valid
+     */
+    public boolean validPrincipal(ValidationLevel validationLevel)
+    {
+        // delegate validation to the security manager
+        return this.app().getSecurityEngine().isValidPrincipal(this.currentPrincipal(), validationLevel);
+    }
+    
+    /**
+     * Check that the current principal is valid (strongly)
      */
     public boolean validPrincipal()
     {
-        return this.currentPrincipal() != null;
+        return this.validPrincipal(ValidationLevel.STRONG);
+    }
+    
+    /**
+     * Check that the current principal is valid (weakly)
+     */
+    public boolean principal()
+    {
+        return this.validPrincipal(ValidationLevel.WEAK);
     }
 
     /**

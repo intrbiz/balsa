@@ -12,6 +12,36 @@ import com.intrbiz.crypto.SecretKey;
 public interface SecurityEngine extends BalsaEngine
 {   
     /**
+     * The level of validation that is to be applied 
+     * when checking if a Principal is valid.
+     * 
+     * Strong validation asserts additional checks upon 
+     * a principal, EG: checking if the account is locked, 
+     * the password needs changing, etc.
+     * 
+     * Weak validation merely asserts that the Principal 
+     * is an authenticated user, asserting the minimum of 
+     * checks,
+     * 
+     * The validation level is useful for implementing 
+     * quarantine areas, where an authenticated user can 
+     * perform some limited actions but not use the full 
+     * application.
+     * 
+     * When checking for a valid principal, Strong validation is 
+     * the default.
+     */
+    public static enum ValidationLevel { STRONG, WEAK };
+    
+    /**
+     * Get the default Principal that a context will be initialised with,
+     * this represent a public user.  By default this will return null, 
+     * however some implementations may return a dedicated public Principal, 
+     * this allows for granular permissions to be applied to the public Principal.
+     */
+    Principal defaultPrincipal();
+    
+    /**
      * Authenticate a principal using the given credentials
      * @param credentials the credentials to authenticate with
      * @return the authenticated principal
@@ -27,6 +57,15 @@ public interface SecurityEngine extends BalsaEngine
      */
     boolean check(Principal principal, String permission);
     
+    /**
+     * Check if the given Principal is valid, usually this 
+     * just checks that the Principal is not null, however specific 
+     * security engine implementations might assert additional checks.
+     * @param principal the Principal to validate
+     * @param validationLevel how strongly the principal should be validated
+     * @return true if the given Principal is valid, otherwise false
+     */
+    boolean isValidPrincipal(Principal principal, ValidationLevel validationLevel);
     
     /*
      * Token based access building blocks

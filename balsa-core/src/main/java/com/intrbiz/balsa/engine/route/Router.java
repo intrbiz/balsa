@@ -9,6 +9,7 @@ import java.util.List;
 import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
+import com.intrbiz.balsa.engine.SecurityEngine.ValidationLevel;
 import com.intrbiz.balsa.engine.security.Credentials;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.listener.BalsaResponse;
@@ -295,13 +296,27 @@ public abstract class Router<A extends BalsaApplication>
     }
 
     /**
-     * Check that the current user is valid (not public)
-     * 
-     * returns boolean
+     * Check that the current user is valid
+     */
+    protected final boolean validPrincipal(ValidationLevel validationLevel)
+    {
+        return Balsa().validPrincipal(validationLevel);
+    }
+    
+    /**
+     * Check that the current user is valid (strongly)
      */
     protected final boolean validPrincipal()
     {
         return Balsa().validPrincipal();
+    }
+    
+    /**
+     * Check that the current user is valid (weakly)
+     */
+    protected final boolean principal()
+    {
+        return Balsa().principal();
     }
     
     @SuppressWarnings("unchecked")

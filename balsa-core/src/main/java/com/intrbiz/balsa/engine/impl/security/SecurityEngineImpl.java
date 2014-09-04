@@ -20,8 +20,8 @@ import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.balsa.util.Util;
 import com.intrbiz.crypto.SecretKey;
 import com.intrbiz.crypto.cookie.CookieBaker;
-import com.intrbiz.crypto.cookie.CryptoCookie;
 import com.intrbiz.crypto.cookie.CookieBaker.Expires;
+import com.intrbiz.crypto.cookie.CryptoCookie;
 import com.intrbiz.crypto.cookie.CryptoCookie.Flag;
 import com.intrbiz.gerald.source.IntelligenceSource;
 import com.intrbiz.gerald.witchcraft.Witchcraft;
@@ -77,6 +77,12 @@ public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityE
     public String getEngineName()
     {
         return "Balsa-Security-Engine";
+    }
+    
+    @Override
+    public Principal defaultPrincipal()
+    {
+        return null;
     }
 
     @Override
@@ -163,6 +169,12 @@ public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityE
     public boolean check(Principal principal, String permission)
     {
         return false;
+    }
+    
+    @Override
+    public boolean isValidPrincipal(Principal principal, ValidationLevel validationLevel)
+    {
+        return principal != null;
     }
 
     @Override
