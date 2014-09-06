@@ -18,4 +18,9 @@ public class PathInfoFunction extends Function
         return BalsaContext.Balsa().request().getPathInfo();
     }
 
+    @Override
+    public boolean isIdempotent()
+    {
+        return false;
+    }
 }

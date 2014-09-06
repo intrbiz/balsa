@@ -28,4 +28,9 @@ public class PublicFunction extends Function
         return BalsaContext.Balsa().pub(path);
     }
 
+    @Override
+    public boolean isIdempotent()
+    {
+        return false;
+    }
 }

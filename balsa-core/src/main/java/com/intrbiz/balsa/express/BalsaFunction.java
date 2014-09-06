@@ -18,4 +18,10 @@ public class BalsaFunction extends Function
     {
         return Balsa();
     }
+    
+    @Override
+    public boolean isIdempotent()
+    {
+        return false;
+    }
 }

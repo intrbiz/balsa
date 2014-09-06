@@ -28,4 +28,9 @@ public class PathFunction extends Function
         return BalsaContext.Balsa().path(path);
     }
 
+    @Override
+    public boolean isIdempotent()
+    {
+        return false;
+    }
 }

@@ -28,4 +28,9 @@ public class RequestPathTokenFunction extends Function
         return BalsaContext.Balsa().generateAccessTokenForURL(path);
     }
 
+    @Override
+    public boolean isIdempotent()
+    {
+        return false;
+    }
 }

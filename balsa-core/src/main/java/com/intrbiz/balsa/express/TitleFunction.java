@@ -27,4 +27,10 @@ public class TitleFunction extends Function
         }
         return null;
     }
+    
+    @Override
+    public boolean isIdempotent()
+    {
+        return false;
+    }
 }
