@@ -810,7 +810,9 @@ public class BalsaContext
     }
 
     /**
-     * Authenticate for the life of this session
+     * Authenticate for the life of this session, this method 
+     * will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
      */
     @SuppressWarnings("unchecked")
     public <T extends Principal> T authenticate(Credentials credentials) throws BalsaSecurityException
@@ -824,7 +826,9 @@ public class BalsaContext
     }
 
     /**
-     * Authenticate for the life of this session
+     * Authenticate for the life of this session, this method 
+     * will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
      */
     public <T extends Principal> T authenticate(String username, String password) throws BalsaSecurityException
     {
@@ -832,7 +836,9 @@ public class BalsaContext
     }
     
     /**
-     * Authenticate for the life of this request only, this avoids creating a session
+     * Authenticate for the life of this request only, this avoids creating a session, 
+     * this method will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
      */
     @SuppressWarnings("unchecked")
     public <T extends Principal> T authenticateRequest(Credentials credentials) throws BalsaSecurityException
@@ -846,11 +852,81 @@ public class BalsaContext
     }
     
     /**
-     * Authenticate for the life of this request only, this avoids creating a session
+     * Authenticate for the life of this request only, this avoids creating a session, 
+     * this method will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
      */
     public <T extends Principal> T authenticateRequest(String username, String password) throws BalsaSecurityException
     {
         return this.authenticateRequest(new PasswordCredentials.Simple(username, password));
+    }
+    
+    /**
+     * Try to authenticate for the life of this session, should 
+     * authentication not be possible then null is returned, exceptions are thrown.
+     */
+    public <T extends Principal> T tryAuthenticate(String username, String password)
+    {
+        try 
+        {
+            return this.authenticate(username, password);
+        }
+        catch (BalsaSecurityException e)
+        {
+            // ignore
+        }
+        return null;
+    }
+
+    /**
+     * Try to authenticate for the life of this session, should 
+     * authentication not be possible then null is returned, exceptions are thrown.
+     */
+    public <T extends Principal> T tryAuthenticate(Credentials credentials)
+    {
+        try 
+        {
+            return this.authenticate(credentials);
+        }
+        catch (BalsaSecurityException e)
+        {
+            // ignore
+        }
+        return null;
+    }
+    
+    /**
+     * Try to authenticate for the life of this request only, this avoids creating a session, 
+     * should authentication not be possible then null is returned, exceptions are thrown.
+     */
+    public <T extends Principal> T tryAuthenticateRequest(String username, String password)
+    {
+        try 
+        {
+            return this.authenticateRequest(username, password);
+        }
+        catch (BalsaSecurityException e)
+        {
+            // ignore
+        }
+        return null;
+    }
+    
+    /**
+     * Try to authenticate for the life of this request only, this avoids creating a session, 
+     * should authentication not be possible then null is returned, exceptions are thrown.
+     */
+    public <T extends Principal> T tryAuthenticateRequest(Credentials credentials)
+    {
+        try 
+        {
+            return this.authenticateRequest(credentials);
+        }
+        catch (BalsaSecurityException e)
+        {
+            // ignore
+        }
+        return null;
     }
 
     /**

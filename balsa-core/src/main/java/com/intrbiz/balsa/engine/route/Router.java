@@ -11,6 +11,7 @@ import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.SecurityEngine.ValidationLevel;
 import com.intrbiz.balsa.engine.security.Credentials;
+import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.listener.BalsaResponse;
 import com.intrbiz.balsa.util.CookieBuilder;
@@ -330,24 +331,80 @@ public abstract class Router<A extends BalsaApplication>
         Balsa().deauthenticate();
     }
     
-    protected Principal authenticate(String username, String password)
+    /**
+     * Authenticate for the life of this session, this method 
+     * will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
+     */
+    protected <T extends Principal> T authenticate(String username, String password)
     {
         return Balsa().authenticate(username, password);
     }
     
-    protected Principal authenticate(Credentials credentials)
+    /**
+     * Authenticate for the life of this session, this method 
+     * will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
+     */
+    protected <T extends Principal> T authenticate(Credentials credentials)
     {
         return Balsa().authenticate(credentials);
     }
     
-    protected Principal authenticateRequest(String username, String password)
+    /**
+     * Authenticate for the life of this request only, this avoids creating a session, 
+     * this method will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
+     */
+    protected <T extends Principal> T authenticateRequest(String username, String password)
     {
         return Balsa().authenticateRequest(username, password);
     }
     
-    protected Principal authenticateRequest(Credentials credentials)
+    /**
+     * Authenticate for the life of this request only, this avoids creating a session, 
+     * this method will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
+     */
+    protected <T extends Principal> T authenticateRequest(Credentials credentials)
     {
         return Balsa().authenticateRequest(credentials);
+    }
+    
+    /**
+     * Try to authenticate for the life of this session, should 
+     * authentication not be possible then null is returned, exceptions are thrown.
+     */
+    protected <T extends Principal> T tryAuthenticate(String username, String password)
+    {
+        return Balsa().tryAuthenticate(username, password);
+    }
+    
+    /**
+     * Try to authenticate for the life of this session, should 
+     * authentication not be possible then null is returned, exceptions are thrown.
+     */
+    protected <T extends Principal> T tryAuthenticate(Credentials credentials)
+    {
+        return Balsa().tryAuthenticate(credentials);
+    }
+    
+    /**
+     * Try to authenticate for the life of this request only, this avoids creating a session, 
+     * should authentication not be possible then null is returned, exceptions are thrown.
+     */
+    protected <T extends Principal> T tryAuthenticateRequest(String username, String password)
+    {
+        return Balsa().tryAuthenticateRequest(username, password);
+    }
+    
+    /**
+     * Try to authenticate for the life of this request only, this avoids creating a session, 
+     * should authentication not be possible then null is returned, exceptions are thrown.
+     */
+    protected <T extends Principal> T tryAuthenticateRequest(Credentials credentials)
+    {
+        return Balsa().tryAuthenticateRequest(credentials);
     }
 
     /**
