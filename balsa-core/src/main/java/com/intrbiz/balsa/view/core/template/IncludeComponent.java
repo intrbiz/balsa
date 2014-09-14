@@ -1,8 +1,11 @@
 package com.intrbiz.balsa.view.core.template;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.view.component.Component;
@@ -46,5 +49,22 @@ public class IncludeComponent extends Component
         }
         //
         return r;
+    }
+    
+    /**
+     * Get the map of variables which should be bound before encoding the view
+     */
+    public Map<String, ValueExpression> getDataBindings()
+    {
+        Map<String, ValueExpression> bindings = new HashMap<String, ValueExpression>();
+        for (Entry<String, ValueExpression> attribute : this.getAttributes().entrySet())
+        {
+            if (attribute.getKey().startsWith("data-"))
+            {
+                // strip of the 'data-' prefix
+                bindings.put(attribute.getKey().substring(5), attribute.getValue());
+            }
+        }
+        return bindings;
     }
 }
