@@ -50,6 +50,7 @@ import com.intrbiz.balsa.listener.scgi.BalsaSCGIListener;
 import com.intrbiz.express.ExpressExtensionRegistry;
 import com.intrbiz.express.action.ActionHandler;
 import com.intrbiz.express.action.MethodActionHandler;
+import com.intrbiz.express.functions.TextFunctionRegistry;
 import com.intrbiz.express.operator.Decorator;
 import com.intrbiz.express.operator.Function;
 import com.intrbiz.metadata.Pooled;
@@ -115,7 +116,9 @@ public abstract class BalsaApplication
     /**
      * The ExpressExtensionRegistry where Balsa stores its extensions
      */
-    private final ExpressExtensionRegistry expressExtensions = new ExpressExtensionRegistry("balsa").addSubRegistry(ExpressExtensionRegistry.getDefaultRegistry());
+    private final ExpressExtensionRegistry expressExtensions = new ExpressExtensionRegistry("balsa")
+                                                               .addSubRegistry(ExpressExtensionRegistry.getDefaultRegistry())
+                                                               .addSubRegistry(new TextFunctionRegistry());
     
     private String[] templates = new String[0];
     
