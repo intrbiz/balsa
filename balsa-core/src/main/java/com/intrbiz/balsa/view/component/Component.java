@@ -346,6 +346,8 @@ public abstract class Component
             try
             {
                 Object obj = rend.get(Balsa().getExpressContext(), this);
+                // if the expression has coalesced to null don't render
+                if (obj == null) return false;
                 if (obj instanceof Boolean) return ((Boolean) obj).booleanValue();
             }
             catch (Exception e)
