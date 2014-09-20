@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.log4j.Logger;
 
 import com.hazelcast.config.Config;
+import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.config.MapConfig.EvictionPolicy;
 import com.hazelcast.config.XmlConfigBuilder;
@@ -87,6 +88,9 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
                     sessionMapConfig.setMaxIdleSeconds(this.getSessionLifetime() * 60);
                     sessionMapConfig.setEvictionPolicy(EvictionPolicy.LRU);
                     sessionMapConfig.setEvictionPercentage(Integer.getInteger("balsa.hazelcast.eviction-percentage", 0));
+                    // default to storing objects, as with sticky balancing 
+                    // requests to tend to the same server
+                    sessionMapConfig.setInMemoryFormat(InMemoryFormat.OBJECT);
                     this.hazelcastConfig.addMapConfig(sessionMapConfig);
                 }
                 // set the instance name
