@@ -5,6 +5,7 @@ import java.security.Principal;
 import com.intrbiz.balsa.engine.security.Credentials;
 import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.crypto.SecretKey;
+import com.intrbiz.crypto.cookie.CryptoCookie;
 
 /**
  * Handle authentication and authorisation
@@ -117,7 +118,7 @@ public interface SecurityEngine extends BalsaEngine
      * @param principal the Principal that the token will represent
      * @return the token
      */
-    String generateAuthenticationTokenForPrincipal(Principal principal);
+    String generateAuthenticationTokenForPrincipal(Principal principal, CryptoCookie.Flag... flags);
     
     /**
      * Generate a token which can be used to authenticate a Principal at a latter date.
@@ -125,7 +126,7 @@ public interface SecurityEngine extends BalsaEngine
      * @param expiresAt the time (System.currentTimeMillis()) at which this token will expire
      * @return the token
      */
-    String generateAuthenticationTokenForPrincipal(Principal principal, long expiresAt);
+    String generateAuthenticationTokenForPrincipal(Principal principal, long expiresAt, CryptoCookie.Flag... flags);
     
     /**
      * Generate a token which can be used to authenticate a Principal at a latter date, perpetually.
@@ -134,7 +135,7 @@ public interface SecurityEngine extends BalsaEngine
      * @param principal the Principal that the token will represent
      * @return the token
      */
-    String generatePerpetualAuthenticationTokenForPrincipal(Principal principal);
+    String generatePerpetualAuthenticationTokenForPrincipal(Principal principal, CryptoCookie.Flag... flags);
     
     /**
      * Regenerate a previously generated authentication token, the Principal remains the same 
