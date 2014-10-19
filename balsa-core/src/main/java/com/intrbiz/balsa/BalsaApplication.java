@@ -509,6 +509,11 @@ public abstract class BalsaApplication
     {
         return this.expressExtensions;
     }
+    
+    public ExpressExtensionRegistry immutableFunction(Function immutableFunction)
+    {
+        return expressExtensions.addFunction(immutableFunction);
+    }
 
     public ExpressExtensionRegistry function(String name, Class<? extends Function> functionClass)
     {
