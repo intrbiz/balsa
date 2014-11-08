@@ -23,11 +23,13 @@ import com.intrbiz.balsa.engine.PublicResourceEngine;
 import com.intrbiz.balsa.engine.RouteEngine;
 import com.intrbiz.balsa.engine.SecurityEngine;
 import com.intrbiz.balsa.engine.SessionEngine;
+import com.intrbiz.balsa.engine.TaskEngine;
 import com.intrbiz.balsa.engine.ViewEngine;
 import com.intrbiz.balsa.engine.impl.publicresource.PublicResourceEngineImpl;
 import com.intrbiz.balsa.engine.impl.route.RouteEngineImpl;
 import com.intrbiz.balsa.engine.impl.security.SecurityEngineImpl;
 import com.intrbiz.balsa.engine.impl.session.SimpleSessionEngine;
+import com.intrbiz.balsa.engine.impl.task.TaskEngineImpl;
 import com.intrbiz.balsa.engine.impl.view.BalsaViewEngineImpl;
 import com.intrbiz.balsa.engine.impl.view.FileViewSource;
 import com.intrbiz.balsa.engine.route.Router;
@@ -96,6 +98,11 @@ public abstract class BalsaApplication
      * The security engine
      */
     private SecurityEngine securityEngine;
+    
+    /**
+     * The task engine for executing long running jobs
+     */
+    private TaskEngine taskEngine;
     
     /**
      * The public resource Engine
@@ -301,6 +308,23 @@ public abstract class BalsaApplication
     {
         this.securityEngine = securityEngine;
         if (securityEngine != null) securityEngine.setBalsaApplication(this);
+    }
+    
+    /**
+     * Get the engine responsible for executing long running jobs in the background
+     */
+    public TaskEngine getTaskEngine()
+    {
+        return this.taskEngine;
+    }
+    
+    /**
+     * Set the engine responsible for executing long running jobs in the background
+     */
+    public void taskEngine(TaskEngine taskEngine)
+    {
+        this.taskEngine = taskEngine;
+        if (taskEngine != null) taskEngine.setBalsaApplication(this);
     }
     
     /**
@@ -609,6 +633,8 @@ public abstract class BalsaApplication
         {
             listener.setProcessor(proc);
         }
+        // Start the task engine
+        if (this.getTaskEngine() != null) this.getTaskEngine().start();
         // Start the session engine
         if (this.getSessionEngine() != null) this.getSessionEngine().start();
         // Start the view engine
@@ -681,6 +707,7 @@ public abstract class BalsaApplication
         this.viewEngine(new BalsaViewEngineImpl());
         this.securityEngine(new SecurityEngineImpl());
         this.publicResourceEngine(new PublicResourceEngineImpl());
+        this.taskEngine(new TaskEngineImpl());
     }
     
     protected void setupDefaultListeners() throws Exception
