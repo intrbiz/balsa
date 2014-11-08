@@ -11,6 +11,7 @@ import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.SecurityEngine.ValidationLevel;
 import com.intrbiz.balsa.engine.security.Credentials;
+import com.intrbiz.balsa.engine.task.BalsaTaskState;
 import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.listener.BalsaResponse;
@@ -470,6 +471,21 @@ public abstract class Router<A extends BalsaApplication>
         {
             throw new BalsaException("Failed to perform action: " + name, e);
         }
+    }
+    
+    protected final String deferredAction(String action, Object... arguments)
+    {
+        return Balsa().deferredAction(action, arguments);
+    }
+    
+    protected final String deferredActionWithId(String id, String action, Object... arguments)
+    {
+        return Balsa().deferredActionWithId(id, action, arguments);
+    }
+    
+    protected final BalsaTaskState pollDeferredAction(String id)
+    {
+        return Balsa().pollDeferredAction(id);
     }
     
     /**

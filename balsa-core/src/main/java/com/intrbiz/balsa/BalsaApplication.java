@@ -62,6 +62,13 @@ import com.intrbiz.metadata.Pooled;
  */
 public abstract class BalsaApplication
 {
+    private static BalsaApplication INSTANCE = null;
+    
+    public static final BalsaApplication getInstance()
+    {
+        return INSTANCE;
+    }
+    
     private Logger logger = Logger.getLogger(BalsaApplication.class);
 
     /**
@@ -136,6 +143,8 @@ public abstract class BalsaApplication
     public BalsaApplication()
     {
         super();
+        // set the application instance
+        INSTANCE = this;
         /* Default Functions */
         // immutable
         this.expressExtensions.addFunction(new BalsaFunction());

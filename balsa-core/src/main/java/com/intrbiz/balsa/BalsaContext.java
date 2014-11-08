@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import org.apache.log4j.Logger;
@@ -18,6 +19,8 @@ import com.intrbiz.balsa.engine.SecurityEngine.ValidationLevel;
 import com.intrbiz.balsa.engine.security.Credentials;
 import com.intrbiz.balsa.engine.security.PasswordCredentials;
 import com.intrbiz.balsa.engine.session.BalsaSession;
+import com.intrbiz.balsa.engine.task.BalsaTaskState;
+import com.intrbiz.balsa.engine.task.DeferredActionTask;
 import com.intrbiz.balsa.engine.view.BalsaView;
 import com.intrbiz.balsa.error.BalsaIOError;
 import com.intrbiz.balsa.error.BalsaInternalError;
@@ -1032,12 +1035,61 @@ public class BalsaContext
 
     // Actions
 
+    /**
+     * Execute the named action with the given arguments
+     * @param action the action name
+     * @param arguments the arguments to pass to the action
+     * @return the result of the action
+     * @throws Exception should the action fail for any reason
+     */
     @SuppressWarnings("unchecked")
     public <T> T action(String action, Object... arguments) throws Exception
     {
         ActionHandler handler = this.app().action(action);
         if (handler == null) throw new BalsaException("The action " + action + " does not exist");
         return (T) handler.act(arguments);
+    }
+    
+    /**
+     * Execute the named action with the given arguments using the task engine, 
+     * this causes the task to be executed out of band.  This returns a task id 
+     * which can be used to poll the state of a task.
+     * @param action the action name
+     * @param arguments the arguments to pass to the action
+     * @return the id of the started task
+     */
+    public String deferredAction(String action, Object... arguments)
+    {
+        // generate a random id
+        final String id = UUID.randomUUID().toString();
+        // store the initial task state
+        this.session().task(id, new BalsaTaskState());
+        // submit the task for execution
+        this.app().getTaskEngine().executeTask(new DeferredActionTask(action, arguments), id);
+        // return the id
+        return id;
+    }
+    
+    /**
+     * Execute the deferred action with a know id
+     */
+    public String deferredActionWithId(final String id, String action, Object... arguments)
+    {
+        // store the initial task state
+        this.session().task(id, new BalsaTaskState());
+        // submit the task for execution
+        this.app().getTaskEngine().executeTask(new DeferredActionTask(action, arguments), id);
+        // return the id
+        return id;
+    }
+    
+    /**
+     * Poll the state of a deferred action, getting and removing it 
+     * should it have completed
+     */
+    public BalsaTaskState pollDeferredAction(String id)
+    {
+        return this.session().removeTaskIfComplete(id);
     }
 
     // Static
