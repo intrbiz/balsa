@@ -1,13 +1,14 @@
 package com.intrbiz.balsa.engine.task;
 
 import java.io.Serializable;
+import java.util.concurrent.Callable;
 
-import com.intrbiz.balsa.BalsaApplication;
-import com.intrbiz.balsa.BalsaException;
-import com.intrbiz.balsa.engine.session.BalsaSession;
-import com.intrbiz.express.action.ActionHandler;
+import static com.intrbiz.balsa.BalsaContext.Balsa;
 
-public class DeferredActionTask implements BalsaTask, Serializable
+/**
+ * Call an action in a deferred manner
+ */
+public class DeferredActionTask implements Callable<Object>, Serializable
 {
     private static final long serialVersionUID = 1L;
     
@@ -33,21 +34,8 @@ public class DeferredActionTask implements BalsaTask, Serializable
     }
 
     @Override
-    public void run(BalsaApplication application, BalsaSession session, String id)
+    public Object call() throws Exception
     {
-        try
-        {
-            // get the action
-            ActionHandler handler = application.action(this.action);
-            if (handler == null) throw new BalsaException("The action " + action + " does not exist");
-            // invoke the action
-            Object result = handler.act(this.arguments);
-            // store the state
-            session.task(id, new BalsaTaskState().complete(result));
-        }
-        catch (Exception e)
-        {
-            session.task(id, new BalsaTaskState().failed(e));
-        }
+        return Balsa().action(this.action, this.arguments);
     }
 }

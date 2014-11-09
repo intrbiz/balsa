@@ -112,6 +112,15 @@ public class BalsaContext
     {
         this(application, null, null);
     }
+    
+    /**
+     * Create a request-less BalsaContext with the given session
+     */
+    public BalsaContext(BalsaApplication application, BalsaSession session)
+    {
+        this(application, null, null);
+        this.session = session;
+    }
 
     /**
      * Get the current instance of the balsa context.

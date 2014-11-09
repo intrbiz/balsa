@@ -45,6 +45,11 @@ public class BalsaTaskState implements Serializable
         return this.result;
     }
     
+    public String toString()
+    {
+        return "balsa-task-state { complete: " + this.complete + ", failed: " + this.failed + " }";
+    }
+    
     public BalsaTaskState complete(Object result)
     {
         this.result = result;
