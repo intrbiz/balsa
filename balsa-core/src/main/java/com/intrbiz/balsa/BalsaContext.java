@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 import org.apache.log4j.Logger;
@@ -1106,5 +1107,30 @@ public class BalsaContext
     public final static BalsaContext Balsa()
     {
         return BalsaContext.get();
+    }
+    
+    public final static <T> T withContext(BalsaContext context, Callable<T> task) throws Exception
+    {
+        try
+        {
+            // activate the context
+            context.activate();
+            // bind the context
+            context.bind();
+            // execute the task
+            return task.call();
+        }
+        finally
+        {
+            // ensure the context is unbound
+            context.unbind();
+            // deactivate the context
+            context.deactivate();
+        }
+    }
+    
+    public final static <T> T withContext(BalsaApplication application, BalsaSession session, Callable<T> task) throws Exception
+    {
+        return withContext(new BalsaContext(application, session), task);
     }
 }
