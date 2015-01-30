@@ -51,7 +51,7 @@
 		<dependency>
 			<groupId>com.intrbiz.balsa</groupId>
 			<artifactId>balsa-core</artifactId>
-			<version>4.0.0-rc-1</version>
+			<version>4.0.0</version>
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>

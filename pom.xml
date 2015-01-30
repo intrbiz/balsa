@@ -5,7 +5,7 @@
 	
 	<groupId>com.intrbiz.balsa</groupId>
 	<artifactId>balsa</artifactId>
-	<version>4.0.0-rc-1</version>
+	<version>4.0.0</version>
 	<packaging>pom</packaging>
 	
 	<name>Balsa Web Framework</name>
@@ -52,7 +52,7 @@
 			<dependency>
 				<groupId>com.intrbiz.balsa</groupId>
 				<artifactId>balsa-core</artifactId>
-				<version>4.0.0-rc-1</version>
+				<version>4.0.0</version>
 			</dependency>
 			<dependency>
 				<groupId>junit</groupId>
