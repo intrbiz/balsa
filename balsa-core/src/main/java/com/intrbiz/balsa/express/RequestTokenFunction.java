@@ -18,4 +18,10 @@ public class RequestTokenFunction extends Function
     {
         return Balsa().generateAccessToken();
     }
+    
+    @Override
+    public boolean isIdempotent()
+    {
+        return false;
+    }
 }

@@ -8,12 +8,14 @@ import java.lang.annotation.Target;
 import com.intrbiz.balsa.engine.impl.route.exec.security.ValidPrincipalBuilder;
 
 /**
- * Require a strongly validate Principal, this marks 
- * a route as requiring authenticated access.
+ * Require a weakly validated principal.
+ * 
+ * This is a weaker version of @RequireValidPrincipal() which 
+ * you should probably be using
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 @IsSecurityCheck(ValidPrincipalBuilder.class)
-public @interface RequireValidPrincipal
+public @interface RequirePrincipal
 {
 }

@@ -9,13 +9,19 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 import org.apache.log4j.Logger;
 
 import com.intrbiz.balsa.bean.BeanProvider;
+import com.intrbiz.balsa.engine.SecurityEngine.ValidationLevel;
 import com.intrbiz.balsa.engine.security.Credentials;
 import com.intrbiz.balsa.engine.security.PasswordCredentials;
 import com.intrbiz.balsa.engine.session.BalsaSession;
+import com.intrbiz.balsa.engine.task.BalsaTaskState;
+import com.intrbiz.balsa.engine.task.DeferredActionTask;
 import com.intrbiz.balsa.engine.view.BalsaView;
 import com.intrbiz.balsa.error.BalsaIOError;
 import com.intrbiz.balsa.error.BalsaInternalError;
@@ -106,6 +112,15 @@ public class BalsaContext
     public BalsaContext(BalsaApplication application)
     {
         this(application, null, null);
+    }
+    
+    /**
+     * Create a request-less BalsaContext with the given session
+     */
+    public BalsaContext(BalsaApplication application, BalsaSession session)
+    {
+        this(application, null, null);
+        this.session = session;
     }
 
     /**
@@ -264,6 +279,8 @@ public class BalsaContext
 
     public void activate()
     {
+        // initialise the default principal
+        this.currentPrincipal = this.app().getSecurityEngine().defaultPrincipal();
     }
     
     // conversion errors
@@ -756,13 +773,35 @@ public class BalsaContext
     {
         if (!constraint) throw securityException;
     }
+    
+    public <E extends Exception> void require(boolean constraint, Supplier<E> securityException) throws E
+    {
+        if (!constraint) throw securityException.get();
+    }
 
     /**
-     * Check that the current principal is valid (not public)
+     * Check that the current principal is valid
+     */
+    public boolean validPrincipal(ValidationLevel validationLevel)
+    {
+        // delegate validation to the security manager
+        return this.app().getSecurityEngine().isValidPrincipal(this.currentPrincipal(), validationLevel);
+    }
+    
+    /**
+     * Check that the current principal is valid (strongly)
      */
     public boolean validPrincipal()
     {
-        return this.currentPrincipal() != null;
+        return this.validPrincipal(ValidationLevel.STRONG);
+    }
+    
+    /**
+     * Check that the current principal is valid (weakly)
+     */
+    public boolean principal()
+    {
+        return this.validPrincipal(ValidationLevel.WEAK);
     }
 
     /**
@@ -784,7 +823,9 @@ public class BalsaContext
     }
 
     /**
-     * Authenticate for the life of this session
+     * Authenticate for the life of this session, this method 
+     * will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
      */
     @SuppressWarnings("unchecked")
     public <T extends Principal> T authenticate(Credentials credentials) throws BalsaSecurityException
@@ -798,7 +839,9 @@ public class BalsaContext
     }
 
     /**
-     * Authenticate for the life of this session
+     * Authenticate for the life of this session, this method 
+     * will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
      */
     public <T extends Principal> T authenticate(String username, String password) throws BalsaSecurityException
     {
@@ -806,7 +849,9 @@ public class BalsaContext
     }
     
     /**
-     * Authenticate for the life of this request only, this avoids creating a session
+     * Authenticate for the life of this request only, this avoids creating a session, 
+     * this method will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
      */
     @SuppressWarnings("unchecked")
     public <T extends Principal> T authenticateRequest(Credentials credentials) throws BalsaSecurityException
@@ -820,11 +865,81 @@ public class BalsaContext
     }
     
     /**
-     * Authenticate for the life of this request only, this avoids creating a session
+     * Authenticate for the life of this request only, this avoids creating a session, 
+     * this method will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
      */
     public <T extends Principal> T authenticateRequest(String username, String password) throws BalsaSecurityException
     {
         return this.authenticateRequest(new PasswordCredentials.Simple(username, password));
+    }
+    
+    /**
+     * Try to authenticate for the life of this session, should 
+     * authentication not be possible then null is returned, exceptions are thrown.
+     */
+    public <T extends Principal> T tryAuthenticate(String username, String password)
+    {
+        try 
+        {
+            return this.authenticate(username, password);
+        }
+        catch (BalsaSecurityException e)
+        {
+            // ignore
+        }
+        return null;
+    }
+
+    /**
+     * Try to authenticate for the life of this session, should 
+     * authentication not be possible then null is returned, exceptions are thrown.
+     */
+    public <T extends Principal> T tryAuthenticate(Credentials credentials)
+    {
+        try 
+        {
+            return this.authenticate(credentials);
+        }
+        catch (BalsaSecurityException e)
+        {
+            // ignore
+        }
+        return null;
+    }
+    
+    /**
+     * Try to authenticate for the life of this request only, this avoids creating a session, 
+     * should authentication not be possible then null is returned, exceptions are thrown.
+     */
+    public <T extends Principal> T tryAuthenticateRequest(String username, String password)
+    {
+        try 
+        {
+            return this.authenticateRequest(username, password);
+        }
+        catch (BalsaSecurityException e)
+        {
+            // ignore
+        }
+        return null;
+    }
+    
+    /**
+     * Try to authenticate for the life of this request only, this avoids creating a session, 
+     * should authentication not be possible then null is returned, exceptions are thrown.
+     */
+    public <T extends Principal> T tryAuthenticateRequest(Credentials credentials)
+    {
+        try 
+        {
+            return this.authenticateRequest(credentials);
+        }
+        catch (BalsaSecurityException e)
+        {
+            // ignore
+        }
+        return null;
     }
 
     /**
@@ -930,6 +1045,13 @@ public class BalsaContext
 
     // Actions
 
+    /**
+     * Execute the named action with the given arguments
+     * @param action the action name
+     * @param arguments the arguments to pass to the action
+     * @return the result of the action
+     * @throws Exception should the action fail for any reason
+     */
     @SuppressWarnings("unchecked")
     public <T> T action(String action, Object... arguments) throws Exception
     {
@@ -937,11 +1059,78 @@ public class BalsaContext
         if (handler == null) throw new BalsaException("The action " + action + " does not exist");
         return (T) handler.act(arguments);
     }
+    
+    /**
+     * Execute the named action with the given arguments using the task engine, 
+     * this causes the task to be executed out of band.  This returns a task id 
+     * which can be used to poll the state of a task.
+     * @param action the action name
+     * @param arguments the arguments to pass to the action
+     * @return the id of the started task
+     */
+    public String deferredAction(String action, Object... arguments)
+    {
+        // generate a random id
+        final String id = UUID.randomUUID().toString();
+        // store the initial task state
+        this.session().task(id, new BalsaTaskState());
+        // submit the task for execution
+        this.app().getTaskEngine().executeTask(new DeferredActionTask(action, arguments), id);
+        // return the id
+        return id;
+    }
+    
+    /**
+     * Execute the deferred action with a know id
+     */
+    public String deferredActionWithId(final String id, String action, Object... arguments)
+    {
+        // store the initial task state
+        this.session().task(id, new BalsaTaskState());
+        // submit the task for execution
+        this.app().getTaskEngine().executeTask(new DeferredActionTask(action, arguments), id);
+        // return the id
+        return id;
+    }
+    
+    /**
+     * Poll the state of a deferred action, getting and removing it 
+     * should it have completed
+     */
+    public BalsaTaskState pollDeferredAction(String id)
+    {
+        return this.session().removeTaskIfComplete(id);
+    }
 
     // Static
 
     public final static BalsaContext Balsa()
     {
         return BalsaContext.get();
+    }
+    
+    public final static <T> T withContext(BalsaContext context, Callable<T> task) throws Exception
+    {
+        try
+        {
+            // activate the context
+            context.activate();
+            // bind the context
+            context.bind();
+            // execute the task
+            return task.call();
+        }
+        finally
+        {
+            // ensure the context is unbound
+            context.unbind();
+            // deactivate the context
+            context.deactivate();
+        }
+    }
+    
+    public final static <T> T withContext(BalsaApplication application, BalsaSession session, Callable<T> task) throws Exception
+    {
+        return withContext(new BalsaContext(application, session), task);
     }
 }

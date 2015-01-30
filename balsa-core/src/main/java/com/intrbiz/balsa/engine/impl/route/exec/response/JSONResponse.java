@@ -35,6 +35,7 @@ public class JSONResponse extends ResponseBuilder
         cls.addImport(JsonGenerator.class.getCanonicalName());
         cls.addImport(HTTPStatus.class.getCanonicalName());
         cls.addImport(this.type.getCanonicalName());
+        cls.addImport(Iterable.class.getCanonicalName());
         if (this.notFoundIfNull) cls.addImport(BalsaNotFound.class.getCanonicalName());
         //
         cls.addField(ObjectMapper.class.getSimpleName(), "jsonResMapper");
@@ -50,7 +51,19 @@ public class JSONResponse extends ResponseBuilder
             sb.append("    if (res == null) throw new BalsaNotFound();");
         }
         sb.append("    JsonGenerator writer = context.response().status(HTTPStatus." + this.status.name() + ").json().getJsonWriter();\r\n");
-        sb.append("    this.jsonResMapper.writeValue(writer, res);\r\n");
+        if (Iterable.class.isAssignableFrom(this.type))
+        {
+            sb.append("    writer.writeStartArray();\r\n");
+            sb.append("    for (Object resElement : res)\r\n");
+            sb.append("    {\r\n");
+            sb.append("        this.jsonResMapper.writeValue(writer, resElement);\r\n");
+            sb.append("    }\r\n");
+            sb.append("    writer.writeEndArray();\r\n");
+        }
+        else
+        {
+            sb.append("    this.jsonResMapper.writeValue(writer, res);\r\n");
+        }
     }
 
     @Override

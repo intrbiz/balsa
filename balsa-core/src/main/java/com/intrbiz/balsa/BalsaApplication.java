@@ -23,11 +23,13 @@ import com.intrbiz.balsa.engine.PublicResourceEngine;
 import com.intrbiz.balsa.engine.RouteEngine;
 import com.intrbiz.balsa.engine.SecurityEngine;
 import com.intrbiz.balsa.engine.SessionEngine;
+import com.intrbiz.balsa.engine.TaskEngine;
 import com.intrbiz.balsa.engine.ViewEngine;
 import com.intrbiz.balsa.engine.impl.publicresource.PublicResourceEngineImpl;
 import com.intrbiz.balsa.engine.impl.route.RouteEngineImpl;
 import com.intrbiz.balsa.engine.impl.security.SecurityEngineImpl;
 import com.intrbiz.balsa.engine.impl.session.SimpleSessionEngine;
+import com.intrbiz.balsa.engine.impl.task.TaskEngineImpl;
 import com.intrbiz.balsa.engine.impl.view.BalsaViewEngineImpl;
 import com.intrbiz.balsa.engine.impl.view.FileViewSource;
 import com.intrbiz.balsa.engine.route.Router;
@@ -50,6 +52,7 @@ import com.intrbiz.balsa.listener.scgi.BalsaSCGIListener;
 import com.intrbiz.express.ExpressExtensionRegistry;
 import com.intrbiz.express.action.ActionHandler;
 import com.intrbiz.express.action.MethodActionHandler;
+import com.intrbiz.express.functions.TextFunctionRegistry;
 import com.intrbiz.express.operator.Decorator;
 import com.intrbiz.express.operator.Function;
 import com.intrbiz.metadata.Pooled;
@@ -59,6 +62,13 @@ import com.intrbiz.metadata.Pooled;
  */
 public abstract class BalsaApplication
 {
+    private static BalsaApplication INSTANCE = null;
+    
+    public static final BalsaApplication getInstance()
+    {
+        return INSTANCE;
+    }
+    
     private Logger logger = Logger.getLogger(BalsaApplication.class);
 
     /**
@@ -97,6 +107,11 @@ public abstract class BalsaApplication
     private SecurityEngine securityEngine;
     
     /**
+     * The task engine for executing long running jobs
+     */
+    private TaskEngine taskEngine;
+    
+    /**
      * The public resource Engine
      */
     private PublicResourceEngine publicResourceEngine;
@@ -115,15 +130,21 @@ public abstract class BalsaApplication
     /**
      * The ExpressExtensionRegistry where Balsa stores its extensions
      */
-    private final ExpressExtensionRegistry expressExtensions = new ExpressExtensionRegistry("balsa").addSubRegistry(ExpressExtensionRegistry.getDefaultRegistry());
+    private final ExpressExtensionRegistry expressExtensions = new ExpressExtensionRegistry("balsa")
+                                                               .addSubRegistry(ExpressExtensionRegistry.getDefaultRegistry())
+                                                               .addSubRegistry(new TextFunctionRegistry());
     
     private String[] templates = new String[0];
     
-    private String env = "dev";
+    private String env = getApplicationEnv();
+    
+    private String instanceName = getApplicationInstanceName(this.getClass());
 
     public BalsaApplication()
     {
         super();
+        // set the application instance
+        INSTANCE = this;
         /* Default Functions */
         // immutable
         this.expressExtensions.addFunction(new BalsaFunction());
@@ -296,6 +317,23 @@ public abstract class BalsaApplication
     {
         this.securityEngine = securityEngine;
         if (securityEngine != null) securityEngine.setBalsaApplication(this);
+    }
+    
+    /**
+     * Get the engine responsible for executing long running jobs in the background
+     */
+    public TaskEngine getTaskEngine()
+    {
+        return this.taskEngine;
+    }
+    
+    /**
+     * Set the engine responsible for executing long running jobs in the background
+     */
+    public void taskEngine(TaskEngine taskEngine)
+    {
+        this.taskEngine = taskEngine;
+        if (taskEngine != null) taskEngine.setBalsaApplication(this);
     }
     
     /**
@@ -504,6 +542,11 @@ public abstract class BalsaApplication
     {
         return this.expressExtensions;
     }
+    
+    public ExpressExtensionRegistry immutableFunction(Function immutableFunction)
+    {
+        return expressExtensions.addFunction(immutableFunction);
+    }
 
     public ExpressExtensionRegistry function(String name, Class<? extends Function> functionClass)
     {
@@ -518,11 +561,6 @@ public abstract class BalsaApplication
     public String getEnv()
     {
         return this.env;
-    }
-    
-    public void setEnv(String env)
-    {
-        this.env = env;
     }
     
     public boolean isDevEnv()
@@ -559,8 +597,6 @@ public abstract class BalsaApplication
      */
     public final void start() throws Exception
     {
-        // env config parameter
-        this.env = System.getProperty("balsa.env", "dev");
         // configure logging
         this.configureLogging();
         // defaults
@@ -606,6 +642,8 @@ public abstract class BalsaApplication
         {
             listener.setProcessor(proc);
         }
+        // Start the task engine
+        if (this.getTaskEngine() != null) this.getTaskEngine().start();
         // Start the session engine
         if (this.getSessionEngine() != null) this.getSessionEngine().start();
         // Start the view engine
@@ -678,6 +716,7 @@ public abstract class BalsaApplication
         this.viewEngine(new BalsaViewEngineImpl());
         this.securityEngine(new SecurityEngineImpl());
         this.publicResourceEngine(new PublicResourceEngineImpl());
+        this.taskEngine(new TaskEngineImpl());
     }
     
     protected void setupDefaultListeners() throws Exception
@@ -715,6 +754,16 @@ public abstract class BalsaApplication
     
     public String getInstanceName()
     {
-        return System.getProperty("balsa.instance.name", this.getClass().getSimpleName().toLowerCase() + "." + this.getEnv());
+        return this.instanceName;
+    }
+    
+    public static String getApplicationInstanceName(Class<? extends BalsaApplication> applicationClass)
+    {
+        return System.getProperty("balsa.instance.name", applicationClass.getSimpleName().toLowerCase() + "." + getApplicationEnv());
+    }
+    
+    public static String getApplicationEnv()
+    {
+        return System.getProperty("balsa.env", "dev");
     }
 }

@@ -1,5 +1,7 @@
 package com.intrbiz.balsa.engine.security;
 
+import com.intrbiz.crypto.cookie.CryptoCookie;
+
 /**
  * A generic authentication token which can be used 
  * to authenticate a principal
@@ -8,9 +10,12 @@ public class GenericAuthenticationToken implements TokenCredentials
 {
     private String token;
     
-    public GenericAuthenticationToken(String token)
+    private CryptoCookie.Flag[] requiredFlags = null;
+    
+    public GenericAuthenticationToken(String token, CryptoCookie.Flag... requiredFlags)
     {
         this.token = token;
+        this.requiredFlags = requiredFlags;
     }
 
     @Override
@@ -23,5 +28,10 @@ public class GenericAuthenticationToken implements TokenCredentials
     public String getToken()
     {
         return this.token;
+    }
+
+    public CryptoCookie.Flag[] getRequiredFlags()
+    {
+        return requiredFlags;
     }
 }

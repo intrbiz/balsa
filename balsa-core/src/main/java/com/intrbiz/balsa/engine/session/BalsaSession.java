@@ -2,6 +2,8 @@ package com.intrbiz.balsa.engine.session;
 
 import java.security.Principal;
 
+import com.intrbiz.balsa.engine.task.BalsaTaskState;
+
 public interface BalsaSession
 {   
     public static final String COOKIE_NAME = "BalsaSession";
@@ -30,6 +32,53 @@ public interface BalsaSession
      * returns void
      */
     <T> T var(String name, T object);
+    
+    /**
+     * Get the state of the task with the given id
+     */
+    default BalsaTaskState task(String id)
+    {
+        return this.var(this.taskKey(id));
+    }
+    
+    /**
+     * Remove the state of a task
+     */
+    default void removeTask(String id)
+    {
+        this.removeVar(this.taskKey(id));
+    }
+    
+    /**
+     * Remove the state of a task if it is complete
+     */
+    default BalsaTaskState removeTaskIfComplete(String id)
+    {
+        final String key = this.taskKey(id);
+        BalsaTaskState state = this.var(key);
+        if (state != null && state.isComplete())
+        {
+            this.removeVar(key);
+        }
+        return state;
+    }
+    
+    /**
+     * Store the state of the given task in this session.
+     * Tasks are stored as vars using a prefixed key.
+     */
+    default void task(String id, BalsaTaskState state)
+    {
+        this.var(this.taskKey(id), state);
+    }
+    
+    /**
+     * Get the key for a given task id
+     */
+    default String taskKey(String id)
+    {
+        return "balsa.task." + id;
+    }
     
     /**
      * Remove a variable of the given name

@@ -3,6 +3,7 @@ package com.intrbiz.balsa.engine.impl.route;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -128,9 +129,10 @@ public class Route implements Comparable<Route>
         return this.exceptions;
     }
 
-    public void exceptions(Catch exceptions)
+    @SuppressWarnings("unchecked")
+    public void exceptions(Collection<Class<? extends Throwable>> exceptions)
     {
-        this.exceptions = exceptions.value();
+        this.exceptions = (exceptions == null || exceptions.isEmpty()) ? null : exceptions.toArray(new Class[exceptions.size()]);
     }
 
     public CompiledPattern getCompiledPattern()
@@ -256,10 +258,18 @@ public class Route implements Comparable<Route>
         if (r == null) return null;
         // annotations across all routes
         // is it an error route
+        List<Class<? extends Throwable>> exceptions = new LinkedList<Class<? extends Throwable>>(); 
         for (Catch error : method.getAnnotationsByType(Catch.class))
         {
-            if (error != null) r.exceptions(error);
+            if (error != null)
+            {
+                for (Class<? extends Throwable> errorClass : error.value())
+                {
+                    exceptions.add(errorClass);
+                }
+            }
         }
+        r.exceptions(exceptions);
         // is there an order
         Order order = method.getAnnotation(Order.class);
         if (order != null) r.setOrder(order.value());
