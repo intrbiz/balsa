@@ -8,13 +8,14 @@ import org.apache.log4j.Logger;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.MapConfig;
-import com.hazelcast.config.MapConfig.EvictionPolicy;
+import com.hazelcast.config.EvictionPolicy;
 import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
+import com.hazelcast.core.MapEvent;
 import com.intrbiz.balsa.BalsaException;
 
 public class HazelcastSessionEngine extends AbstractSessionEngine
@@ -137,6 +138,15 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
                     this.entryRemoved(event);
                 }
 
+                @Override
+                public void mapEvicted(MapEvent event)
+                {
+                }
+
+                @Override
+                public void mapCleared(MapEvent event)
+                {
+                }
             });
         }
         catch (Exception e)
