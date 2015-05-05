@@ -5,7 +5,7 @@
 	
 	<groupId>com.intrbiz.balsa</groupId>
 	<artifactId>balsa</artifactId>
-	<version>4.0.0</version>
+	<version>4.1.0</version>
 	<packaging>pom</packaging>
 	
 	<name>Balsa Web Framework</name>
@@ -29,12 +29,12 @@
 			<dependency>
 				<groupId>com.intrbiz.core</groupId>
 				<artifactId>core</artifactId>
-				<version>1.0.0</version>
+				<version>[1.0,)</version>
 			</dependency>
 			<dependency>
 				<groupId>com.intrbiz.express</groupId>
 				<artifactId>express</artifactId>
-				<version>4.0.0</version>
+				<version>[4.0,)</version>
 			</dependency>
 			<dependency>
 				<groupId>log4j</groupId>
@@ -52,7 +52,7 @@
 			<dependency>
 				<groupId>com.intrbiz.balsa</groupId>
 				<artifactId>balsa-core</artifactId>
-				<version>4.0.0</version>
+                <version>4.1.0</version>
 			</dependency>
 			<dependency>
 				<groupId>junit</groupId>
@@ -72,7 +72,7 @@
 			<dependency>
 				<groupId>com.intrbiz.util</groupId>
 				<artifactId>compiler</artifactId>
-				<version>1.0.0</version>
+				<version>[1.0,)</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
@@ -92,7 +92,7 @@
 			<dependency>
 				<groupId>com.intrbiz.util</groupId>
 				<artifactId>crypto</artifactId>
-				<version>1.0.0</version>
+				<version>[1.0,)</version>
 			</dependency>
 			<dependency>
 				<groupId>io.netty</groupId>
@@ -132,12 +132,12 @@
 			<dependency>
 				<groupId>com.intrbiz.util</groupId>
 				<artifactId>data-manager</artifactId>
-				<version>1.0.0</version>
+				<version>[1.0,)</version>
 			</dependency>
 			<dependency>
 				<groupId>com.hazelcast</groupId>
 				<artifactId>hazelcast</artifactId>
-				<version>3.2.2</version>
+				<version>[3.4,)</version>
 			</dependency>
 			<dependency>
 				<groupId>org.pegdown</groupId>
