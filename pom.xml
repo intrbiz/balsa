@@ -52,7 +52,7 @@
 			<dependency>
 				<groupId>com.intrbiz.balsa</groupId>
 				<artifactId>balsa-core</artifactId>
-                <version>4.1.0</version>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>junit</groupId>
@@ -62,7 +62,7 @@
 			<dependency>
 				<groupId>com.intrbiz.balsa-scgi</groupId>
 				<artifactId>balsa-scgi</artifactId>
-				<version>4.0.0</version>
+				<version>[4.0,)</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
@@ -72,7 +72,7 @@
 			<dependency>
 				<groupId>com.intrbiz.util</groupId>
 				<artifactId>compiler</artifactId>
-				<version>[1.0,)</version>
+				<version>[1.1,)</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
@@ -92,7 +92,7 @@
 			<dependency>
 				<groupId>com.intrbiz.util</groupId>
 				<artifactId>crypto</artifactId>
-				<version>[1.0,)</version>
+				<version>[1.1,)</version>
 			</dependency>
 			<dependency>
 				<groupId>io.netty</groupId>
@@ -102,7 +102,7 @@
 			<dependency>
 				<groupId>com.intrbiz.gerald</groupId>
 				<artifactId>gerald-witchcraft</artifactId>
-				<version>1.0.0</version>
+				<version>[1.1,)</version>
 			</dependency>
 			<dependency>
 				<groupId>org.hamcrest</groupId>
@@ -132,7 +132,7 @@
 			<dependency>
 				<groupId>com.intrbiz.util</groupId>
 				<artifactId>data-manager</artifactId>
-				<version>[1.0,)</version>
+				<version>[1.1,)</version>
 			</dependency>
 			<dependency>
 				<groupId>com.hazelcast</groupId>
