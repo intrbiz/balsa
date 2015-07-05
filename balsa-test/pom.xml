@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.intrbiz.balsa</groupId>
     <artifactId>balsa</artifactId>
-    <version>4.1.1</version>
+    <version>4.1.2</version>
   </parent>
   <artifactId>balsa-test</artifactId>
   <name>balsa-test</name>
