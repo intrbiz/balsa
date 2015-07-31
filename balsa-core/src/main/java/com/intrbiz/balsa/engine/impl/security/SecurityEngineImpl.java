@@ -177,6 +177,12 @@ public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityE
     }
     
     @Override
+    public boolean checkForDomain(Principal principal, String permission, String securityDomain)
+    {
+        return false;
+    }
+
+    @Override
     public boolean isValidPrincipal(Principal principal, ValidationLevel validationLevel)
     {
         return principal != null;

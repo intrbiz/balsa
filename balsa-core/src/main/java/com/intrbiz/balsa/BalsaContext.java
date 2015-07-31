@@ -953,6 +953,22 @@ public class BalsaContext
     {
         return this.app().getSecurityEngine().check(this.currentPrincipal(), permission);
     }
+    
+    /**
+     * Check that the current user has the given permission within the given security domain.
+     * A security domain is an arbitary domain (set of things) for which permissions can be 
+     * granted over.  Security domains allow for permissions to be granted to a selective set of 
+     * secured entities.  Allowing for implementation of a granular permission model.
+     * @param permission
+     *          the permission the current user must have been granted for the given security domain
+     * @param securityDomain
+     *          the security domain the current user must have the given permission granted over
+     * @return
+     */
+    public boolean permissionForDomain(String permission, String securityDomain)
+    {
+        return this.app().getSecurityEngine().checkForDomain(this.currentPrincipal(), permission, securityDomain);
+    }
 
     /**
      * Check that the given access token is valid

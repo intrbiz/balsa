@@ -54,9 +54,18 @@ public interface SecurityEngine extends BalsaEngine
      * Check that the given principal has the given permissions
      * @param principal the principal
      * @param permission the permission the principal must have been granted
-     * @return true if the principal has the permission, otherwise false
+     * @return true if and only if the principal has the permission, otherwise false
      */
     boolean check(Principal principal, String permission);
+    
+    /**
+     * Check that the given principal has the given permissions over the given security domain.
+     * @param principal the principal
+     * @param permission the permission the principal must have been granted
+     * @param securityDomain the domain over which the given principal must have been granted the given permission
+     * @return true if and only if the given principal has the given permission over the given security domain
+     */
+    boolean checkForDomain(Principal principal, String permission, String securityDomain);
     
     /**
      * Check if the given Principal is valid, usually this 
