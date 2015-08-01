@@ -16,7 +16,6 @@ import com.intrbiz.balsa.engine.impl.AbstractBalsaEngine;
 import com.intrbiz.balsa.engine.security.Credentials;
 import com.intrbiz.balsa.engine.security.GenericAuthenticationToken;
 import com.intrbiz.balsa.engine.security.PasswordCredentials;
-import com.intrbiz.balsa.engine.security.SecuredObject;
 import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.balsa.util.Util;
 import com.intrbiz.crypto.SecretKey;
@@ -178,7 +177,7 @@ public class SecurityEngineImpl extends AbstractBalsaEngine implements SecurityE
     }
     
     @Override
-    public boolean check(Principal principal, String permission, SecuredObject object)
+    public boolean check(Principal principal, String permission, Object object)
     {
         return false;
     }

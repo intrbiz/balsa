@@ -3,7 +3,6 @@ package com.intrbiz.balsa.engine;
 import java.security.Principal;
 
 import com.intrbiz.balsa.engine.security.Credentials;
-import com.intrbiz.balsa.engine.security.SecuredObject;
 import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.crypto.SecretKey;
 import com.intrbiz.crypto.cookie.CryptoCookie;
@@ -65,7 +64,7 @@ public interface SecurityEngine extends BalsaEngine
      * @param object the object over which permission must be granted
      * @return true if and only if the current user has the given permission over th given object
      */
-    boolean check(Principal principal, String permission, SecuredObject object);
+    boolean check(Principal principal, String permission, Object object);
     
     /**
      * Check if the given Principal is valid, usually this 

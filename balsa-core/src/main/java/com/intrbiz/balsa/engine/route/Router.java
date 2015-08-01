@@ -11,7 +11,6 @@ import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.SecurityEngine.ValidationLevel;
 import com.intrbiz.balsa.engine.security.Credentials;
-import com.intrbiz.balsa.engine.security.SecuredObject;
 import com.intrbiz.balsa.engine.task.BalsaTaskState;
 import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.balsa.listener.BalsaRequest;
@@ -427,7 +426,7 @@ public abstract class Router<A extends BalsaApplication>
      * @param object the object over which permission must be granted
      * @return true if and only if the current user has the given permission over th given object
      */
-    public boolean permission(String permission, SecuredObject object)
+    public boolean permission(String permission, Object object)
     {
         return Balsa().permission(permission, object);
     }
