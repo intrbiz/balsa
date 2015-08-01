@@ -11,6 +11,7 @@ import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.SecurityEngine.ValidationLevel;
 import com.intrbiz.balsa.engine.security.Credentials;
+import com.intrbiz.balsa.engine.security.SecuredObject;
 import com.intrbiz.balsa.engine.task.BalsaTaskState;
 import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.balsa.listener.BalsaRequest;
@@ -421,19 +422,14 @@ public abstract class Router<A extends BalsaApplication>
     }
     
     /**
-     * Check that the current user has the given permission within the given security domain.
-     * A security domain is an arbitary domain (set of things) for which permissions can be 
-     * granted over.  Security domains allow for permissions to be granted to a selective set of 
-     * secured entities.  Allowing for implementation of a granular permission model.
-     * @param permission
-     *          the permission the current user must have been granted for the given security domain
-     * @param securityDomain
-     *          the security domain the current user must have the given permission granted over
-     * @return
+     * Check that the current user has the given permission over the given object
+     * @param permission the permission name
+     * @param object the object over which permission must be granted
+     * @return true if and only if the current user has the given permission over th given object
      */
-    public boolean permissionForDomain(String permission, String securityDomain)
+    public boolean permission(String permission, SecuredObject object)
     {
-        return Balsa().permissionForDomain(permission, securityDomain);
+        return Balsa().permission(permission, object);
     }
     
     /**
