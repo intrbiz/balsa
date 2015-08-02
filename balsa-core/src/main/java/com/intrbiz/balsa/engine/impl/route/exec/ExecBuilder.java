@@ -15,6 +15,7 @@ import com.intrbiz.balsa.engine.impl.route.Route;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.ArgumentBuilder;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.ConverterBuilder;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.CookieArgument;
+import com.intrbiz.balsa.engine.impl.route.exec.argument.CurrentPrincipalArgument;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.HeaderArgument;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.JSONArgument;
 import com.intrbiz.balsa.engine.impl.route.exec.argument.ListParameterArgument;
@@ -150,7 +151,17 @@ public class ExecBuilder
 
     public ExecBuilder jsonArgument() throws JAXBException
     {
-        return xmlArgument(this.handler.getParameterTypes()[this.currentArgumentIndex]);
+        return jsonArgument(this.handler.getParameterTypes()[this.currentArgumentIndex]);
+    }
+    
+    public ExecBuilder currentPrincipalArgument(Class<?> type)
+    {
+        return argument(new CurrentPrincipalArgument().type(type));
+    }
+    
+    public ExecBuilder currentPrincipalArgument()
+    {
+        return this.currentPrincipalArgument(this.handler.getParameterTypes()[this.currentArgumentIndex]);
     }
 
     public ExecBuilder response(ResponseBuilder eb)

@@ -13,6 +13,7 @@ import com.intrbiz.balsa.engine.SecurityEngine.ValidationLevel;
 import com.intrbiz.balsa.engine.security.Credentials;
 import com.intrbiz.balsa.engine.task.BalsaTaskState;
 import com.intrbiz.balsa.error.BalsaSecurityException;
+import com.intrbiz.balsa.error.http.BalsaNotFound;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.listener.BalsaResponse;
 import com.intrbiz.balsa.util.CookieBuilder;
@@ -561,4 +562,15 @@ public abstract class Router<A extends BalsaApplication>
        return Balsa().app(); 
     }
     
+    protected <T> T notNull(T o) throws BalsaNotFound
+    {
+        if (o == null) throw new BalsaNotFound();
+        return o;
+    }
+    
+    protected <T> T notNull(T o, String message) throws BalsaNotFound
+    {
+        if (o == null) throw new BalsaNotFound(message);
+        return o;
+    }
 }
