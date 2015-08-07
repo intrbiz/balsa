@@ -4,7 +4,11 @@ import static com.intrbiz.balsa.BalsaContext.*;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.BalsaContext;
@@ -430,6 +434,40 @@ public abstract class Router<A extends BalsaApplication>
     public boolean permission(String permission, Object object)
     {
         return Balsa().permission(permission, object);
+    }
+    
+    /**
+     * Filter the given collection returning only the objects which the current 
+     * user has the given permission over
+     * @param permission
+     * @param objects
+     * @return
+     */
+    public <T> List<T> permission(String permission, Collection<T> objects)
+    {
+        List<T> ret = new LinkedList<T>();
+        for (T object : objects)
+        {
+            if (permission(permission, object)) ret.add(object);
+        }
+        return ret;
+    }
+    
+    /**
+     * Filter the given collection returning only the objects which the current 
+     * user has the given permission over
+     * @param permission
+     * @param objects
+     * @return
+     */
+    public <T> Set<T> permission(String permission, Set<T> objects)
+    {
+        Set<T> ret = new HashSet<T>();
+        for (T object : objects)
+        {
+            if (permission(permission, object)) ret.add(object);
+        }
+        return ret;
     }
     
     /**
