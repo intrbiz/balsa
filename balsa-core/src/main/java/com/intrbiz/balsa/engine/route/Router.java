@@ -303,7 +303,7 @@ public abstract class Router<A extends BalsaApplication>
         Balsa().require(constraint, securityException);
     }
     
-    protected final <E extends Exception> void require(boolean constraint, Supplier<E> securityException) throws E
+    protected final <E extends Exception> void require(boolean constraint, Supplier<E> securityException) throws Exception
     {
         Balsa().require(constraint, securityException);
     }

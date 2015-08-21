@@ -774,7 +774,7 @@ public class BalsaContext
         if (!constraint) throw securityException;
     }
     
-    public <E extends Exception> void require(boolean constraint, Supplier<E> securityException) throws E
+    public <E extends Exception> void require(boolean constraint, Supplier<E> securityException) throws Exception
     {
         if (!constraint) throw securityException.get();
     }
