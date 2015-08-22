@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.function.Supplier;
 
 import org.apache.log4j.Logger;
 
@@ -772,11 +771,6 @@ public class BalsaContext
     public <E extends Exception> void require(boolean constraint, E securityException) throws E
     {
         if (!constraint) throw securityException;
-    }
-    
-    public <E extends Exception> void require(boolean constraint, Supplier<E> securityException) throws Exception
-    {
-        if (!constraint) throw securityException.get();
     }
 
     /**

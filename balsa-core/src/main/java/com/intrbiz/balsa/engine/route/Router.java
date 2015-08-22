@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.BalsaContext;
@@ -299,11 +298,6 @@ public abstract class Router<A extends BalsaApplication>
     }
 
     protected final <E extends Exception> void require(boolean constraint, E securityException) throws E
-    {
-        Balsa().require(constraint, securityException);
-    }
-    
-    protected final <E extends Exception> void require(boolean constraint, Supplier<E> securityException) throws Exception
     {
         Balsa().require(constraint, securityException);
     }
