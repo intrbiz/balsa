@@ -8,5 +8,9 @@ public interface PublicResource
     
     String getName();
     
+    boolean exists();
+    
     List<PublicResource> getChildren();
+    
+    PublicResource getParent();
 }
