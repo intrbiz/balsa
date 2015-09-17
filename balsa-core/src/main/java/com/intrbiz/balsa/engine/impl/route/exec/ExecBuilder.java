@@ -82,6 +82,56 @@ public class ExecBuilder
         return this.id;
     }
 
+    public int getArity()
+    {
+        return arity;
+    }
+
+    public ArgumentBuilder<?>[] getArguments()
+    {
+        return arguments;
+    }
+
+    public ConverterBuilder[] getConverters()
+    {
+        return converters;
+    }
+
+    public ValidatorBuilder[] getValidators()
+    {
+        return validators;
+    }
+
+    public Method getHandler()
+    {
+        return handler;
+    }
+
+    public boolean isExceptionHandler()
+    {
+        return exceptionHandler;
+    }
+
+    public Router<?> getRouter()
+    {
+        return router;
+    }
+
+    public ResponseBuilder getResponse()
+    {
+        return response;
+    }
+
+    public List<SecurityBuilder> getSecurityBuilders()
+    {
+        return securityBuilders;
+    }
+
+    public List<RouteWrapperBuilder> getWrapperBuilders()
+    {
+        return wrapperBuilders;
+    }
+
     public ExecBuilder handler(Method handler, boolean exceptionHandler)
     {
         this.handler = handler;
