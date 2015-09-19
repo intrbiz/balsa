@@ -4,7 +4,11 @@ import static com.intrbiz.balsa.BalsaContext.*;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.BalsaContext;
@@ -13,6 +17,7 @@ import com.intrbiz.balsa.engine.SecurityEngine.ValidationLevel;
 import com.intrbiz.balsa.engine.security.Credentials;
 import com.intrbiz.balsa.engine.task.BalsaTaskState;
 import com.intrbiz.balsa.error.BalsaSecurityException;
+import com.intrbiz.balsa.error.http.BalsaNotFound;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.listener.BalsaResponse;
 import com.intrbiz.balsa.util.CookieBuilder;
@@ -421,6 +426,51 @@ public abstract class Router<A extends BalsaApplication>
     }
     
     /**
+     * Check that the current user has the given permission over the given object
+     * @param permission the permission name
+     * @param object the object over which permission must be granted
+     * @return true if and only if the current user has the given permission over th given object
+     */
+    public boolean permission(String permission, Object object)
+    {
+        return Balsa().permission(permission, object);
+    }
+    
+    /**
+     * Filter the given collection returning only the objects which the current 
+     * user has the given permission over
+     * @param permission
+     * @param objects
+     * @return
+     */
+    public <T> List<T> permission(String permission, Collection<T> objects)
+    {
+        List<T> ret = new LinkedList<T>();
+        for (T object : objects)
+        {
+            if (permission(permission, object)) ret.add(object);
+        }
+        return ret;
+    }
+    
+    /**
+     * Filter the given collection returning only the objects which the current 
+     * user has the given permission over
+     * @param permission
+     * @param objects
+     * @return
+     */
+    public <T> Set<T> permission(String permission, Set<T> objects)
+    {
+        Set<T> ret = new HashSet<T>();
+        for (T object : objects)
+        {
+            if (permission(permission, object)) ret.add(object);
+        }
+        return ret;
+    }
+    
+    /**
      * Get the named session variable
      * @param name the variable name
      * @return
@@ -550,4 +600,15 @@ public abstract class Router<A extends BalsaApplication>
        return Balsa().app(); 
     }
     
+    protected <T> T notNull(T o) throws BalsaNotFound
+    {
+        if (o == null) throw new BalsaNotFound();
+        return o;
+    }
+    
+    protected <T> T notNull(T o, String message) throws BalsaNotFound
+    {
+        if (o == null) throw new BalsaNotFound(message);
+        return o;
+    }
 }

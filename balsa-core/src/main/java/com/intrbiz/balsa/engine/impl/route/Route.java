@@ -366,6 +366,16 @@ public class Route implements Comparable<Route>
             this.as = as;
         }
         
+        public Pattern getPattern()
+        {
+            return this.pattern;
+        }
+        
+        public String[] getAs()
+        {
+            return this.as;
+        }
+        
         public String toString()
         {
             return this.pattern.toString();

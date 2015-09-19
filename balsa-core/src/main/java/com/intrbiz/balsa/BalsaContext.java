@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.function.Supplier;
 
 import org.apache.log4j.Logger;
 
@@ -773,11 +772,6 @@ public class BalsaContext
     {
         if (!constraint) throw securityException;
     }
-    
-    public <E extends Exception> void require(boolean constraint, Supplier<E> securityException) throws E
-    {
-        if (!constraint) throw securityException.get();
-    }
 
     /**
      * Check that the current principal is valid
@@ -952,6 +946,17 @@ public class BalsaContext
     public boolean permission(String permission)
     {
         return this.app().getSecurityEngine().check(this.currentPrincipal(), permission);
+    }
+
+    /**
+     * Check that the current user has the given permission over the given object
+     * @param permission the permission name
+     * @param object the object over which permission must be granted
+     * @return true if and only if the current user has the given permission over th given object
+     */
+    public boolean permission(String permission, Object object)
+    {
+        return this.app().getSecurityEngine().check(this.currentPrincipal(), permission, object);
     }
 
     /**

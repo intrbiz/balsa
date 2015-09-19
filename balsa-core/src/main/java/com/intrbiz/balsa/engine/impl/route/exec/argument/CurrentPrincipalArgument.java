@@ -3,22 +3,16 @@ package com.intrbiz.balsa.engine.impl.route.exec.argument;
 import java.lang.annotation.Annotation;
 
 import com.intrbiz.balsa.engine.impl.route.exec.ExecutorClass;
-import com.intrbiz.metadata.Param;
 
-public final class ParameterArgument extends ArgumentBuilder<ParameterArgument>
-{
-    protected String name;
+public final class CurrentPrincipalArgument extends ArgumentBuilder<CurrentPrincipalArgument>
+{    
+    protected Class<?> type;
     
     protected String variable;
     
-    public ParameterArgument()
+    public CurrentPrincipalArgument()
     {
         super();
-    }
-    
-    public String getParameterName()
-    {
-        return this.name;
     }
     
     @Override
@@ -27,9 +21,14 @@ public final class ParameterArgument extends ArgumentBuilder<ParameterArgument>
         return this.variable;
     }
     
-    public ParameterArgument name(String name)
+    public CurrentPrincipalArgument name()
     {
-        this.name = name;
+        return this;
+    }
+    
+    public CurrentPrincipalArgument type(Class<?> type)
+    {
+        this.type = type;
         return this;
     }
     
@@ -37,23 +36,22 @@ public final class ParameterArgument extends ArgumentBuilder<ParameterArgument>
     public void compile(ExecutorClass cls)
     {
         // allocate the variable we are going to use
-        this.variable = cls.allocateExecutorVariable("String", "param");
+        cls.addImport(this.type.getCanonicalName());
+        this.variable = cls.allocateExecutorVariable(this.type.getSimpleName(), "current_principal");
         // write the code
         StringBuilder sb = cls.getExecutorLogic();
         sb.append("    // bind parameter ").append(this.index).append("\r\n");
-        sb.append("    String ").append(this.variable).append(" = ").append("context.param(\"").append(this.name).append("\");\r\n");
+        sb.append("    ").append(this.type.getSimpleName()).append(" ").append(this.variable).append(" = ").append("context.currentPrincipal();\r\n");
     }
     
     @Override
     public void fromAnnotation(Annotation a, Annotation[] parameterAnnotations, Class<?> parameterType)
     {
-        Param p = (Param) a;
-        this.name(p.value());
+        this.type(parameterType);
     }
 
     @Override
     public void verify(Class<?> parameterType)
     {
-        if (String.class != parameterType) throw new IllegalArgumentException("Parameter argument type must be a String.");
     }
 }

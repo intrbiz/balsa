@@ -17,6 +17,11 @@ public final class ListParameterArgument extends ArgumentBuilder<ListParameterAr
         super();
     }
     
+    public String getParameterName()
+    {
+        return this.name;
+    }
+    
     @Override
     public String getVariable()
     {
