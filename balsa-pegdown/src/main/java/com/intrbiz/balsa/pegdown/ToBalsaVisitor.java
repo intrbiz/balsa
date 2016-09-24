@@ -6,6 +6,7 @@ import java.util.Stack;
 
 import org.apache.log4j.Logger;
 import org.pegdown.ast.AbbreviationNode;
+import org.pegdown.ast.AnchorLinkNode;
 import org.pegdown.ast.AutoLinkNode;
 import org.pegdown.ast.BlockQuoteNode;
 import org.pegdown.ast.BulletListNode;
@@ -30,6 +31,7 @@ import org.pegdown.ast.ReferenceNode;
 import org.pegdown.ast.RootNode;
 import org.pegdown.ast.SimpleNode;
 import org.pegdown.ast.SpecialTextNode;
+import org.pegdown.ast.StrikeNode;
 import org.pegdown.ast.StrongEmphSuperNode;
 import org.pegdown.ast.SuperNode;
 import org.pegdown.ast.TableBodyNode;
@@ -591,4 +593,15 @@ public class ToBalsaVisitor implements Visitor
         }
         return sb.toString();
     }
+
+	@Override
+	public void visit(AnchorLinkNode node) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void visit(StrikeNode node) {
+		// TODO Auto-generated method stub
+	}
 }
