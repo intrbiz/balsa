@@ -6,16 +6,16 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.log4j.Logger;
 
 import com.hazelcast.config.Config;
+import com.hazelcast.config.EvictionPolicy;
 import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.MapConfig;
-import com.hazelcast.config.EvictionPolicy;
 import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.EntryEvent;
-import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
-import com.hazelcast.core.MapEvent;
+import com.hazelcast.map.listener.EntryAddedListener;
+import com.hazelcast.map.listener.EntryRemovedListener;
 import com.intrbiz.balsa.BalsaException;
 
 public class HazelcastSessionEngine extends AbstractSessionEngine
@@ -88,7 +88,6 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
                     // session lifetime is in minutes
                     sessionMapConfig.setMaxIdleSeconds(this.getSessionLifetime() * 60);
                     sessionMapConfig.setEvictionPolicy(EvictionPolicy.LRU);
-                    sessionMapConfig.setEvictionPercentage(Integer.getInteger("balsa.hazelcast.eviction-percentage", 0));
                     // default to storing objects, as with sticky balancing 
                     // requests to tend to the same server
                     sessionMapConfig.setInMemoryFormat(InMemoryFormat.OBJECT);
@@ -104,16 +103,15 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
             this.attributeMap = this.hazelcastInstance.getMap("balsa.sessions.attributes");
             // eviction listener
             // this will remove attributes when a session is removed / evicted
-            this.sessionMap.addLocalEntryListener(new EntryListener<String, HazelcastSession>()
-            {
-
-                @Override
+            this.sessionMap.addLocalEntryListener(new EntryAddedListener<String, HazelcastSession>() {
+            	@Override
                 public void entryAdded(EntryEvent<String, HazelcastSession> event)
                 {
                     logger.debug("Adding session: " + event.getKey());
                 }
-
-                @Override
+            });
+            this.sessionMap.addLocalEntryListener(new EntryRemovedListener<String, HazelcastSession>() {
+            	@Override
                 public void entryRemoved(EntryEvent<String, HazelcastSession> event)
                 {
                     // evict the attributes
@@ -125,27 +123,6 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
                         logger.trace("Removing session attribute: " + key);
                         attributeMap.remove(key);
                     }
-                }
-
-                @Override
-                public void entryUpdated(EntryEvent<String, HazelcastSession> event)
-                {
-                }
-
-                @Override
-                public void entryEvicted(EntryEvent<String, HazelcastSession> event)
-                {
-                    this.entryRemoved(event);
-                }
-
-                @Override
-                public void mapEvicted(MapEvent event)
-                {
-                }
-
-                @Override
-                public void mapCleared(MapEvent event)
-                {
                 }
             });
         }

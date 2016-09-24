@@ -7,7 +7,7 @@ import org.apache.commons.pool.impl.SoftReferenceObjectPool;
 @SuppressWarnings("unchecked")
 public class BeanPool<E>
 {
-    private ObjectPool pool;
+    private ObjectPool<E> pool;
     
     private BeanFactory<E> factory;
     
@@ -15,10 +15,10 @@ public class BeanPool<E>
     {
         super();
         this.factory = factory;
-        this.pool = new SoftReferenceObjectPool(new BasePoolableObjectFactory()
+        this.pool = new SoftReferenceObjectPool<E>(new BasePoolableObjectFactory<E>()
         {
             @Override
-            public Object makeObject() throws Exception
+            public E makeObject() throws Exception
             {
                 return BeanPool.this.factory.make();
             }
