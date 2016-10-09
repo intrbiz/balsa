@@ -16,6 +16,8 @@
 	<renderer component="com.intrbiz.balsa.view.core.html.PreComponent"          classname="com.intrbiz.balsa.view.core.html.PreRenderer" />
 	<renderer component="com.intrbiz.balsa.view.core.html.CodeComponent"         classname="com.intrbiz.balsa.view.core.html.CodeRenderer" />
 	<renderer component="com.intrbiz.balsa.view.core.html.TextAreaComponent"     classname="com.intrbiz.balsa.view.core.html.TextAreaRenderer" />
+	<renderer component="com.intrbiz.balsa.view.core.html.OptionComponent"       classname="com.intrbiz.balsa.view.core.html.OptionRenderer" />
+	<renderer component="com.intrbiz.balsa.view.core.html.InputComponent"        classname="com.intrbiz.balsa.view.core.html.InputRenderer" />
 	
 	<renderer component="com.intrbiz.balsa.view.core.data.DataSetComponent"      classname="com.intrbiz.balsa.view.core.data.DataSetRenderer" />
 	
