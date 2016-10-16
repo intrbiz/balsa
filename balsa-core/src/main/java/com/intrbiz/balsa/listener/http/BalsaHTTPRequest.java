@@ -1,11 +1,8 @@
 package com.intrbiz.balsa.listener.http;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaders;
-
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
@@ -15,31 +12,44 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.Set;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.intrbiz.Util;
+import com.intrbiz.balsa.http.HTTP.Charsets;
 import com.intrbiz.balsa.http.HTTP.SCGI;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.parameter.ListParameter;
 import com.intrbiz.balsa.parameter.Parameter;
 import com.intrbiz.balsa.parameter.StringParameter;
+import com.intrbiz.balsa.scgi.middleware.QueryStringMiddleware;
 import com.intrbiz.balsa.util.CookieSet;
 import com.intrbiz.balsa.util.CookiesParser;
 import com.intrbiz.balsa.util.ParameterSet;
 import com.intrbiz.balsa.util.QueryStringParser;
+
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
 
 public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
 {
     private final ChannelHandlerContext ctx;
     
     private final FullHttpRequest req;
+    
+    private final JsonFactory jsonFactory;
+    
+    private final XMLInputFactory xmlFactory;
     
     private Map<String, String> headers = new HashMap<String, String>();
     
@@ -59,16 +69,28 @@ public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
     
     private int serverPort = 80;
     
-    public BalsaHTTPRequest(ChannelHandlerContext ctx, FullHttpRequest req)
+    private long contentLength;
+    
+    private String contentType;
+    
+    private ByteBufInputStream input;
+    
+    private Reader reader;
+    
+    private JsonParser jsonReader;
+    
+    private XMLStreamReader xmlReader;
+    
+    private Object body;
+    
+    public BalsaHTTPRequest(ChannelHandlerContext ctx, FullHttpRequest req, JsonFactory jsonFactory, XMLInputFactory xmlFactory)
     {
         super();
         this.ctx = ctx;
         this.req = req;
-        this.parseRequest();
-    }
-    
-    private void parseRequest()
-    {
+        this.jsonFactory = jsonFactory;
+        this.xmlFactory = xmlFactory;
+        // parse the request
         this.uri = this.req.getUri();
         // process the uri
         int idx = this.uri.indexOf("?");
@@ -88,10 +110,17 @@ public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
         for (Entry<String, String> header : this.req.headers())
         {
            this.headers.put(header.getKey(), header.getValue());
-           // handle cookies
+           // pull data out that we need from the headers
            if (HttpHeaders.Names.COOKIE.equals(header.getKey()))
            {
                CookiesParser.parseCookies(header.getValue(), this);
+           }
+           else if (HttpHeaders.Names.CONTENT_TYPE.equals(header.getKey()))
+           {
+               String ct = header.getValue();
+               int cts = ct.indexOf(';');
+               if (cts > 0) ct = ct.substring(0, cts);
+               this.contentType = ct.toLowerCase();
            }
            else if (HttpHeaders.Names.HOST.equals(header.getKey()))
            {
@@ -107,6 +136,16 @@ public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
                    this.serverName = host;
                }
            }
+        }
+        // content length
+        this.contentLength = HttpHeaders.getContentLength(this.req, -1L);
+        // parse the request body?
+        // parse a posted query string
+        if (this.contentType != null && this.contentType.startsWith(QueryStringMiddleware.WWW_FORM_URLENCODED))
+        {
+            // parse the parameters
+            String postParameters = this.req.content().toString(Charsets.UTF8);
+            QueryStringParser.parseQueryString(postParameters, this);
         }
     }
     
@@ -158,25 +197,25 @@ public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
     @Override
     public int getContentLength()
     {
-        return 0;
+        return (int) this.contentLength;
     }
 
     @Override
     public String getContentType()
     {
-        return null;
+        return this.contentType;
     }
 
     @Override
     public boolean isXml()
     {
-        return false;
+        return "text/xml".equals(this.contentType);
     }
 
     @Override
     public boolean isJson()
     {
-        return false;
+        return "application/json".equals(this.contentType);
     }
 
     @Override
@@ -391,36 +430,51 @@ public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
     @Override
     public InputStream getInput()
     {
-        return null;
+        if (this.input == null)
+        {
+            this.input = new ByteBufInputStream(this.req.content());
+        }
+        return this.input;
     }
 
     @Override
     public Reader getReader()
     {
-        return null;
+        if (this.reader == null)
+        {
+            this.reader = new InputStreamReader(this.getInput());
+        }
+        return this.reader;
     }
 
-    @Override
     public JsonParser getJsonReader() throws IOException
     {
-        return null;
+        if (this.jsonReader == null)
+        {
+            this.jsonReader = this.jsonFactory.createJsonParser(this.getReader());
+        }
+        return this.jsonReader;
     }
-
-    @Override
+    
     public XMLStreamReader getXMLReader() throws IOException, XMLStreamException
     {
-        return null;
+        if (this.xmlReader == null)
+        {
+            this.xmlReader = this.xmlFactory.createXMLStreamReader(this.getReader());
+        }
+        return this.xmlReader;
     }
 
     @Override
     public Object getBody()
     {
-        return null;
+        return this.body;
     }
 
     @Override
     public void setBody(Object body)
     {
+        this.body = body;
     }
 
     @Override

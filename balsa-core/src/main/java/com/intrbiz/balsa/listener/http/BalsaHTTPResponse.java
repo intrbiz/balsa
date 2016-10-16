@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -286,8 +287,7 @@ public class BalsaHTTPResponse implements BalsaResponse
     @Override
     public List<String> getHeaders()
     {
-        // TODO
-        return new LinkedList<String>();
+        return this.headers.stream().map((e) -> e.getKey() + ": " + e.getValue()).collect(Collectors.toList());
     }
 
     @Override
@@ -304,7 +304,6 @@ public class BalsaHTTPResponse implements BalsaResponse
     @Override
     public BalsaResponse sendFile(String file) throws IOException
     {
-        // TODO
         throw new IOException("Not supported");
     }
 

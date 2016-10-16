@@ -1,9 +1,6 @@
 package com.intrbiz.balsa.listener.http;
 
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.handler.codec.http.FullHttpRequest;
-
+import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 
 import org.apache.log4j.Logger;
@@ -12,6 +9,10 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.listener.BalsaProcessor;
+
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.codec.http.FullHttpRequest;
 
 public class BalsaHTTPHandler extends ChannelInboundHandlerAdapter
 {
@@ -25,7 +26,7 @@ public class BalsaHTTPHandler extends ChannelInboundHandlerAdapter
     
     private XMLOutputFactory xmlOutFactory = XMLOutputFactory.newFactory();
     
-    // private XMLInputFactory xmlInFactory = XMLInputFactory.newFactory();
+    private XMLInputFactory xmlInFactory = XMLInputFactory.newFactory();
 
     public BalsaHTTPHandler(BalsaApplication app, BalsaProcessor proc)
     {
@@ -41,7 +42,7 @@ public class BalsaHTTPHandler extends ChannelInboundHandlerAdapter
             FullHttpRequest req = (FullHttpRequest) msg;
             // parse the request
             logger.trace("HTTP Request: " + req.getMethod() + " " + req.getUri());
-            BalsaHTTPRequest  breq = new BalsaHTTPRequest(ctx, req);
+            BalsaHTTPRequest  breq = new BalsaHTTPRequest(ctx, req, this.jsonFactory, this.xmlInFactory);
             BalsaHTTPResponse bres = new BalsaHTTPResponse(this.jsonFactory, this.xmlOutFactory);
             BalsaContext bctx = new BalsaContext(this.app, breq, bres);
             BalsaContext.set(bctx);

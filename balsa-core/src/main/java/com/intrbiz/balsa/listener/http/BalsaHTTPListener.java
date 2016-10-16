@@ -1,5 +1,12 @@
 package com.intrbiz.balsa.listener.http;
 
+import java.net.InetSocketAddress;
+
+import org.apache.log4j.Logger;
+
+import com.intrbiz.balsa.BalsaException;
+import com.intrbiz.balsa.listener.BalsaListener;
+
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -11,13 +18,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
-
-import java.net.InetSocketAddress;
-
-import org.apache.log4j.Logger;
-
-import com.intrbiz.balsa.BalsaException;
-import com.intrbiz.balsa.listener.BalsaListener;
 
 public class BalsaHTTPListener extends BalsaListener
 {
