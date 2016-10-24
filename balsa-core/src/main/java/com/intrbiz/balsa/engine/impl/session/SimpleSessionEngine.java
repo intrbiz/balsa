@@ -114,6 +114,7 @@ public class SimpleSessionEngine extends AbstractSessionEngine implements Runnab
         if ((System.currentTimeMillis() - this.idCounterMaskLastChanged) > (8 * 60 * 60 * 1000))
         {
             this.changeSessionMask();
+            this.idCounterMaskLastChanged = System.currentTimeMillis();
         }
     }
 
