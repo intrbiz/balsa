@@ -5,7 +5,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.xml.bind.JAXBException;
 
@@ -44,10 +43,6 @@ import com.intrbiz.validator.Validator;
 
 public class ExecBuilder
 {
-    private static final AtomicInteger ID_SEQ = new AtomicInteger();
-    
-    private final int id = ID_SEQ.incrementAndGet();
-    
     private Logger logger = Logger.getLogger(ExecBuilder.class);
     
     private int arity = 0;
@@ -75,11 +70,6 @@ public class ExecBuilder
     public ExecBuilder()
     {
         super();
-    }
-    
-    public int getId()
-    {
-        return this.id;
     }
 
     public int getArity()
@@ -343,9 +333,22 @@ public class ExecBuilder
         return this;
     }
     
+    private String getExecutorSignature()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.getArity());
+        for (Class<?> parameterType : this.handler.getParameterTypes())
+        {
+            sb.append(parameterType.getSimpleName().replaceAll("$", ""));
+        }
+        return sb.toString();
+    }
+    
     public ExecutorClass writeClass()
     {
-        ExecutorClass cls = new ExecutorClass("balsa.rt.executor." + this.router.getClass().getCanonicalName().toLowerCase(), this.handler.getName().substring(0, 1).toUpperCase() + this.handler.getName().substring(1) + this.getId() + "Executor", this.router.getClass().getCanonicalName(), this.router.getClass().getSimpleName());
+        String executorPackageName = "balsa.rt.executor." + this.router.getClass().getCanonicalName().toLowerCase();
+        String executorSimpleName  = this.handler.getName().substring(0, 1).toUpperCase() + this.handler.getName().substring(1) + this.getExecutorSignature() + "Executor";
+        ExecutorClass cls = new ExecutorClass(executorPackageName, executorSimpleName, this.router.getClass().getCanonicalName(), this.router.getClass().getSimpleName());
         //
         StringBuilder sb = cls.getExecutorLogic();
         //
