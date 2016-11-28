@@ -116,6 +116,7 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
                 s.append("\t\t" + route + "\r\n");
             }
         }
+        s.append("Total routes: " + this.totalRoutes);
         return s.toString();
     }
 
@@ -224,5 +225,22 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
         }
         // We cannot handle the error captain
         throw new BalsaInternalError(t);
+    }
+    
+    @Override
+    public void start() throws BalsaException
+    {
+        try
+        {
+            // start all the routers
+            for (Router<?> router : this.getRouters())
+            {
+                router.start();
+            }
+        }
+        catch (Exception e)
+        {
+            throw new BalsaException("Failed to start router", e);
+        }
     }
 }

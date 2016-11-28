@@ -207,10 +207,11 @@ public abstract class BalsaApplication
      * @param router
      *            returns void
      */
-    public void router(Router<?> router) throws BalsaException
+    public void router(Router<?> router) throws Exception
     {
         if (router != null)
         {
+            router.setup();
             this.getRoutingEngine().router(router);
         }
     }
@@ -583,11 +584,48 @@ public abstract class BalsaApplication
      */
 
     /**
-     * Setup the Balsa application
-     * 
+     * See:
+     * - setupEngines()
+     * - setupFunctions()
+     * - setupActions()
+     * - setupRouters()
      * @throws Exception
      */
-    protected abstract void setup() throws Exception;
+    protected void setup() throws Exception
+    {
+        // setup application engines
+        this.setupEngines();
+        // setup the application functions
+        this.setupFunctions();
+        // setup the application actions
+        this.setupActions();
+        // setup the application routers
+        this.setupRouters();
+    }
+    
+    /**
+     * Setup the application engines
+     * @throws Exception
+     */
+    protected abstract void setupEngines() throws Exception;
+    
+    /**
+     * Setup the application Express functions
+     * @throws Exception
+     */
+    protected abstract void setupFunctions() throws Exception;
+    
+    /**
+     * Setup the application actions
+     * @throws Exception
+     */
+    protected abstract void setupActions() throws Exception;
+    
+    /**
+     * Setup the application routers
+     * @throws Exception
+     */
+    protected abstract void setupRouters() throws Exception;
 
     /**
      * Start the Balsa application

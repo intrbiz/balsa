@@ -611,4 +611,20 @@ public abstract class Router<A extends BalsaApplication>
         if (o == null) throw new BalsaNotFound(message);
         return o;
     }
+    
+    // Lifecycle
+    
+    /**
+     * Setup this router
+     */
+    public void setup() throws Exception
+    { 
+    }
+    
+    /**
+     * Start this router
+     */
+    public void start() throws Exception
+    {
+    }
 }

@@ -1,6 +1,10 @@
 package com.intrbiz.balsa.test.session;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
@@ -10,7 +14,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.intrbiz.balsa.BalsaApplication;
-import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.SessionEngine;
 import com.intrbiz.balsa.engine.impl.session.SimpleSession;
 import com.intrbiz.balsa.engine.session.BalsaSession;
@@ -30,8 +33,23 @@ public class SessionTests
         this.application = new BalsaApplication()
         {
             @Override
-            protected void setup() throws BalsaException
+            protected void setupEngines() throws Exception
             {
+            }
+
+            @Override
+            protected void setupFunctions() throws Exception
+            {
+            }
+
+            @Override
+            protected void setupActions() throws Exception
+            {                
+            }
+
+            @Override
+            protected void setupRouters() throws Exception
+            {   
             }
         };
         this.sessionEngine = this.application.getSessionEngine();
