@@ -349,7 +349,9 @@ public class ExecBuilder
         String executorClassName = "balsa.rt.executor." + this.router.getClass().getCanonicalName().toLowerCase() + "." + this.handler.getName().substring(0, 1).toUpperCase() + this.handler.getName().substring(1) + this.getExecutorSignature() + "Executor";
         try
         {
-            return Class.forName(executorClassName);
+            Class<?> cls = Class.forName(executorClassName);
+            logger.info("Using precompiled executor: " + executorClassName);
+            return cls;
         }
         catch (ClassNotFoundException e)
         {

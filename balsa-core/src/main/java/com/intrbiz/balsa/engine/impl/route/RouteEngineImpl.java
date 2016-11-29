@@ -85,12 +85,15 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
             }
         }
         // print container
-        logger.debug(container.getPrefix());
-        for (RouteEntry routeHandler : container.getRoutes())
+        if (logger.isInfoEnabled())
         {
-            logger.debug("\t" + routeHandler.getRoute().getMethod() + " " + routeHandler.getRoute().getCompiledPattern() + " ==> " + routeHandler.getRoute().getHandler() + " order " + routeHandler.getRoute().computeOrder());
+            logger.info(container.getPrefix());
+            for (RouteEntry routeHandler : container.getRoutes())
+            {
+                logger.info("\t" + routeHandler.getRoute().getMethod() + " " + routeHandler.getRoute().getCompiledPattern() + " ==> " + routeHandler.getRoute().getHandler() + " order " + routeHandler.getRoute().computeOrder());
+            }
+            logger.info("Total routes: " + this.totalRoutes);
         }
-        logger.debug("Total routes: " + this.totalRoutes);
     }
 
     protected PrefixContainer createContainer(String prefix)
