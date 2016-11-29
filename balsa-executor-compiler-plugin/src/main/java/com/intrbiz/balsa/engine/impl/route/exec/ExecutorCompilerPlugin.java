@@ -93,6 +93,7 @@ public class ExecutorCompilerPlugin extends AbstractMojo
             }
             // set the compiler target directory
             System.getProperties().setProperty("intrbiz.runtime.target", this.getClassesDirectory().getAbsolutePath());
+            System.getProperties().setProperty("com.intrbiz.compiler.source", "true");
             // invoke the compiler
             try (URLClassLoader ucl = new URLClassLoader(urls.toArray(new URL[0])))
             {
