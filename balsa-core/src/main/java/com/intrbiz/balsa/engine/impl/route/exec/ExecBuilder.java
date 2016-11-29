@@ -344,6 +344,20 @@ public class ExecBuilder
         return sb.toString();
     }
     
+    private Class<?> loadPrecompiledExecutor()
+    {
+        String executorClassName = "balsa.rt.executor." + this.router.getClass().getCanonicalName().toLowerCase() + "." + this.handler.getName().substring(0, 1).toUpperCase() + this.handler.getName().substring(1) + this.getExecutorSignature() + "Executor";
+        try
+        {
+            return Class.forName(executorClassName);
+        }
+        catch (ClassNotFoundException e)
+        {
+            logger.info("Could not load precompiled executor: " + executorClassName);
+        }
+        return null;
+    }
+    
     public ExecutorClass writeClass()
     {
         String executorPackageName = "balsa.rt.executor." + this.router.getClass().getCanonicalName().toLowerCase();
@@ -438,9 +452,16 @@ public class ExecBuilder
     @SuppressWarnings("unchecked")
     public Class<RouteExecutor<?>> compile() throws Exception
     {
-        ExecutorClass cls = this.writeClass();
-        // Compile the class
-        return (Class<RouteExecutor<?>>) CompilerTool.getInstance().defineClass(cls.getCanonicalName(), cls.toString());
+        // check for a precompiled class
+        Class<?> compiled = this.loadPrecompiledExecutor();
+        if (compiled == null)
+        {
+            // generate the class
+            ExecutorClass cls = this.writeClass();
+            // Compile the class
+            compiled = CompilerTool.getInstance().defineClass(cls.getCanonicalName(), cls.toString());
+        }
+        return (Class<RouteExecutor<?>>) compiled;
     }
 
     public RouteExecutor<?> executor() throws Exception
