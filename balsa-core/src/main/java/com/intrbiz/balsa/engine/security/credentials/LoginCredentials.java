@@ -1,4 +1,4 @@
-package com.intrbiz.balsa.engine.security;
+package com.intrbiz.balsa.engine.security.credentials;
 
 /**
  * Credentials which pair a principal name (username) with some form of secret

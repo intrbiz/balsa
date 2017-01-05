@@ -1,8 +1,12 @@
 package com.intrbiz.balsa.engine;
 
 import java.security.Principal;
+import java.util.Collection;
 
-import com.intrbiz.balsa.engine.security.Credentials;
+import com.intrbiz.balsa.engine.security.AuthenticationResponse;
+import com.intrbiz.balsa.engine.security.AuthenticationState;
+import com.intrbiz.balsa.engine.security.credentials.Credentials;
+import com.intrbiz.balsa.engine.security.method.AuthenticationMethod;
 import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.crypto.SecretKey;
 import com.intrbiz.crypto.cookie.CryptoCookie;
@@ -12,6 +16,28 @@ import com.intrbiz.crypto.cookie.CryptoCookie;
  */
 public interface SecurityEngine extends BalsaEngine
 {   
+    /**
+     * Get the authentication methods registered with this security engine
+     */
+    Collection<AuthenticationMethod<?>> authenticationMethods();
+    
+    /**
+     * Get a specific authentication method
+     */
+    <T extends AuthenticationMethod<?>> T getAuthenticationMethod(String name);
+    
+    /**
+     * Register an authentication method with this security engine
+     * @param method the method to support
+     */
+    SecurityEngine registerAuthenticationMethod(AuthenticationMethod<?> method);
+    
+    /**
+     * Is the named authentication method registered with this security engine
+     * @param name the authentication method name
+     */
+    boolean isAuthenticationMethodRegistered(String name);
+    
     /**
      * The level of validation that is to be applied 
      * when checking if a Principal is valid.
@@ -43,12 +69,30 @@ public interface SecurityEngine extends BalsaEngine
     Principal defaultPrincipal();
     
     /**
-     * Authenticate a principal using the given credentials
+     * Authenticate a principal using the given credentials for this life of this request only.  Implementations should be careful to require no state
+     * @param state the current authentication state
      * @param credentials the credentials to authenticate with
-     * @return the authenticated principal
+     * @return the authentication response
      * @throws BalsaSecurityException if the principal does not exist or could not be authenticated
      */
-    Principal authenticate(Credentials credentials) throws BalsaSecurityException;
+    Principal authenticateRequest(Credentials credentials) throws BalsaSecurityException;
+    
+    /**
+     * Authenticate a principal using the given credentials
+     * @param state the current authentication state
+     * @param credentials the credentials to authenticate with
+     * @return the authentication response
+     * @throws BalsaSecurityException if the principal does not exist or could not be authenticated
+     */
+    AuthenticationResponse authenticate(AuthenticationState state, Credentials credentials) throws BalsaSecurityException;
+    
+    /**
+     * Verify the given credentials are valid for the currently authenticated principal
+     * @param state the current authentication state
+     * @param credentials the credentials for the principal
+     * @throws BalsaSecurityException should the given credentials not be valid for the current principal
+     */
+    void verify(AuthenticationState state, Credentials credentials) throws BalsaSecurityException;
     
     /**
      * Check that the given principal has the given permissions
@@ -178,4 +222,11 @@ public interface SecurityEngine extends BalsaEngine
      * @return
      */
     boolean validAccessForURL(String url, String token);
+    
+    /**
+     * Is two factor authentication required for the given principal
+     * @param principal the principal which has been authenticated
+     * @return yes or no
+     */
+    boolean isTwoFactorAuthenticationRequiredForPrincipal(Principal principal);
 }

@@ -1,7 +1,6 @@
 package com.intrbiz.balsa.engine.impl.session;
 
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 
 import org.apache.log4j.Logger;
 
@@ -132,12 +131,12 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
         }
     }
 
-    ConcurrentMap<String, HazelcastSession> getSessionMap()
+    IMap<String, HazelcastSession> getSessionMap()
     {
         return this.sessionMap;
     }
 
-    ConcurrentMap<String, Object> getAttributeMap()
+    IMap<String, Object> getAttributeMap()
     {
         return this.attributeMap;
     }

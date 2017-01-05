@@ -1,4 +1,4 @@
-package com.intrbiz.balsa.engine.security;
+package com.intrbiz.balsa.engine.security.credentials;
 
 /**
  * Authenticate using some kind of token (SSO)

@@ -4,12 +4,17 @@ import static com.intrbiz.balsa.BalsaContext.*;
 
 import java.io.Serializable;
 import java.security.Principal;
-import java.util.concurrent.ConcurrentMap;
+import java.util.Map;
 
+import com.hazelcast.core.IMap;
+import com.intrbiz.balsa.engine.security.AuthenticationResponse;
+import com.intrbiz.balsa.engine.security.AuthenticationState;
+import com.intrbiz.balsa.engine.security.challenge.AuthenticationChallenge;
+import com.intrbiz.balsa.engine.security.info.AuthenticationInfo;
 import com.intrbiz.balsa.engine.session.BalsaSession;
 import com.intrbiz.balsa.error.BalsaInternalError;
 
-public class HazelcastSession implements BalsaSession, Serializable
+public class HazelcastSession implements BalsaSession, AuthenticationState, Serializable
 {
     private static final long serialVersionUID = 1L;
 
@@ -43,11 +48,36 @@ public class HazelcastSession implements BalsaSession, Serializable
     }
 
     @Override
-    public <T extends Principal> T currentPrincipal(T principal)
+    public AuthenticationState authenticationState()
     {
-        if (principal == null) this.getAttributeMap().remove(this.principalId());
-        else this.getAttributeMap().put(this.principalId(), principal);
-        return principal;
+        return this;
+    }
+
+    @Override
+    public long authenticationStartedAt()
+    {
+        Long startedAt = (Long) this.getAttributeMap().get(this.authenticationStartedAtId());
+        return startedAt == null ? -1L : startedAt.longValue();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends Principal> T authenticatingPrincipal()
+    {
+        return (T) this.getAttributeMap().get(this.authenticatingPrincipalId());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Map<String, AuthenticationChallenge> challenges()
+    {
+        return (Map<String, AuthenticationChallenge>) this.getAttributeMap().get(this.authenticationChallengesId());
+    }
+
+    @Override
+    public AuthenticationInfo info()
+    {
+        return (AuthenticationInfo) this.getAttributeMap().get(this.authenticationInfoId());
     }
 
     @Override
@@ -55,6 +85,42 @@ public class HazelcastSession implements BalsaSession, Serializable
     public <T extends Principal> T currentPrincipal()
     {
         return (T) this.getAttributeMap().get(this.principalId());
+    }
+
+    @Override
+    public AuthenticationResponse update(AuthenticationResponse response)
+    {
+        if (response == null) throw new IllegalArgumentException("Response cannot be null");
+        IMap<String, Object> attrs = this.getAttributeMap();
+        if (response.isComplete())
+        {
+            attrs.remove(this.authenticationChallengesId());
+            attrs.remove(this.authenticatingPrincipalId());
+            attrs.remove(this.authenticationStartedAtId());
+            attrs.put(this.authenticationInfoId(), HazelcastAuthenticationInfo.wrap(response.getInfo()));
+            attrs.put(this.principalId(), response.getPrincipal());
+        }
+        else
+        {
+            attrs.remove(this.principalId());
+            attrs.remove(this.authenticationInfoId());
+            attrs.put(this.authenticationChallengesId(), response.getChallenges());
+            attrs.put(this.authenticatingPrincipalId(), response.getPrincipal());
+            attrs.put(this.authenticationStartedAtId(), new Long(System.currentTimeMillis()));
+        }
+        return response;
+    }
+
+    @Override
+    public AuthenticationState reset()
+    {
+        IMap<String, Object> attrs = this.getAttributeMap();
+        attrs.remove(this.principalId());
+        attrs.remove(this.authenticatingPrincipalId());
+        attrs.remove(this.authenticationStartedAtId());
+        attrs.remove(this.authenticationInfoId());
+        attrs.remove(this.authenticationChallengesId());
+        return this;
     }
 
     @Override
@@ -156,7 +222,27 @@ public class HazelcastSession implements BalsaSession, Serializable
         return this.id() + ".principal";
     }
     
-    protected ConcurrentMap<String, Object> getAttributeMap()
+    protected String authenticatingPrincipalId()
+    {
+        return this.id() + ".authentication.principal";
+    }
+    
+    protected String authenticationStartedAtId()
+    {
+        return this.id() + ".authentication.started.at";
+    }
+    
+    protected String authenticationInfoId()
+    {
+        return this.id() + ".authentication.info";
+    }
+    
+    protected String authenticationChallengesId()
+    {
+        return this.id() + ".authentication.challenges";
+    }
+    
+    protected IMap<String, Object> getAttributeMap()
     {
         return ((HazelcastSessionEngine) Balsa().app().getSessionEngine()).getAttributeMap();
     }

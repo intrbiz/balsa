@@ -16,8 +16,11 @@ import org.apache.log4j.Logger;
 
 import com.intrbiz.balsa.bean.BeanProvider;
 import com.intrbiz.balsa.engine.SecurityEngine.ValidationLevel;
-import com.intrbiz.balsa.engine.security.Credentials;
-import com.intrbiz.balsa.engine.security.PasswordCredentials;
+import com.intrbiz.balsa.engine.security.AuthenticationResponse;
+import com.intrbiz.balsa.engine.security.AuthenticationState;
+import com.intrbiz.balsa.engine.security.credentials.Credentials;
+import com.intrbiz.balsa.engine.security.credentials.PasswordCredentials;
+import com.intrbiz.balsa.engine.security.info.AuthenticationInfo;
 import com.intrbiz.balsa.engine.session.BalsaSession;
 import com.intrbiz.balsa.engine.task.BalsaTaskState;
 import com.intrbiz.balsa.engine.task.DeferredActionTask;
@@ -86,7 +89,8 @@ public class BalsaContext
             @Override
             public Object getEntity(String name, Object source)
             {
-                if ("balsa".equals(name)) return this;
+                if ("balsa".equals(name)) return BalsaContext.this;
+                if ("currentPrincipal".equals(name)) return BalsaContext.this.currentPrincipal();
                 Object value = BalsaContext.this.getEntity(name);
                 if (value != null) return value;
                 // next session
@@ -772,6 +776,46 @@ public class BalsaContext
     {
         if (!constraint) throw securityException;
     }
+    
+    /**
+     * No authentication is currently happening or has not happened
+     */
+    public boolean notAuthenticated()
+    {
+        return this.session().authenticationState().isNotAuthenticated();
+    }
+    
+    /**
+     * Authentication is currently in progress
+     */
+    public boolean authenticating()
+    {
+        return this.session().authenticationState().isAuthenticating();
+    }
+    
+    /**
+     * Do we have an authenticated principal
+     */
+    public boolean authenticated()
+    {
+        return this.session().authenticationState().isAuthenticated();
+    }
+    
+    /**
+     * Get the authentication state for this current session
+     */
+    public AuthenticationState authenticationState()
+    {
+        return this.session().authenticationState();
+    }
+    
+    /**
+     * Get the authentication info for this current session
+     */
+    public AuthenticationInfo authenticationInfo()
+    {
+        return this.session().authenticationState().info();
+    }
 
     /**
      * Check that the current principal is valid
@@ -804,7 +848,7 @@ public class BalsaContext
     @SuppressWarnings("unchecked")
     public <T extends Principal> T currentPrincipal()
     {
-        return this.currentPrincipal != null ? (T) this.currentPrincipal : this.session().currentPrincipal();
+        return this.currentPrincipal != null ? (T) this.currentPrincipal : this.session().authenticationState().currentPrincipal();
     }
 
     /**
@@ -813,33 +857,53 @@ public class BalsaContext
     public void deauthenticate()
     {
         this.currentPrincipal = null;
-        if (this.session != null) this.session.currentPrincipal(null);
+        if (this.session != null) this.session.authenticationState().reset();
+    }
+    
+    /**
+     * Verify the given credentials are valid for the currently authenticated principal
+     * @throws BalsaSecurityException should there be any issues verifying the credentials for the currently authenticated principal
+     */
+    public void verify(Credentials credentials) throws BalsaSecurityException
+    {
+        this.app().getSecurityEngine().verify(this.session().authenticationState(), credentials);
+    }
+    
+    /**
+     * Start the authentication process.  The response will specify if
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
+     */
+    public AuthenticationResponse authenticate(Credentials credentials) throws BalsaSecurityException
+    {
+        // use the security engine to authenticate the user
+        AuthenticationResponse response = this.app().getSecurityEngine().authenticate(this.session().authenticationState(), credentials);
+        // update the authentication state
+        return this.session().authenticationState().update(response);
     }
 
     /**
-     * Authenticate for the life of this session, this method 
-     * will always return with a valid, authenticated user.
+     * Authenticate for the life of this session, using a single factor authentication. 
+     * This method will always return with a valid, authenticated user.
      * @throws BalsaSecurityException should there be any issues authenticating the user.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Principal> T authenticate(Credentials credentials) throws BalsaSecurityException
+    public <T extends Principal> T authenticateSingleFactor(Credentials credentials) throws BalsaSecurityException
     {
         // use the security engine to authenticate the user
-        Principal principal = this.app().getSecurityEngine().authenticate(credentials);
-        if (principal == null) throw new BalsaSecurityException("Failed to authenticate user");
-        // store the principal
-        this.session().currentPrincipal(principal);
-        return (T) principal;
+        AuthenticationResponse response = this.app().getSecurityEngine().authenticate(this.session().authenticationState(), credentials);
+        if (! response.isComplete()) throw new BalsaSecurityException("Failed to authenticate user using single factor");
+        // update the authentication state
+        return (T) this.session().authenticationState().update(response).getPrincipal();
     }
 
     /**
-     * Authenticate for the life of this session, this method 
-     * will always return with a valid, authenticated user.
+     * Authenticate for the life of this session, using single factor authentication.  
+     * This method will always return with a valid, authenticated user.
      * @throws BalsaSecurityException should there be any issues authenticating the user.
      */
     public <T extends Principal> T authenticate(String username, String password) throws BalsaSecurityException
     {
-        return this.authenticate(new PasswordCredentials.Simple(username, password));
+        return this.authenticateSingleFactor(new PasswordCredentials.Simple(username, password));
     }
     
     /**
@@ -851,7 +915,7 @@ public class BalsaContext
     public <T extends Principal> T authenticateRequest(Credentials credentials) throws BalsaSecurityException
     {
         // use the security engine to authenticate the user
-        Principal principal = this.app().getSecurityEngine().authenticate(credentials);
+        Principal principal = this.app().getSecurityEngine().authenticateRequest(credentials);
         if (principal == null) throw new BalsaSecurityException("Failed to authenticate user");
         // store the principal
         this.currentPrincipal = principal;
@@ -889,7 +953,24 @@ public class BalsaContext
      * Try to authenticate for the life of this session, should 
      * authentication not be possible then null is returned, exceptions are thrown.
      */
-    public <T extends Principal> T tryAuthenticate(Credentials credentials)
+    public <T extends Principal> T tryAuthenticateSingleFactor(Credentials credentials)
+    {
+        try 
+        {
+            return this.authenticateSingleFactor(credentials);
+        }
+        catch (BalsaSecurityException e)
+        {
+            // ignore
+        }
+        return null;
+    }
+    
+    /**
+     * Try to authenticate for the life of this session, should 
+     * authentication not be possible then null is returned, exceptions are thrown.
+     */
+    public AuthenticationResponse tryAuthenticate(Credentials credentials)
     {
         try 
         {

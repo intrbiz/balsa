@@ -5,7 +5,7 @@
 	
 	<groupId>com.intrbiz.balsa</groupId>
 	<artifactId>balsa</artifactId>
-	<version>4.3.0-SNAPSHOT</version>
+	<version>5.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	
 	<name>Balsa Web Framework</name>
@@ -165,6 +165,16 @@
                 <artifactId>maven-project</artifactId>
                 <version>2.0.11</version>
             </dependency>
+            <dependency>
+            	<groupId>com.yubico</groupId>
+            	<artifactId>u2flib-server-core</artifactId>
+            	<version>0.16.0</version>
+            </dependency>
+            <dependency>
+            	<groupId>com.yubico</groupId>
+            	<artifactId>u2flib-server-attestation</artifactId>
+            	<version>0.16.0</version>
+            </dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -222,6 +232,7 @@
     <module>balsa-test</module>
     <module>balsa-hazelcast</module>
     <module>balsa-executor-compiler-plugin</module>
+    <module>balsa-2fa</module>
   </modules>
 
 	<repositories>

@@ -1,4 +1,4 @@
-package com.intrbiz.balsa.engine.security;
+package com.intrbiz.balsa.engine.security.credentials;
 
 import com.intrbiz.crypto.cookie.CryptoCookie;
 

@@ -1,11 +1,11 @@
 package com.intrbiz.balsa.engine.impl.session;
 
-import java.security.Principal;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import com.codahale.metrics.Timer;
 import com.intrbiz.balsa.BalsaApplication;
+import com.intrbiz.balsa.engine.security.AuthenticationState;
 import com.intrbiz.balsa.engine.session.BalsaSession;
 
 public class SimpleSession implements BalsaSession
@@ -20,7 +20,7 @@ public class SimpleSession implements BalsaSession
     
     private final Timer.Context timer;
     
-    protected Principal currentPrincipal;
+    private final SimpleAuthenticationState authenticationState;
 
     protected String id;
 
@@ -33,6 +33,7 @@ public class SimpleSession implements BalsaSession
         this.timer = timer;
         this.vars = new ConcurrentHashMap<String, Object>(20, 0.75F, Runtime.getRuntime().availableProcessors());
         this.model = new ConcurrentHashMap<String, Object>(20, 0.75F, Runtime.getRuntime().availableProcessors());
+        this.authenticationState = new SimpleAuthenticationState();
     }
     
     @Override
@@ -40,21 +41,13 @@ public class SimpleSession implements BalsaSession
     {
         return this.id;
     }
-
-    @Override
-    public <T extends Principal> T currentPrincipal(T principal)
-    {
-        this.currentPrincipal = principal;
-        return principal;
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T extends Principal> T currentPrincipal()
-    {
-        return (T) this.currentPrincipal;
-    }
     
+    @Override
+    public AuthenticationState authenticationState()
+    {
+        return this.authenticationState;
+    }
+
     @Override
     public Object getEntity(String name)
     {

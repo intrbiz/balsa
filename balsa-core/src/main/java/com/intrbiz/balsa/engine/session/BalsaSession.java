@@ -1,7 +1,6 @@
 package com.intrbiz.balsa.engine.session;
 
-import java.security.Principal;
-
+import com.intrbiz.balsa.engine.security.AuthenticationState;
 import com.intrbiz.balsa.engine.task.BalsaTaskState;
 
 public interface BalsaSession
@@ -111,18 +110,7 @@ public interface BalsaSession
     // security stuff
     
     /**
-     * Get the currently authenticated principal for this session
-     * @return
+     * Get the authentication state for this session
      */
-    <T extends Principal> T currentPrincipal();
-    
-    /**
-     * Store the currently authenticated principal
-     * 
-     * Note: This should only be called by BalsaContext.authenticate().
-     * If your using this method directly, your doing it wrong.
-     * 
-     * @param principal
-     */
-    <T extends Principal> T currentPrincipal(T principal);
+    AuthenticationState authenticationState();
 }

@@ -33,6 +33,7 @@ import com.intrbiz.balsa.engine.impl.task.TaskEngineImpl;
 import com.intrbiz.balsa.engine.impl.view.BalsaViewEngineImpl;
 import com.intrbiz.balsa.engine.impl.view.FileViewSource;
 import com.intrbiz.balsa.engine.route.Router;
+import com.intrbiz.balsa.engine.security.method.AuthenticationMethod;
 import com.intrbiz.balsa.express.BalsaFunction;
 import com.intrbiz.balsa.express.PathFunction;
 import com.intrbiz.balsa.express.PathInfoFunction;
@@ -318,6 +319,21 @@ public abstract class BalsaApplication
     {
         this.securityEngine = securityEngine;
         if (securityEngine != null) securityEngine.setBalsaApplication(this);
+    }
+    
+    /**
+     * Get the named authentication method
+     */
+    public <T extends AuthenticationMethod<?>> T getAuthenticationMethod(String name)
+    {
+        return this.getSecurityEngine().getAuthenticationMethod(name);
+    }
+    
+    public void authenticationMethod(AuthenticationMethod<?> authenticationMethod)
+    {
+        if (this.securityEngine == null)
+            throw new IllegalStateException("Cannot register authentication method as no security engine is currently setup");
+        this.securityEngine.registerAuthenticationMethod(authenticationMethod);
     }
     
     /**

@@ -14,7 +14,10 @@ import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.SecurityEngine.ValidationLevel;
-import com.intrbiz.balsa.engine.security.Credentials;
+import com.intrbiz.balsa.engine.security.AuthenticationResponse;
+import com.intrbiz.balsa.engine.security.AuthenticationState;
+import com.intrbiz.balsa.engine.security.credentials.Credentials;
+import com.intrbiz.balsa.engine.security.info.AuthenticationInfo;
 import com.intrbiz.balsa.engine.task.BalsaTaskState;
 import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.intrbiz.balsa.error.http.BalsaNotFound;
@@ -326,6 +329,22 @@ public abstract class Router<A extends BalsaApplication>
         return Balsa().principal();
     }
     
+    /**
+     * Get the authentication state for this current session
+     */
+    public AuthenticationState authenticationState()
+    {
+        return Balsa().authenticationState();
+    }
+    
+    /**
+     * Get the authentication info for this current session
+     */
+    public AuthenticationInfo authenticationInfo()
+    {
+        return Balsa().authenticationInfo();
+    }
+    
     @SuppressWarnings("unchecked")
     protected final <T extends Principal> T currentPrincipal()
     {
@@ -348,11 +367,20 @@ public abstract class Router<A extends BalsaApplication>
     }
     
     /**
-     * Authenticate for the life of this session, this method 
-     * will always return with a valid, authenticated user.
+     * Authenticate for the life of this session, using a single factor authentication. 
+     * This method will always return with a valid, authenticated user.
      * @throws BalsaSecurityException should there be any issues authenticating the user.
      */
-    protected <T extends Principal> T authenticate(Credentials credentials)
+    protected <T extends Principal> T authenticateSingleFactor(Credentials credentials)
+    {
+        return Balsa().authenticateSingleFactor(credentials);
+    }
+    
+    /**
+     * Start the authentication process.  The response will specify if
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
+     */
+    public AuthenticationResponse authenticate(Credentials credentials) throws BalsaSecurityException
     {
         return Balsa().authenticate(credentials);
     }
@@ -390,7 +418,16 @@ public abstract class Router<A extends BalsaApplication>
      * Try to authenticate for the life of this session, should 
      * authentication not be possible then null is returned, exceptions are thrown.
      */
-    protected <T extends Principal> T tryAuthenticate(Credentials credentials)
+    protected <T extends Principal> T tryAuthenticateSingleFactor(Credentials credentials)
+    {
+        return Balsa().tryAuthenticateSingleFactor(credentials);
+    }
+    
+    /**
+     * Try to authenticate for the life of this session, should 
+     * authentication not be possible then null is returned, exceptions are thrown.
+     */
+    protected AuthenticationResponse tryAuthenticate(Credentials credentials)
     {
         return Balsa().tryAuthenticate(credentials);
     }
@@ -468,6 +505,30 @@ public abstract class Router<A extends BalsaApplication>
             if (permission(permission, object)) ret.add(object);
         }
         return ret;
+    }
+    
+    /**
+     * No authentication is currently happening or has not happened
+     */
+    public boolean notAuthenticated()
+    {
+        return Balsa().notAuthenticated();
+    }
+    
+    /**
+     * Authentication is currently in progress
+     */
+    public boolean authenticating()
+    {
+        return Balsa().authenticating();
+    }
+    
+    /**
+     * Do we have an authenticated principal
+     */
+    public boolean authenticated()
+    {
+        return Balsa().authenticated();
     }
     
     /**

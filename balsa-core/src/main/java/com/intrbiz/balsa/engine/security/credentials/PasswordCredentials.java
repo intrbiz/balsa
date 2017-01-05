@@ -1,4 +1,4 @@
-package com.intrbiz.balsa.engine.security;
+package com.intrbiz.balsa.engine.security.credentials;
 
 /**
  * A pairing of principal name (username) and a password
