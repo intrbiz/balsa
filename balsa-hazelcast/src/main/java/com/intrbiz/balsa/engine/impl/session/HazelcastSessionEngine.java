@@ -88,7 +88,7 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
                     sessionMapConfig.setMaxIdleSeconds(this.getSessionLifetime() * 60);
                     sessionMapConfig.setEvictionPolicy(EvictionPolicy.LRU);
                     // default to storing objects, as with sticky balancing 
-                    // requests to tend to the same server
+                    // requests tend to the same server
                     sessionMapConfig.setInMemoryFormat(InMemoryFormat.OBJECT);
                     this.hazelcastConfig.addMapConfig(sessionMapConfig);
                 }

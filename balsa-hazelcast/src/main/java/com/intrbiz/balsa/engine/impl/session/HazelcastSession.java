@@ -1,12 +1,11 @@
 package com.intrbiz.balsa.engine.impl.session;
 
-import static com.intrbiz.balsa.BalsaContext.*;
-
 import java.io.Serializable;
 import java.security.Principal;
 import java.util.Map;
 
 import com.hazelcast.core.IMap;
+import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.engine.security.AuthenticationResponse;
 import com.intrbiz.balsa.engine.security.AuthenticationState;
 import com.intrbiz.balsa.engine.security.challenge.AuthenticationChallenge;
@@ -244,6 +243,8 @@ public class HazelcastSession implements BalsaSession, AuthenticationState, Seri
     
     protected IMap<String, Object> getAttributeMap()
     {
-        return ((HazelcastSessionEngine) Balsa().app().getSessionEngine()).getAttributeMap();
+        BalsaApplication app = BalsaApplication.getInstance();
+        if (app == null) throw new RuntimeException("Failed to load BalsaApplication, cannot find session");
+        return ((HazelcastSessionEngine) app.getSessionEngine()).getAttributeMap();
     }
 }
