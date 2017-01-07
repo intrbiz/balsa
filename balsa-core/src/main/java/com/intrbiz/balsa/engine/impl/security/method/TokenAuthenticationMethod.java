@@ -30,7 +30,7 @@ public class TokenAuthenticationMethod extends BaseAuthenticationMethod<GenericA
     
     public TokenAuthenticationMethod()
     {
-        super(GenericAuthenticationToken.class, AuthenticationMethod.NAMES.TOKEN);
+        super(GenericAuthenticationToken.class, AuthenticationMethod.TOKEN);
     }
     
     @Override

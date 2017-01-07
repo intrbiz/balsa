@@ -30,7 +30,7 @@ public class PasswordAuthenticationMethod extends BaseAuthenticationMethod<Passw
     
     public PasswordAuthenticationMethod()
     {
-        super(PasswordCredentials.class, AuthenticationMethod.NAMES.PASSWORD);
+        super(PasswordCredentials.class, AuthenticationMethod.PASSWORD);
     }
     
     @Override

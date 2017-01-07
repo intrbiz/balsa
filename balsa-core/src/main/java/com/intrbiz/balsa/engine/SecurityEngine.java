@@ -2,9 +2,11 @@ package com.intrbiz.balsa.engine;
 
 import java.security.Principal;
 import java.util.Collection;
+import java.util.Map;
 
 import com.intrbiz.balsa.engine.security.AuthenticationResponse;
 import com.intrbiz.balsa.engine.security.AuthenticationState;
+import com.intrbiz.balsa.engine.security.challenge.AuthenticationChallenge;
 import com.intrbiz.balsa.engine.security.credentials.Credentials;
 import com.intrbiz.balsa.engine.security.method.AuthenticationMethod;
 import com.intrbiz.balsa.error.BalsaSecurityException;
@@ -93,6 +95,13 @@ public interface SecurityEngine extends BalsaEngine
      * @throws BalsaSecurityException should the given credentials not be valid for the current principal
      */
     void verify(AuthenticationState state, Credentials credentials) throws BalsaSecurityException;
+    
+    /**
+     * Generate a set of challenges which are needed to authenticate the given 
+     * principal via certain authentication methods.  This is a map of the 
+     * authentication method name to challenge
+     */
+    public Map<String, AuthenticationChallenge> generateAuthenticationChallenges(Principal principal);
     
     /**
      * Check that the given principal has the given permissions

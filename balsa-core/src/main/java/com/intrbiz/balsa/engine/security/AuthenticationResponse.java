@@ -56,7 +56,7 @@ public class AuthenticationResponse
     }
 
     /**
-     * The security engine specific authentication information
+     * Detailed information about the authentication methods which were performed
      */
     public AuthenticationInfo getInfo()
     {
@@ -64,7 +64,9 @@ public class AuthenticationResponse
     }
 
     /**
-     * The security engine specific authentication challenge required for second factor authentication
+     * The set of challenges which are needed for the next 
+     * authentication method to continue.  This is a map of 
+     * the authentication method name to challenge
      */
     public Map<String, AuthenticationChallenge> getChallenges()
     {

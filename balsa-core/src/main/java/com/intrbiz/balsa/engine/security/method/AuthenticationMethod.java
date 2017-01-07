@@ -14,18 +14,15 @@ import com.intrbiz.balsa.error.BalsaSecurityException;
  */
 public interface AuthenticationMethod<T extends Credentials>
 {
-    public static final class NAMES
-    {
-        public static final String PASSWORD = "password";
-        
-        public static final String TOKEN = "token";
-        
-        public static final String BACKUP_CODE = "backup_code";
-        
-        public static final String HOTP = "hotp";
-        
-        public static final String U2F = "u2f";
-    }
+    static final String PASSWORD = "password";
+    
+    static final String TOKEN = "token";
+    
+    static final String BACKUP_CODE = "backup_code";
+    
+    static final String HOTP = "hotp";
+    
+    static final String U2F = "u2f";
     
     /**
      * The name of this authentication method: eg: password, token, u2f, backup_code, etc

@@ -257,7 +257,8 @@ public abstract class BaseSecurityEngine extends AbstractBalsaEngine implements 
         throw new BalsaSecurityException("No authentication method could be found");
     }
     
-    protected Map<String, AuthenticationChallenge> generateAuthenticationChallenges(Principal principal) throws BalsaSecurityException
+    @Override
+    public Map<String, AuthenticationChallenge> generateAuthenticationChallenges(Principal principal) throws BalsaSecurityException
     {
         Map<String, AuthenticationChallenge> challenges = new HashMap<String, AuthenticationChallenge>();
         for (AuthenticationMethod<?> authMeth : this.authenticationMethods.values())

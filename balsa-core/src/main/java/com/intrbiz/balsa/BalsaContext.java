@@ -18,6 +18,7 @@ import com.intrbiz.balsa.bean.BeanProvider;
 import com.intrbiz.balsa.engine.SecurityEngine.ValidationLevel;
 import com.intrbiz.balsa.engine.security.AuthenticationResponse;
 import com.intrbiz.balsa.engine.security.AuthenticationState;
+import com.intrbiz.balsa.engine.security.challenge.AuthenticationChallenge;
 import com.intrbiz.balsa.engine.security.credentials.Credentials;
 import com.intrbiz.balsa.engine.security.credentials.PasswordCredentials;
 import com.intrbiz.balsa.engine.security.info.AuthenticationInfo;
@@ -867,6 +868,27 @@ public class BalsaContext
     public void verify(Credentials credentials) throws BalsaSecurityException
     {
         this.app().getSecurityEngine().verify(this.session().authenticationState(), credentials);
+    }
+    
+    /**
+     * Generate a set of authentication challenges for the currently authenticating principal. 
+     * This is a map of the authentication method name to challenge.
+     */
+    public Map<String, AuthenticationChallenge> generateAuthenticationChallenges()
+    {
+        Principal principal = this.session().authenticationState().authenticatingPrincipal();
+        if (principal == null) throw new BalsaException("There is no principal which is currently authenticating, cannot generate authentication challenges");
+        return this.app().getSecurityEngine().generateAuthenticationChallenges(principal);
+    }
+    
+    /**
+     * Generate a set of challenges which are needed to authenticate the given 
+     * principal via certain authentication methods.  This is a map of the 
+     * authentication method name to challenge.
+     */
+    public Map<String, AuthenticationChallenge> generateAuthenticationChallenges(Principal principal)
+    {
+        return this.app().getSecurityEngine().generateAuthenticationChallenges(principal);
     }
     
     /**

@@ -22,6 +22,6 @@ public interface AuthenticationInfo
     
     default boolean isBackupCodeUsed()
     {
-        return AuthenticationMethod.NAMES.BACKUP_CODE.equals(this.secondaryAuthenticationMethodName());
+        return AuthenticationMethod.BACKUP_CODE.equals(this.secondaryAuthenticationMethodName());
     }
 }
