@@ -20,7 +20,7 @@ public class BackupCodeAuthenticationMethod extends BaseAuthenticationMethod<Bac
     
     public BackupCodeAuthenticationMethod()
     {
-        super(BackupCodeCredentials.class, AuthenticationMethod.NAMES.BACKUP_CODE);
+        super(BackupCodeCredentials.class, AuthenticationMethod.BACKUP_CODE);
     }
     
     @Override

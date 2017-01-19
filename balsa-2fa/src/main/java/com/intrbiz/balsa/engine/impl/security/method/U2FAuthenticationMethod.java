@@ -18,6 +18,7 @@ import com.intrbiz.balsa.engine.security.method.AuthenticatedPrincipal;
 import com.intrbiz.balsa.engine.security.method.AuthenticationMethod;
 import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.yubico.u2f.U2F;
+import com.yubico.u2f.attestation.MetadataService;
 import com.yubico.u2f.data.DeviceRegistration;
 import com.yubico.u2f.data.messages.AuthenticateRequestData;
 import com.yubico.u2f.exceptions.DeviceCompromisedException;
@@ -31,11 +32,13 @@ public class U2FAuthenticationMethod extends BaseAuthenticationMethod<U2FAuthent
 {
     protected final U2F u2f = new U2F();
     
+    protected final MetadataService u2fMetadata = new MetadataService();
+    
     protected U2FSecurityEngine securityEngine;
     
     public U2FAuthenticationMethod()
     {
-        super(U2FAuthenticationChallengeResponse.class, AuthenticationMethod.NAMES.U2F);
+        super(U2FAuthenticationChallengeResponse.class, AuthenticationMethod.U2F);
     }
     
     @Override
@@ -116,5 +119,15 @@ public class U2FAuthenticationMethod extends BaseAuthenticationMethod<U2FAuthent
     protected Object createAuthenticationInfoDetail(Principal principal, DeviceRegistration u2fDevice) throws BalsaSecurityException
     {
         return new U2FAuthenticationDetail(u2fDevice);
+    }
+    
+    public U2F getU2F()
+    {
+        return this.u2f;
+    }
+    
+    public MetadataService getU2FMetadataService()
+    {
+        return this.u2fMetadata;
     }
 }

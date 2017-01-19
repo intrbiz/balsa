@@ -26,7 +26,7 @@ public class HOTPAuthenticationMethod extends BaseAuthenticationMethod<HOTPCrede
     
     public HOTPAuthenticationMethod()
     {
-        super(HOTPCredentials.class, AuthenticationMethod.NAMES.HOTP);
+        super(HOTPCredentials.class, AuthenticationMethod.HOTP);
     }
     
     @Override
@@ -71,5 +71,10 @@ public class HOTPAuthenticationMethod extends BaseAuthenticationMethod<HOTPCrede
     protected Object createAuthenticationInfoDetail(Principal principal, HOTPRegistration hotp) throws BalsaSecurityException
     {
         return new HOTPAuthenticationDetail(hotp);
+    }
+    
+    public CounterHOTP getHOTP()
+    {
+        return this.hotp;
     }
 }

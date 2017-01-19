@@ -24,5 +24,17 @@
 			<groupId>com.intrbiz.core</groupId>
 			<artifactId>core</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>com.github.kenglxn.qrgen</groupId>
+            <artifactId>javase</artifactId>
+            <version>2.2.0</version>
+        </dependency>
 	</dependencies>
+	
+	<repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 </project>

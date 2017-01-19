@@ -664,30 +664,30 @@ public abstract class BalsaApplication
         // configure the listeners
         for (BalsaListener listener : this.getListeners())
         {
-            listener.setPort(Integer.getInteger("balsa." + listener.getListenerType() + ".port", listener.getDefaultPort()));
-            listener.setPoolSize(Integer.getInteger("balsa." + listener.getListenerType() + ".workers", Integer.getInteger("balsa.workers", BalsaListener.DEFAULT_POOL_SIZE)));
+            listener.setPort(this.getListenerPort(listener.getListenerType(), listener.getDefaultPort()));
+            listener.setPoolSize(this.getListenerThreadCount(listener.getListenerType(), BalsaListener.DEFAULT_POOL_SIZE));
         }
         // configure the session engine
         if (this.getSessionEngine() != null)
         {
-            this.getSessionEngine().setSessionLifetime(Integer.getInteger("balsa.session-lifetime", SessionEngine.DEFAULT_SESSION_LIFETIME));
+            this.getSessionEngine().setSessionLifetime(this.getSessionLifetime(SessionEngine.DEFAULT_SESSION_LIFETIME));
         }
         // settings based on environment
         if (this.isDevEnv())
         {
             // development settings
-            this.viewPath(new File(System.getProperty("balsa.view.path", FileViewSource.DEV_VIEW_PATH)));
+            this.viewPath(new File(getViewPath(FileViewSource.DEV_VIEW_PATH)));
             this.getViewEngine().cacheOff();
         }
         else if (this.isTestEnv())
         {
             // test settings
-            this.viewPath(new File(System.getProperty("balsa.view.path", FileViewSource.TEST_VIEW_PATH)));
+            this.viewPath(new File(getViewPath(FileViewSource.TEST_VIEW_PATH)));
         }
         else if (this.isProdEnv())
         {
             // production settings
-            this.viewPath(new File(System.getProperty("balsa.view.path", FileViewSource.PROD_VIEW_PATH)));
+            this.viewPath(new File(getViewPath(FileViewSource.PROD_VIEW_PATH)));
         }
         // Construct the processor chain
         BalsaProcessor proc = this.constructProcessingChain();
@@ -709,6 +709,28 @@ public abstract class BalsaApplication
         {
             listener.start();
         }
+    }
+    
+    // config resolvers
+    
+    protected int getListenerPort(String listenerType, int defaultPort)
+    {
+        return Integer.getInteger("balsa." + listenerType + ".port", defaultPort);
+    }
+    
+    protected int getListenerThreadCount(String listenerType, int defaultThreadCount)
+    {
+        return Integer.getInteger("balsa." + listenerType + ".workers", Integer.getInteger("balsa.workers", defaultThreadCount));
+    }
+    
+    protected int getSessionLifetime(int defaultSessionLifetime)
+    {
+        return Integer.getInteger("balsa.session-lifetime", defaultSessionLifetime);
+    }
+    
+    protected String getViewPath(String defaultViewPath)
+    {
+        return System.getProperty("balsa.view.path", defaultViewPath);
     }
     
     /**
