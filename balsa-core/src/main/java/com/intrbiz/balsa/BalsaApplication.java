@@ -707,6 +707,7 @@ public abstract class BalsaApplication
         // Start the listeners
         for (BalsaListener listener : this.getListeners())
         {
+            logger.info("Starting listener: " + listener.getEngineName() + " on port " + listener.getPort());
             listener.start();
         }
     }
