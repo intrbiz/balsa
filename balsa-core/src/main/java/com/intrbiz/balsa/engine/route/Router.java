@@ -107,19 +107,19 @@ public abstract class Router<A extends BalsaApplication>
      *            the bean class
      * @return returns Object the bean
      */    
-    protected final <T> T model(String name, Class<T> type, boolean create)
+    protected final <T> T createModel(String name, Class<T> type)
     {
-        return Balsa().model(name, type, create);
-    }
-    
-    protected final <T> T model(String name, Class<T> type)
-    {
-        return Balsa().model(name, type);
+        return Balsa().createModel(name, type);
     }
     
     protected final <T> T model(String name, T model)
     {
         return Balsa().model(name, model);
+    }
+    
+    protected final <T> T model(String name)
+    {
+        return Balsa().model(name);
     }
     
     /**
@@ -128,7 +128,7 @@ public abstract class Router<A extends BalsaApplication>
      * @return
      * returns Object
      */
-    public <T> T var(String name)
+    protected final <T> T var(String name)
     {
         return Balsa().var(name);
     }
@@ -139,7 +139,7 @@ public abstract class Router<A extends BalsaApplication>
      * @param object the variable
      * returns void
      */
-    public <T> T var(String name, T object)
+    protected final <T> T var(String name, T object)
     {
         return Balsa().var(name, object);
     }
@@ -161,7 +161,7 @@ public abstract class Router<A extends BalsaApplication>
      * @param name the parameter name
      * @return the List&lt;String&gt; parameter value or null
      */
-    public List<String> listParam(String name)
+    protected final List<String> listParam(String name)
     {
         return Balsa().listParam(name);
     }
@@ -234,7 +234,7 @@ public abstract class Router<A extends BalsaApplication>
      * @return
      * returns String
      */
-    public String url(String url)
+    protected final String url(String url)
     {
         return Balsa().url(url);
     }
@@ -245,7 +245,7 @@ public abstract class Router<A extends BalsaApplication>
      * @return
      * returns String
      */
-    public String path(String path)
+    protected final String path(String path)
     {
         return Balsa().path(path);
     }
@@ -260,7 +260,7 @@ public abstract class Router<A extends BalsaApplication>
      * @param path the relative path to the public resource
      * @return the URL to the resource.
      */
-    public String pub(String path)
+    protected final String pub(String path)
     {
         return Balsa().pub(path);
     }
@@ -337,7 +337,7 @@ public abstract class Router<A extends BalsaApplication>
     /**
      * Get the authentication state for this current session
      */
-    public AuthenticationState authenticationState()
+    protected final AuthenticationState authenticationState()
     {
         return Balsa().authenticationState();
     }
@@ -345,7 +345,7 @@ public abstract class Router<A extends BalsaApplication>
     /**
      * Get the authentication info for this current session
      */
-    public AuthenticationInfo authenticationInfo()
+    protected final AuthenticationInfo authenticationInfo()
     {
         return Balsa().authenticationInfo();
     }
@@ -385,7 +385,7 @@ public abstract class Router<A extends BalsaApplication>
      * Start the authentication process.  The response will specify if
      * @throws BalsaSecurityException should there be any issues authenticating the user.
      */
-    public AuthenticationResponse authenticate(Credentials credentials) throws BalsaSecurityException
+    protected final AuthenticationResponse authenticate(Credentials credentials) throws BalsaSecurityException
     {
         return Balsa().authenticate(credentials);
     }
@@ -473,7 +473,7 @@ public abstract class Router<A extends BalsaApplication>
      * @param object the object over which permission must be granted
      * @return true if and only if the current user has the given permission over th given object
      */
-    public boolean permission(String permission, Object object)
+    protected final boolean permission(String permission, Object object)
     {
         return Balsa().permission(permission, object);
     }
@@ -485,7 +485,7 @@ public abstract class Router<A extends BalsaApplication>
      * @param objects
      * @return
      */
-    public <T> List<T> permission(String permission, Collection<T> objects)
+    protected final <T> List<T> permission(String permission, Collection<T> objects)
     {
         List<T> ret = new LinkedList<T>();
         for (T object : objects)
@@ -502,7 +502,7 @@ public abstract class Router<A extends BalsaApplication>
      * @param objects
      * @return
      */
-    public <T> Set<T> permission(String permission, Set<T> objects)
+    protected final <T> Set<T> permission(String permission, Set<T> objects)
     {
         Set<T> ret = new HashSet<T>();
         for (T object : objects)
@@ -515,7 +515,7 @@ public abstract class Router<A extends BalsaApplication>
     /**
      * No authentication is currently happening or has not happened
      */
-    public boolean notAuthenticated()
+    protected final boolean notAuthenticated()
     {
         return Balsa().notAuthenticated();
     }
@@ -523,7 +523,7 @@ public abstract class Router<A extends BalsaApplication>
     /**
      * Authentication is currently in progress
      */
-    public boolean authenticating()
+    protected final boolean authenticating()
     {
         return Balsa().authenticating();
     }
@@ -531,7 +531,7 @@ public abstract class Router<A extends BalsaApplication>
     /**
      * Do we have an authenticated principal
      */
-    public boolean authenticated()
+    protected final boolean authenticated()
     {
         return Balsa().authenticated();
     }
@@ -542,7 +542,7 @@ public abstract class Router<A extends BalsaApplication>
      * @return
      * returns Object
      */
-    public <T> T sessionVar(String name)
+    protected final <T> T sessionVar(String name)
     {
         return Balsa().sessionVar(name);
     }
@@ -553,7 +553,7 @@ public abstract class Router<A extends BalsaApplication>
      * @param object the variable
      * returns void
      */
-    public <T> T sessionVar(String name, T object)
+    protected final <T> T sessionVar(String name, T object)
     {
         return Balsa().sessionVar(name, object);
     }
@@ -567,19 +567,65 @@ public abstract class Router<A extends BalsaApplication>
      *            the model class
      * @return returns Object the model
      */
-    protected final <T> T sessionModel(String name, Class<T> type, boolean create)
+    protected final <T> T createSessionModel(String name, Class<T> type)
     {
-        return Balsa().sessionModel(name, type, create);
+        return Balsa().createSessionModel(name, type);
     }
-    
-    protected final <T> T sessionModel(String name, Class<T> type)
-    {
-        return Balsa().sessionModel(name, type);
-    }
-    
+
+    /**
+     * Put a model into the session and our local session model cache
+     * @param name the model name
+     * @param model the model
+     * @return the model
+     */
     protected final <T> T sessionModel(String name, T model)
     {
         return Balsa().sessionModel(name, model);
+    }
+    
+    /**
+     * Get a model from the session and promote it to our local session model cache
+     * @param name the model name
+     * @return the model or null
+     */
+    protected final <T> T sessionModel(String name)
+    {
+        return Balsa().sessionModel(name);
+    }
+    
+    /**
+     * Try to get a session model without forcefully allocating a session
+     * @param name the model name
+     * @return the model
+     */
+    protected final <T> T trySessionModel(String name)
+    {
+        return Balsa().trySessionModel(name);
+    }
+    
+    /**
+     * Promote all cached session models to the session
+     */
+    protected final void promoteSessionModelCache()
+    {
+        Balsa().promoteSessionModelCache();
+    }
+    
+    /**
+     * Remove all cached session models
+     */
+    protected final void clearSessionModelCache()
+    {
+        Balsa().clearSessionModelCache();
+    }
+    
+    /**
+     * Forcefully remove the session model from our local cache
+     * @param name the model name
+     */
+    protected final void uncacheSessionModel(String name)
+    {
+        Balsa().uncacheSessionModel(name);
     }
     
     protected final <T> T action(String name, Object... arguments) throws BalsaException

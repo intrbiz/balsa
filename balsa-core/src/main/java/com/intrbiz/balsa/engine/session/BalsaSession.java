@@ -7,16 +7,6 @@ public interface BalsaSession
 {   
     public static final String COOKIE_NAME = "BalsaSession";
     
-    default Object getEntity(String name)
-    {
-        // try a var first
-        Object value = this.var(name);
-        if (value != null) return value;
-        // next try a model
-        value = this.model(name);
-        return value;
-    }
-    
     /**
      * The session id
      * @return
@@ -30,7 +20,7 @@ public interface BalsaSession
      * @return
      * returns Object
      */
-    <T> T var(String name);
+    <T> T getVar(String name);
     
     /**
      * Store a variable in the session
@@ -38,14 +28,14 @@ public interface BalsaSession
      * @param object the variable
      * returns void
      */
-    <T> T var(String name, T object);
+    <T> T putVar(String name, T object);
     
     /**
      * Get the state of the task with the given id
      */
     default BalsaTaskState task(String id)
     {
-        return this.var(this.taskKey(id));
+        return this.getVar(this.taskKey(id));
     }
     
     /**
@@ -62,7 +52,7 @@ public interface BalsaSession
     default BalsaTaskState removeTaskIfComplete(String id)
     {
         final String key = this.taskKey(id);
-        BalsaTaskState state = this.var(key);
+        BalsaTaskState state = this.getVar(key);
         if (state != null && state.isComplete())
         {
             this.removeVar(key);
@@ -76,7 +66,7 @@ public interface BalsaSession
      */
     default void task(String id, BalsaTaskState state)
     {
-        this.var(this.taskKey(id), state);
+        this.putVar(this.taskKey(id), state);
     }
     
     /**
@@ -94,18 +84,24 @@ public interface BalsaSession
     void removeVar(String name);
     
     /**
-     * Create the session model of the given name
-     * 
-     * @param name
-     *            the model name
-     * @param type
-     *            the model class
-     * @return returns Object the model
+     * Store a model in this session
+     * @param name the model name
+     * @param model the model to store
+     * @return the model
      */
-    <T> T model(String name, Class<T> type, boolean create);
-    <T> T model(String name, T model);
-    <T> T model(String name);
+    <T> T putModel(String name, T model);
     
+    /**
+     * Get a model
+     * @param name the model name
+     * @return the model
+     */
+    <T> T getModel(String name);
+    
+    /**
+     * Remove a model from this session
+     * @param name the model name
+     */
     void removeModel(String name);
     
     /**

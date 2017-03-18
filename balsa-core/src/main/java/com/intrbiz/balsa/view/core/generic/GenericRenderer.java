@@ -8,7 +8,6 @@ import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.util.BalsaWriter;
 import com.intrbiz.balsa.view.component.Component;
 import com.intrbiz.balsa.view.renderer.HTMLRenderer;
-import com.intrbiz.express.ExpressException;
 import com.intrbiz.express.value.ValueExpression;
 
 public class GenericRenderer extends HTMLRenderer
@@ -35,28 +34,18 @@ public class GenericRenderer extends HTMLRenderer
 
     protected void encodeAttribute(Component component, BalsaContext context, BalsaWriter out, String name, ValueExpression value) throws IOException, BalsaException
     {
-        try
-        {
-            out.attribute(name, String.valueOf(value.get(context.getExpressContext(), component)));
-        }
-        catch (ExpressException e)
-        {
-            throw new BalsaException("EL error", e);
-        }
+        Object theValue = value.get(context.getExpressContext(), component);
+        if (theValue != null)
+            out.attribute(name, theValue.toString());
     }
 
     protected void encodeText(Component component, BalsaContext context, BalsaWriter out) throws IOException, BalsaException
     {
         if (component.getText() != null)
         {
-            try
-            {
-                out.putEncPadLn(String.valueOf(component.getText().get(context.getExpressContext(), component)));
-            }
-            catch (ExpressException e)
-            {
-                throw new BalsaException("EL error", e);
-            }
+            Object theText = component.getText().get(context.getExpressContext(), component);
+            if (theText != null)
+                out.putEncPadLn(theText.toString());
         }
     }
 

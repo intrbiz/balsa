@@ -17,12 +17,12 @@ public interface BeanProvider<E>
      * @return
      * returns E
      */
-    E activate();
+    E create();
     
     /**
      * Destroy a bean
      * @param bean
      * returns void
      */
-    void deactivate(E bean);
+    void destroy(E bean);
 }

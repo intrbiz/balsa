@@ -14,7 +14,11 @@ public class ContentRenderer extends Renderer
     @Override
     public void decodeChildren(Component component, BalsaContext context) throws BalsaException
     {
-        
+        // Get the next view in the chain
+        if (component.getView() != null && component.getView().getNext() != null)
+        {
+            component.getView().getNext().decode(context);
+        }
     }
 
     @Override

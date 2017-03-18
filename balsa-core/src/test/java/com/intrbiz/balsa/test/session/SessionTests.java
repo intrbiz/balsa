@@ -103,14 +103,14 @@ public class SessionTests
         String name  = "test-1";
         String value = "Testing 123";
         // put
-        session.var(name, value);
+        session.putVar(name, value);
         // get
-        Object o = session.var(name);
+        Object o = session.getVar(name);
         assertNotNull("Got var", o);
         assertTrue("Got var of correct type", o instanceof String);
         assertSame("Got same var", o, value);
         //
-        String s = session.var(name);
+        String s = session.getVar(name);
         assertNotNull("Got var", s);
         assertTrue("Got var of correct type", s instanceof String);
         assertSame("Got same var", s, value);
@@ -127,11 +127,11 @@ public class SessionTests
         String name  = "test-1";
         String value = null;
         // put
-        session.var(name, value);
+        session.putVar(name, value);
         // get
-        Object o = session.var(name);
+        Object o = session.getVar(name);
         assertTrue("Got null var", o == null);
-        String s = session.var(name);
+        String s = session.getVar(name);
         assertTrue("Got null var", s == null);
     }
     
@@ -145,7 +145,7 @@ public class SessionTests
         //
         try
         {
-            session.var(null, new Object());
+            session.putVar(null, new Object());
             fail("Null name did not error");
         }
         catch (IllegalArgumentException e)
@@ -153,15 +153,7 @@ public class SessionTests
         }
         try
         {
-            session.var(null);
-            fail("Null name did not error");
-        }
-        catch (IllegalArgumentException e)
-        {
-        }
-        try
-        {
-            session.var(null, String.class);
+            session.getVar(null);
             fail("Null name did not error");
         }
         catch (IllegalArgumentException e)
@@ -180,12 +172,12 @@ public class SessionTests
         String name  = "test-var-1";
         String value = "Testing 123";
         // put
-        session.var(name, value);
+        session.putVar(name, value);
         // get
-        String s = session.var(name);
+        String s = session.getVar(name);
         assertSame("Got same var", s, value);
         //
-        String m = session.model(name);
+        String m = session.getModel(name);
         assertNull("Model cannot get var", m);
     }
     

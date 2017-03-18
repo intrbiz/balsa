@@ -504,10 +504,10 @@ public abstract class BalsaApplication
      *            the model class
      * @return returns Object
      */
-    public <E> E activateModel(Class<E> type)
+    public <E> E createModel(Class<E> type)
     {
         BeanProvider<E> provider = this.model(type);
-        return provider.activate();
+        return provider.create();
     }
 
     /**
@@ -517,12 +517,12 @@ public abstract class BalsaApplication
      *            the model returns void
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public void deactivateModel(Object bean)
+    public void destroyModel(Object bean)
     {
         if (bean != null)
         {
             BeanProvider<?> provider = this.model(bean.getClass());
-            ((BeanProvider) provider).deactivate(bean);
+            ((BeanProvider) provider).destroy(bean);
         }
     }
     

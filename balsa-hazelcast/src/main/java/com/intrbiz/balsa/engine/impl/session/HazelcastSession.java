@@ -123,14 +123,14 @@ public class HazelcastSession implements BalsaSession, AuthenticationState, Seri
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T var(String name)
+    public <T> T getVar(String name)
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
         return (T) this.getAttributeMap().get(this.varId(name));
     }
 
     @Override
-    public <T> T var(String name, T object)
+    public <T> T putVar(String name, T object)
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
         if (object == null)
@@ -153,30 +153,14 @@ public class HazelcastSession implements BalsaSession, AuthenticationState, Seri
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T model(String name, Class<T> type, boolean create)
-    {
-        if (name == null) throw new IllegalArgumentException("Name cannot be null");
-        T bean = (T) this.getAttributeMap().get(this.modelId(name));
-        // should we create the bean
-        if (bean == null && create)
-        {
-            // create the bean
-            bean = BalsaApplication.getInstance().activateModel(type);
-            this.getAttributeMap().put(this.modelId(name), bean);
-        }
-        return bean;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> T model(String name)
+    public <T> T getModel(String name)
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
         return (T) this.getAttributeMap().get(this.modelId(name));
     }
 
     @Override
-    public <T> T model(String name, T model)
+    public <T> T putModel(String name, T model)
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
         if (model == null)

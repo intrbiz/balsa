@@ -332,6 +332,20 @@ public abstract class Component
     {
         return this.attributes.get(name);
     }
+    
+    /**
+     * Get an attribute and evaluate it returning the string value, or null 
+     * @param name the attribute name
+     * @param context the current BalsaContext
+     * @return the string representation of the value
+     */
+    public final String getAttributeValue(String name, BalsaContext context)
+    {
+        ValueExpression valueExp = this.attributes.get(name);
+        if (valueExp == null) return null;
+        Object value = valueExp.get(context.getExpressContext(), this);
+        return value == null ? null : value.toString();
+    }
 
     /**
      * Should this component and children be rendered

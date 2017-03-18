@@ -65,46 +65,33 @@ public class SimpleSession implements BalsaSession
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T var(String name)
+    public <T> T getVar(String name)
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
         return (T) this.vars.get(name);
     }
 
     @Override
-    public <T> T var(String name, T object)
+    public <T> T putVar(String name, T object)
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
-        if (object != null) this.vars.put(name, object);
+        if (object != null) 
+            this.vars.put(name, object);
+        else
+            this.vars.remove(name);
         return object;
     }
     
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T model(String name)
+    public <T> T getModel(String name)
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
         // find the bean
         return (T) this.model.get(name);
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> T model(String name, Class<T> type, boolean create)
-    {
-        if (name == null) throw new IllegalArgumentException("Name cannot be null");
-        // find the bean
-        T bean = (T) this.model.get(name);
-        if (bean == null && create)
-        {
-            // create the bean
-            bean = this.application.activateModel(type);
-            if (bean != null) this.model.put(name, bean);
-        }
-        return bean;
-    }
-
-    public <T> T model(String name, T model)
+    public <T> T putModel(String name, T model)
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
         if (model == null)
@@ -139,7 +126,7 @@ public class SimpleSession implements BalsaSession
         // return all beans to the providers
         for (Object bean : this.model.values())
         {
-            this.application.deactivateModel(bean);
+            this.application.destroyModel(bean);
         }
     }
 }

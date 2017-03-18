@@ -8,6 +8,7 @@ import java.security.Principal;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -49,6 +50,8 @@ import com.intrbiz.validator.ValidationException;
  */
 public class BalsaContext
 {
+    private static final Logger logger = Logger.getLogger(BalsaContext.class);
+    
     protected final static ThreadLocal<BalsaContext> currentInstance = new ThreadLocal<BalsaContext>();
 
     private final BalsaApplication application;
@@ -60,6 +63,8 @@ public class BalsaContext
     private final BalsaResponse response;
 
     private final Map<String, Object> models = new TreeMap<String, Object>();
+    
+    private final Map<String, Object> sessionModelCache = new TreeMap<String, Object>();
     
     private final Map<String, Object> vars = new TreeMap<String, Object>();
 
@@ -90,16 +95,9 @@ public class BalsaContext
             @Override
             public Object getEntity(String name, Object source)
             {
-                if ("balsa".equals(name)) return BalsaContext.this;
+                if ("balsa".equals(name)) return this;
                 if ("currentPrincipal".equals(name)) return BalsaContext.this.currentPrincipal();
-                Object value = BalsaContext.this.getEntity(name);
-                if (value != null) return value;
-                // next session
-                if (BalsaContext.this.session != null)
-                {
-                    value = BalsaContext.this.session.getEntity(name);
-                }
-                return value;
+                return BalsaContext.this.getEntity(name);
             }
 
             @Override
@@ -172,6 +170,10 @@ public class BalsaContext
         BalsaContext.clear();
     }
 
+    /**
+     * Get the Express context for this Balsa context
+     * @return the Express context
+     */
     public final ExpressContext getExpressContext()
     {
         return this.expressContext;
@@ -261,11 +263,13 @@ public class BalsaContext
     {
         try
         {
+            this.promoteSessionModelCache();
             // return all beans to the providers
             for (Object bean : this.models.values())
             {
-                this.application.deactivateModel(bean);
+                this.application.destroyModel(bean);
             }
+            this.sessionModelCache.clear();
             this.models.clear();
             this.vars.clear();
             this.conversionErrors.clear();
@@ -277,7 +281,7 @@ public class BalsaContext
         }
         catch (Exception e)
         {
-            Logger.getLogger(BalsaContext.class).fatal("Error whilst deactivating context", e);
+            logger.fatal("Error whilst deactivating context", e);
         }
     }
 
@@ -364,33 +368,19 @@ public class BalsaContext
      *            the model class
      * @return returns Object the bean
      */
-    @SuppressWarnings("unchecked")
-    public <T> T model(String name, Class<T> type, boolean create)
+    public <T> T createModel(String name, Class<T> type)
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
-        // find the bean
-        T model = (T) this.models.get(name);
-        if (model == null && create)
-        {
-            // create the bean
-            model = this.application.activateModel(type);
-            if (model != null)
-            {
-                this.models.put(name, model);
-            }
-        }
+        T model = this.application.createModel(type);
+        this.models.put(name, model);
         return model;
     }
-    
-    public <T> T model(String name, Class<T> type)
-    {
-        return this.model(name, type, true);
-    }
 
-    public Object model(String name)
+    @SuppressWarnings("unchecked")
+    public <T> T model(String name)
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
-        return this.models.get(name);
+        return (T) this.models.get(name);
     }
 
     public <T> T model(String name, T model)
@@ -454,6 +444,15 @@ public class BalsaContext
         // next request model
         value = this.model(name);
         if (value != null) return value;
+        // next session
+        if (BalsaContext.this.session != null)
+        {
+            // a session model
+            value = BalsaContext.this.sessionModel(name);
+            if (value != null) return value;
+            // fall back to a session var
+            value = BalsaContext.this.sessionVar(name);
+        }
         return value;
     }
 
@@ -1125,7 +1124,7 @@ public class BalsaContext
     @SuppressWarnings("unchecked")
     public <T> T sessionVar(String name)
     {
-        return (T) this.session().var(name);
+        return (T) this.session().getVar(name);
     }
 
     /**
@@ -1138,7 +1137,7 @@ public class BalsaContext
      */
     public <T> T sessionVar(String name, T object)
     {
-        return this.session().var(name, object);
+        return this.session().putVar(name, object);
     }
 
     /**
@@ -1150,19 +1149,93 @@ public class BalsaContext
      *            the model class
      * @return returns Object the model
      */
-    public <T> T sessionModel(String name, Class<T> type, boolean create)
+    public <T> T createSessionModel(String name, Class<T> type)
     {
-        return this.session().model(name, type, create);
-    }
-    
-    public <T> T sessionModel(String name, Class<T> type)
-    {
-        return this.sessionModel(name, type, true);
+        if (name == null) throw new IllegalArgumentException("Name cannot be null");
+        return sessionModel(name, this.application.createModel(type));
     }
 
+    /**
+     * Put a model into the session and our local session model cache
+     * @param name the model name
+     * @param model the model
+     * @return the model
+     */
     public <T> T sessionModel(String name, T model)
     {
-        return this.session().model(name, model);
+        if (name == null) throw new IllegalArgumentException("Name cannot be null");
+        // store this into the session cache
+        this.sessionModelCache.put(name, model);
+        // promote to the session too
+        this.session().putModel(name, model);
+        // return this model
+        return model;
+    }
+    
+    /**
+     * Get a model from the session and promote it to our local session model cache
+     * @param name the model name
+     * @return the model or null
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T sessionModel(String name)
+    {
+        if (name == null) throw new IllegalArgumentException("Name cannot be null");
+        // check out cache first
+        Object model = this.sessionModelCache.get(name);
+        if (model != null) return (T) model;
+        // get the session model
+        model = this.session().getModel(name);
+        // promote to our local cache
+        if (model != null)
+        {
+            if (logger.isDebugEnabled()) logger.debug("Adding session model to local cache: " + name);
+            this.sessionModelCache.put(name, model);
+        }
+        return (T) model;
+    }
+    
+    /**
+     * Try to get a session model without forcefully allocating a session
+     * @param name the model name
+     * @return the model
+     */
+    public <T> T trySessionModel(String name)
+    {
+        return this.session == null ? null : this.sessionModel(name);
+    }
+    
+    /**
+     * Promote all cached session models to the session
+     */
+    public void promoteSessionModelCache()
+    {
+        // promote all cached session model
+        if (this.session != null)
+        {
+            for (Entry<String, Object> cachedModel : this.sessionModelCache.entrySet())
+            {
+                if (logger.isDebugEnabled()) logger.debug("Promoting session model to session: " + cachedModel.getKey());
+                this.session.putModel(cachedModel.getKey(), cachedModel.getValue());
+            }
+        }
+    }
+    
+    /**
+     * Remove all cached session models
+     */
+    public void clearSessionModelCache()
+    {
+        this.sessionModelCache.clear();
+    }
+    
+    /**
+     * Forcefully remove the session model from our local cache
+     * @param name the model name
+     */
+    public void uncacheSessionModel(String name)
+    {
+        this.sessionModelCache.remove(name);
     }
 
     // Actions
