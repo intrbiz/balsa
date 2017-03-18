@@ -3,11 +3,10 @@ package com.intrbiz.balsa;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.log4j.BasicConfigurator;
@@ -15,10 +14,8 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import com.intrbiz.balsa.bean.BeanFactory;
 import com.intrbiz.balsa.bean.BeanProvider;
-import com.intrbiz.balsa.bean.impl.NonPooledBean;
-import com.intrbiz.balsa.bean.impl.PooledBean;
+import com.intrbiz.balsa.bean.impl.SimpleBeanProvider;
 import com.intrbiz.balsa.engine.PublicResourceEngine;
 import com.intrbiz.balsa.engine.RouteEngine;
 import com.intrbiz.balsa.engine.SecurityEngine;
@@ -56,7 +53,6 @@ import com.intrbiz.express.action.MethodActionHandler;
 import com.intrbiz.express.functions.TextFunctionRegistry;
 import com.intrbiz.express.operator.Decorator;
 import com.intrbiz.express.operator.Function;
-import com.intrbiz.metadata.Pooled;
 
 /**
  * A balsa Application
@@ -75,17 +71,17 @@ public abstract class BalsaApplication
     /**
      * Bean providers
      */
-    private final Map<String, BeanProvider<?>> models = new HashMap<String, BeanProvider<?>>();
+    private final ConcurrentMap<String, BeanProvider<?>> models = new ConcurrentHashMap<String, BeanProvider<?>>();
     
     /**
      * Actions
      */
-    private final Map<String, ActionHandler> actions = new HashMap<String, ActionHandler>();
+    private final ConcurrentMap<String, ActionHandler> actions = new ConcurrentHashMap<String, ActionHandler>();
 
     /**
      * The listener
      */
-    private final Map<String, BalsaListener> listeners = new HashMap<String, BalsaListener>();
+    private final ConcurrentMap<String, BalsaListener> listeners = new ConcurrentHashMap<String, BalsaListener>();
 
     /**
      * The routing engine
@@ -125,7 +121,7 @@ public abstract class BalsaApplication
     /**
      * Filters for this application
      */
-    private final List<BalsaFilter> filters = new LinkedList<BalsaFilter>();
+    private final List<BalsaFilter> filters = new CopyOnWriteArrayList<BalsaFilter>();
     
 
     /**
@@ -410,41 +406,21 @@ public abstract class BalsaApplication
      *            returns void
      */
     @SuppressWarnings("unchecked")
-    public <E> void model(Class<E> bean) throws BalsaException
+    public <E> BeanProvider<E> model(Class<E> bean) throws BalsaException
     {
         if (bean != null)
         {
             String name = bean.getName();
-            if (!this.models.containsKey(name))
+            BeanProvider<E> provider = (BeanProvider<E>) this.models.get(name);
+            if (provider == null)
             {
-                Pooled pooled = bean.getAnnotation(Pooled.class);
-                if (pooled != null)
-                {
-                    if (BeanFactory.class.isAssignableFrom(pooled.value()))
-                    {
-                        try
-                        {
-                            this.models.put(name, new PooledBean<E>(bean, (BeanFactory<E>) pooled.value().newInstance()));
-                            logger.info("Registered pooled bean " + name + " with factory " + pooled.value().getName());
-                        }
-                        catch (Exception e)
-                        {
-                            throw new BalsaException("Could not create the bean factory: " + pooled.value().getName(), e);
-                        }
-                    }
-                    else
-                    {
-                        this.models.put(name, new PooledBean<E>(bean));
-                        logger.info("Registered pooled bean " + name + " with default factory");
-                    }
-                }
-                else
-                {
-                    this.models.put(name, new NonPooledBean<E>(bean));
-                    logger.info("Registered non pooled bean " + name);
-                }
+                provider = new SimpleBeanProvider<E>(bean);
+                logger.info("Registering bean " + name);
+                this.models.put(name, provider);
             }
+            return provider;
         }
+        return null;
     }
 
     /**
@@ -453,7 +429,7 @@ public abstract class BalsaApplication
      * @param provider
      *            returns void
      */
-    public <E> void model(BeanProvider<E> provider)
+    public <E> BeanProvider<E> model(BeanProvider<E> provider)
     {
         if (provider != null)
         {
@@ -464,6 +440,7 @@ public abstract class BalsaApplication
                 logger.info("Registered pooled bean " + name + " with provider " + provider.getClass());
             }
         }
+        return provider;
     }
 
     /**
@@ -527,12 +504,10 @@ public abstract class BalsaApplication
      *            the model class
      * @return returns Object
      */
-    @SuppressWarnings("unchecked")
     public <E> E activateModel(Class<E> type)
     {
-        BeanProvider<E> provider = (BeanProvider<E>) this.models.get(type.getName());
-        if (provider != null) return provider.activate();
-        return null;
+        BeanProvider<E> provider = this.model(type);
+        return provider.activate();
     }
 
     /**
@@ -541,13 +516,13 @@ public abstract class BalsaApplication
      * @param object
      *            the model returns void
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void deactivateModel(Object bean)
     {
         if (bean != null)
         {
-            BeanProvider<Object> provider = (BeanProvider<Object>) this.models.get(bean.getClass().getName());
-            if (provider != null) provider.deactivate(bean);
+            BeanProvider<?> provider = this.model(bean.getClass());
+            ((BeanProvider) provider).deactivate(bean);
         }
     }
     
@@ -738,9 +713,7 @@ public abstract class BalsaApplication
      * Any application specific startup actions, before the listeners are started
      * @throws Exception
      */
-    protected void startApplication() throws Exception
-    {
-    }
+    protected abstract void startApplication() throws Exception;
 
     protected BalsaProcessor constructProcessingChain()
     {

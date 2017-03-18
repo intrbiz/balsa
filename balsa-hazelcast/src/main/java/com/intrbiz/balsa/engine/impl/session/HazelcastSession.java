@@ -11,7 +11,6 @@ import com.intrbiz.balsa.engine.security.AuthenticationState;
 import com.intrbiz.balsa.engine.security.challenge.AuthenticationChallenge;
 import com.intrbiz.balsa.engine.security.info.AuthenticationInfo;
 import com.intrbiz.balsa.engine.session.BalsaSession;
-import com.intrbiz.balsa.error.BalsaInternalError;
 
 public class HazelcastSession implements BalsaSession, AuthenticationState, Serializable
 {
@@ -122,14 +121,6 @@ public class HazelcastSession implements BalsaSession, AuthenticationState, Seri
         return this;
     }
 
-    @Override
-    public Object getEntity(String name)
-    {
-        Object value = this.model(name);
-        if (value == null) value = this.var(name);
-        return value;
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     public <T> T var(String name)
@@ -160,13 +151,20 @@ public class HazelcastSession implements BalsaSession, AuthenticationState, Seri
         this.getAttributeMap().remove(this.varId(name));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T model(String name, Class<T> type, boolean create)
     {
         if (name == null) throw new IllegalArgumentException("Name cannot be null");
-        T model = this.model(name);
-        if (model == null && create) { throw new BalsaInternalError("When using clustered sessions pooled model objects cannot be used!"); }
-        return model;
+        T bean = (T) this.getAttributeMap().get(this.modelId(name));
+        // should we create the bean
+        if (bean == null && create)
+        {
+            // create the bean
+            bean = BalsaApplication.getInstance().activateModel(type);
+            this.getAttributeMap().put(this.modelId(name), bean);
+        }
+        return bean;
     }
 
     @SuppressWarnings("unchecked")

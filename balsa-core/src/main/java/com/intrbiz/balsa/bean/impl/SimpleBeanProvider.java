@@ -6,20 +6,20 @@ import com.intrbiz.balsa.bean.BeanProvider;
 /**
  * A non pooled bean provider
  */
-public class NonPooledBean<E> implements BeanProvider<E>
+public class SimpleBeanProvider<E> implements BeanProvider<E>
 {
     private final Class<E> type;
     
     private final BeanFactory<E> factory;
     
-    public NonPooledBean(Class<E> type)
+    public SimpleBeanProvider(Class<E> type)
     {
         super();
         this.type = type;
         this.factory = new ClassFactory<E>(type);
     }
     
-    public NonPooledBean(Class<E> type, BeanFactory<E> factory)
+    public SimpleBeanProvider(Class<E> type, BeanFactory<E> factory)
     {
         super();
         this.type = type;

@@ -47,14 +47,6 @@ public class SimpleSession implements BalsaSession
     {
         return this.authenticationState;
     }
-
-    @Override
-    public Object getEntity(String name)
-    {
-        Object value = this.model(name);
-        if (value == null) value = this.var(name);
-        return value;
-    }
     
     public void access()
     {

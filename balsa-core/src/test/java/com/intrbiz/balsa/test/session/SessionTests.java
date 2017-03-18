@@ -51,6 +51,11 @@ public class SessionTests
             protected void setupRouters() throws Exception
             {   
             }
+
+            @Override
+            protected void startApplication() throws Exception
+            {
+            }
         };
         this.sessionEngine = this.application.getSessionEngine();
         this.sessionEngine.start();

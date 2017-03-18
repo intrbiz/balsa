@@ -91,6 +91,12 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
                     // requests tend to the same server
                     sessionMapConfig.setInMemoryFormat(InMemoryFormat.OBJECT);
                     this.hazelcastConfig.addMapConfig(sessionMapConfig);
+                    // setup the attribute map
+                    MapConfig sessionAttrMapConfig = this.hazelcastConfig.getMapConfig("balsa.sessions.attributes");
+                    // default to storing objects, as with sticky balancing 
+                    // requests tend to the same server
+                    sessionAttrMapConfig.setInMemoryFormat(InMemoryFormat.OBJECT);
+                    this.hazelcastConfig.addMapConfig(sessionAttrMapConfig);
                 }
                 // set the instance name
                 this.hazelcastConfig.setInstanceName(this.getBalsaApplication().getInstanceName());
@@ -98,7 +104,7 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
                 this.hazelcastInstance = Hazelcast.getOrCreateHazelcastInstance(this.hazelcastConfig);
             }
             // create the maps
-            this.sessionMap = this.hazelcastInstance.getMap("balsa.sessions");
+            this.sessionMap   = this.hazelcastInstance.getMap("balsa.sessions");
             this.attributeMap = this.hazelcastInstance.getMap("balsa.sessions.attributes");
             // eviction listener
             // this will remove attributes when a session is removed / evicted

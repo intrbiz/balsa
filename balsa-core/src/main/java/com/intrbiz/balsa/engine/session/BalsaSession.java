@@ -7,7 +7,15 @@ public interface BalsaSession
 {   
     public static final String COOKIE_NAME = "BalsaSession";
     
-    Object getEntity(String name);
+    default Object getEntity(String name)
+    {
+        // try a var first
+        Object value = this.var(name);
+        if (value != null) return value;
+        // next try a model
+        value = this.model(name);
+        return value;
+    }
     
     /**
      * The session id

@@ -381,6 +381,11 @@ public class BalsaContext
         }
         return model;
     }
+    
+    public <T> T model(String name, Class<T> type)
+    {
+        return this.model(name, type, true);
+    }
 
     public Object model(String name)
     {
@@ -443,8 +448,12 @@ public class BalsaContext
      */
     public Object getEntity(String name)
     {
-        Object value = this.model(name);
-        if (value == null) value = this.var(name);
+        // try request var first
+        Object value = this.var(name);
+        if (value != null) return value;
+        // next request model
+        value = this.model(name);
+        if (value != null) return value;
         return value;
     }
 
@@ -1144,6 +1153,11 @@ public class BalsaContext
     public <T> T sessionModel(String name, Class<T> type, boolean create)
     {
         return this.session().model(name, type, create);
+    }
+    
+    public <T> T sessionModel(String name, Class<T> type)
+    {
+        return this.sessionModel(name, type, true);
     }
 
     public <T> T sessionModel(String name, T model)

@@ -112,6 +112,11 @@ public abstract class Router<A extends BalsaApplication>
         return Balsa().model(name, type, create);
     }
     
+    protected final <T> T model(String name, Class<T> type)
+    {
+        return Balsa().model(name, type);
+    }
+    
     protected final <T> T model(String name, T model)
     {
         return Balsa().model(name, model);
@@ -565,6 +570,11 @@ public abstract class Router<A extends BalsaApplication>
     protected final <T> T sessionModel(String name, Class<T> type, boolean create)
     {
         return Balsa().sessionModel(name, type, create);
+    }
+    
+    protected final <T> T sessionModel(String name, Class<T> type)
+    {
+        return Balsa().sessionModel(name, type);
     }
     
     protected final <T> T sessionModel(String name, T model)
