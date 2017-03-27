@@ -14,5 +14,5 @@ import com.intrbiz.balsa.engine.impl.route.exec.security.ValidAccessTokenBuilder
 @Target({ElementType.METHOD, ElementType.TYPE})
 @IsSecurityCheck(ValidAccessTokenBuilder.class)
 public @interface RequireValidAccessTokenForURL {
-    Param value() default @Param("key");
+    Param value() default @Param("access-token");
 }

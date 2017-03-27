@@ -17,9 +17,9 @@ public class AccessTokenForURLComponent extends Component
         if (ve != null)
         {
             Object val = ve.get(BalsaContext.Balsa().getExpressContext(), this);
-            if (val instanceof String) return (String) val;
+            return val == null ? null : val.toString();
         }
-        return "key";
+        return "access-token";
     }
     
     public String getPath()
@@ -28,8 +28,8 @@ public class AccessTokenForURLComponent extends Component
         if (ve != null)
         {
             Object val = ve.get(BalsaContext.Balsa().getExpressContext(), this);
-            if (val instanceof String) return (String) val;
+            return val == null ? null : val.toString();
         }
-        return "/";
+        return BalsaContext.Balsa().request().getPathInfo();
     }
 }

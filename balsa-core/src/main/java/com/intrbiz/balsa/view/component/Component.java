@@ -334,6 +334,16 @@ public abstract class Component
     }
     
     /**
+     * Does the given attribute exist for this component
+     * @param name the attribute name
+     * @return true if the attribute exists
+     */
+    public final boolean hasAttribute(String name)
+    {
+        return this.attributes.containsKey(name);
+    }
+    
+    /**
      * Get an attribute and evaluate it returning the string value, or null 
      * @param name the attribute name
      * @param context the current BalsaContext

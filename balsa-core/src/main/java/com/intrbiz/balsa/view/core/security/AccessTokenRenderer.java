@@ -17,7 +17,6 @@ public class AccessTokenRenderer extends GenericRenderer
         //
         out.openStartTagPad("input");
         out.attribute("type", "hidden");
-        out.attribute("id", id);
         out.attribute("name", id);
         out.attribute("value", context.generateAccessToken());
         out.closeStartTagLn();

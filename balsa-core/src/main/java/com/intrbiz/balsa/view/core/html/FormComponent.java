@@ -1,23 +1,23 @@
-package com.intrbiz.balsa.view.core.security;
+package com.intrbiz.balsa.view.core.html;
 
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.view.component.Component;
 import com.intrbiz.express.value.ValueExpression;
 
-public class AccessTokenComponent extends Component
+public class FormComponent extends Component
 {
-    public AccessTokenComponent()
+    public FormComponent()
     {
         super();
     }
     
-    public String getId()
+    public String getAccessToken()
     {
-        ValueExpression ve = this.getAttribute("id");
+        ValueExpression ve = this.getAttribute("access-token");
         if (ve != null)
         {
             Object val = ve.get(BalsaContext.Balsa().getExpressContext(), this);
-            if (val instanceof String) return (String) val;
+            return val == null ? null : val.toString();
         }
         return "access-token";
     }
