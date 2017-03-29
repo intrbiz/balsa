@@ -917,11 +917,11 @@ public class BalsaContext
      * @throws BalsaSecurityException should there be any issues authenticating the user.
      */
     @SuppressWarnings("unchecked")
-    public <T extends Principal> T authenticateSingleFactor(Credentials credentials) throws BalsaSecurityException
+    public <T extends Principal> T authenticateSingleFactor(Credentials credentials, boolean force) throws BalsaSecurityException
     {
         // use the security engine to authenticate the user
         AuthenticationResponse response = this.app().getSecurityEngine().authenticate(this.session().authenticationState(), credentials);
-        if (! response.isComplete()) throw new BalsaSecurityException("Failed to authenticate user using single factor");
+        if (! (force || response.isComplete())) throw new BalsaSecurityException("Failed to authenticate user using single factor");
         // update the authentication state
         return (T) this.session().authenticationState().update(response).getPrincipal();
     }
@@ -933,7 +933,7 @@ public class BalsaContext
      */
     public <T extends Principal> T authenticate(String username, String password) throws BalsaSecurityException
     {
-        return this.authenticateSingleFactor(new PasswordCredentials.Simple(username, password));
+        return this.authenticateSingleFactor(new PasswordCredentials.Simple(username, password), false);
     }
     
     /**
@@ -983,11 +983,11 @@ public class BalsaContext
      * Try to authenticate for the life of this session, should 
      * authentication not be possible then null is returned, exceptions are thrown.
      */
-    public <T extends Principal> T tryAuthenticateSingleFactor(Credentials credentials)
+    public <T extends Principal> T tryAuthenticateSingleFactor(Credentials credentials, boolean force)
     {
         try 
         {
-            return this.authenticateSingleFactor(credentials);
+            return this.authenticateSingleFactor(credentials, force);
         }
         catch (BalsaSecurityException e)
         {

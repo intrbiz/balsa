@@ -376,9 +376,9 @@ public abstract class Router<A extends BalsaApplication>
      * This method will always return with a valid, authenticated user.
      * @throws BalsaSecurityException should there be any issues authenticating the user.
      */
-    protected <T extends Principal> T authenticateSingleFactor(Credentials credentials)
+    protected <T extends Principal> T authenticateSingleFactor(Credentials credentials, boolean force)
     {
-        return Balsa().authenticateSingleFactor(credentials);
+        return Balsa().authenticateSingleFactor(credentials, force);
     }
     
     /**
@@ -423,9 +423,9 @@ public abstract class Router<A extends BalsaApplication>
      * Try to authenticate for the life of this session, should 
      * authentication not be possible then null is returned, exceptions are thrown.
      */
-    protected <T extends Principal> T tryAuthenticateSingleFactor(Credentials credentials)
+    protected <T extends Principal> T tryAuthenticateSingleFactor(Credentials credentials, boolean force)
     {
-        return Balsa().tryAuthenticateSingleFactor(credentials);
+        return Balsa().tryAuthenticateSingleFactor(credentials, force);
     }
     
     /**
