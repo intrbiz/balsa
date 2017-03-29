@@ -163,16 +163,16 @@ public abstract class BaseSecurityEngine extends AbstractBalsaEngine implements 
         return null;
     }
     
-    public Principal authenticateRequest(Credentials credentials) throws BalsaSecurityException
+    public Principal authenticateRequest(Credentials credentials, boolean forceSingleFactorAuthentication) throws BalsaSecurityException
     {
-        AuthenticationResponse response = this.authenticate(null, credentials);
+        AuthenticationResponse response = this.authenticate(null, credentials, forceSingleFactorAuthentication);
         if (response.isComplete()) 
             return response.getPrincipal();
         throw new BalsaSecurityException("Could not authenticate for this request only");
     }
 
     @Override
-    public AuthenticationResponse authenticate(AuthenticationState state, Credentials credentials) throws BalsaSecurityException
+    public AuthenticationResponse authenticate(AuthenticationState state, Credentials credentials, boolean forceSingleFactorAuthentication) throws BalsaSecurityException
     {
         try (Timer.Context timerContext = this.authenticateTimer.time())
         {
@@ -181,7 +181,7 @@ public abstract class BaseSecurityEngine extends AbstractBalsaEngine implements 
             if (authedPrincipal == null || authedPrincipal.getPrincipal() == null)
                 throw new BalsaSecurityException("No such principal");
             // is two factor authentication enabled?
-            if (this.isTwoFactorAuthenticationRequiredForPrincipal(authedPrincipal.getPrincipal()))
+            if ((! forceSingleFactorAuthentication) && this.isTwoFactorAuthenticationRequiredForPrincipal(authedPrincipal.getPrincipal()))
             {
                 // have we already authenticated this principal for the first time round
                 Principal authenticating = state.authenticatingPrincipal();

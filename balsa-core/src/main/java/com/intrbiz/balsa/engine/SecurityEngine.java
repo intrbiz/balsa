@@ -77,7 +77,7 @@ public interface SecurityEngine extends BalsaEngine
      * @return the authentication response
      * @throws BalsaSecurityException if the principal does not exist or could not be authenticated
      */
-    Principal authenticateRequest(Credentials credentials) throws BalsaSecurityException;
+    Principal authenticateRequest(Credentials credentials, boolean forceSingleFactorAuthentication) throws BalsaSecurityException;
     
     /**
      * Authenticate a principal using the given credentials
@@ -86,7 +86,7 @@ public interface SecurityEngine extends BalsaEngine
      * @return the authentication response
      * @throws BalsaSecurityException if the principal does not exist or could not be authenticated
      */
-    AuthenticationResponse authenticate(AuthenticationState state, Credentials credentials) throws BalsaSecurityException;
+    AuthenticationResponse authenticate(AuthenticationState state, Credentials credentials, boolean forceSingleFactorAuthentication) throws BalsaSecurityException;
     
     /**
      * Verify the given credentials are valid for the currently authenticated principal

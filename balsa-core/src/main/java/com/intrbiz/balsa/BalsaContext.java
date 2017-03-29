@@ -906,7 +906,7 @@ public class BalsaContext
     public AuthenticationResponse authenticate(Credentials credentials) throws BalsaSecurityException
     {
         // use the security engine to authenticate the user
-        AuthenticationResponse response = this.app().getSecurityEngine().authenticate(this.session().authenticationState(), credentials);
+        AuthenticationResponse response = this.app().getSecurityEngine().authenticate(this.session().authenticationState(), credentials, false);
         // update the authentication state
         return this.session().authenticationState().update(response);
     }
@@ -920,7 +920,7 @@ public class BalsaContext
     public <T extends Principal> T authenticateSingleFactor(Credentials credentials, boolean force) throws BalsaSecurityException
     {
         // use the security engine to authenticate the user
-        AuthenticationResponse response = this.app().getSecurityEngine().authenticate(this.session().authenticationState(), credentials);
+        AuthenticationResponse response = this.app().getSecurityEngine().authenticate(this.session().authenticationState(), credentials, force);
         if (! (force || response.isComplete())) throw new BalsaSecurityException("Failed to authenticate user using single factor");
         // update the authentication state
         return (T) this.session().authenticationState().update(response).getPrincipal();
@@ -945,7 +945,7 @@ public class BalsaContext
     public <T extends Principal> T authenticateRequest(Credentials credentials) throws BalsaSecurityException
     {
         // use the security engine to authenticate the user
-        Principal principal = this.app().getSecurityEngine().authenticateRequest(credentials);
+        Principal principal = this.app().getSecurityEngine().authenticateRequest(credentials, false);
         if (principal == null) throw new BalsaSecurityException("Failed to authenticate user");
         // store the principal
         this.currentPrincipal = principal;
