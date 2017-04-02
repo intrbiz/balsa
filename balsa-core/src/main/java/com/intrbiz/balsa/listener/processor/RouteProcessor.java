@@ -58,7 +58,7 @@ public final class RouteProcessor implements BalsaProcessor
                     }
                     catch (BalsaInternalError | BalsaIOError | IOException error)
                     {
-                        // £rrors which cannot be handled
+                        // errors which cannot be handled
                         throw error;
                     }
                     catch (Throwable tt)
