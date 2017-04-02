@@ -8,6 +8,7 @@ import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IExecutorService;
+import com.intrbiz.Util;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.TaskEngine;
 import com.intrbiz.balsa.engine.impl.AbstractBalsaEngine;
@@ -51,7 +52,7 @@ public class HazelcastTaskEngine extends AbstractBalsaEngine implements TaskEngi
             if (this.hazelcastInstance == null)
             {
                 // setup hazelcast
-                String hazelcastConfigFile = System.getProperty("hazelcast.config");
+                String hazelcastConfigFile = Util.coalesceEmpty(System.getProperty("hazelcast.config"), System.getenv("hazelcast.config"));
                 if (hazelcastConfigFile != null)
                 {
                     // when using a config file, you must configure the balsa.sessions map

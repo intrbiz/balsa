@@ -32,5 +32,9 @@
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast-aws</artifactId>
+		</dependency>
 	</dependencies>
 </project>
