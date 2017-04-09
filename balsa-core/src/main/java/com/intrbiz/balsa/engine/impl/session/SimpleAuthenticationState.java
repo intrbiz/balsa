@@ -54,7 +54,7 @@ public class SimpleAuthenticationState implements AuthenticationState
         else
         {
             this.current = null;
-            this.info = null;
+            this.info = response.getInfo();
             this.challenges = response.getChallenges();
             this.authenticating = response.getPrincipal();
             this.authenticationStart = System.currentTimeMillis();

@@ -71,7 +71,7 @@ public interface AuthenticationState
      * 1) currentPrincipal() is reset to null
      * 2) authenticatingPrincipal() is set to response.getPrincipal()
      * 3) authenticationStartedAt() is set to System.currentTimeMillis()
-     * 4) info() is reset to null
+     * 4) info() is reset to response.getInfo() 
      * 5) challenge() is set to response.getChallenge()
      * 
      */

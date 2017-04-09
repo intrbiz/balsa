@@ -101,7 +101,7 @@ public class HazelcastSession implements BalsaSession, AuthenticationState, Seri
         else
         {
             attrs.remove(this.principalId());
-            attrs.remove(this.authenticationInfoId());
+            attrs.put(this.authenticationInfoId(), HazelcastAuthenticationInfo.wrap(response.getInfo()));
             attrs.put(this.authenticationChallengesId(), response.getChallenges());
             attrs.put(this.authenticatingPrincipalId(), response.getPrincipal());
             attrs.put(this.authenticationStartedAtId(), new Long(System.currentTimeMillis()));

@@ -184,8 +184,9 @@ public abstract class BaseSecurityEngine extends AbstractBalsaEngine implements 
             if ((! forceSingleFactorAuthentication) && this.isTwoFactorAuthenticationRequiredForPrincipal(authedPrincipal.getPrincipal()))
             {
                 // have we already authenticated this principal for the first time round
-                Principal authenticating = state.authenticatingPrincipal();
-                if (authenticating != null && authenticating.equals(authedPrincipal.getPrincipal()))
+                Principal firstPrincipal = state.authenticatingPrincipal();
+                String    firstMethod = state.info() == null ? null : state.info().primaryAuthenticationMethodName();
+                if (firstPrincipal != null && firstMethod != null && firstPrincipal.equals(authedPrincipal.getPrincipal()) && (! authedPrincipal.getAuthenticationMethod().equals(firstMethod)))
                 {
                     // we've successfully applied the second factor
                     AuthenticationInfo info = state.info();
