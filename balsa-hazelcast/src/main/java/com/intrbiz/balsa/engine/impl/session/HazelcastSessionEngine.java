@@ -73,7 +73,7 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
             if (this.hazelcastInstance == null)
             {
                 // setup hazelcast
-                String hazelcastConfigFile = Util.coalesceEmpty(System.getProperty("hazelcast.config"), System.getenv("hazelcast.config"));
+                String hazelcastConfigFile = Util.coalesceEmpty(System.getProperty("hazelcast.config"), System.getenv("hazelcast_config"));
                 if (hazelcastConfigFile != null)
                 {
                     // when using a config file, you must configure the balsa.sessions map
