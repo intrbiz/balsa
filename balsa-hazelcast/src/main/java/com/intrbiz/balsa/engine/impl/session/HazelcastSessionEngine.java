@@ -76,29 +76,28 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
                 String hazelcastConfigFile = Util.coalesceEmpty(System.getProperty("hazelcast.config"), System.getenv("hazelcast_config"));
                 if (hazelcastConfigFile != null)
                 {
-                    // when using a config file, you must configure the balsa.sessions map
                     this.hazelcastConfig = new XmlConfigBuilder(hazelcastConfigFile).build();
                 }
                 else
                 {
-                    // setup the default configuration
                     this.hazelcastConfig = new Config();
-                    // add update configuration for our maps
-                    MapConfig sessionMapConfig = this.hazelcastConfig.getMapConfig("balsa.sessions");
-                    // session lifetime is in minutes
-                    sessionMapConfig.setMaxIdleSeconds(this.getSessionLifetime() * 60);
-                    sessionMapConfig.setEvictionPolicy(EvictionPolicy.LRU);
-                    // default to storing objects, as with sticky balancing 
-                    // requests tend to the same server
-                    sessionMapConfig.setInMemoryFormat(InMemoryFormat.OBJECT);
-                    this.hazelcastConfig.addMapConfig(sessionMapConfig);
-                    // setup the attribute map
-                    MapConfig sessionAttrMapConfig = this.hazelcastConfig.getMapConfig("balsa.sessions.attributes");
-                    // default to storing objects, as with sticky balancing 
-                    // requests tend to the same server
-                    sessionAttrMapConfig.setInMemoryFormat(InMemoryFormat.OBJECT);
-                    this.hazelcastConfig.addMapConfig(sessionAttrMapConfig);
                 }
+                // inject our configuration
+                // add update configuration for our maps
+                MapConfig sessionMapConfig = this.hazelcastConfig.getMapConfig("balsa.sessions");
+                // session lifetime is in minutes
+                sessionMapConfig.setMaxIdleSeconds(this.getSessionLifetime() * 60);
+                sessionMapConfig.setEvictionPolicy(EvictionPolicy.LRU);
+                // default to storing objects, as with sticky balancing 
+                // requests tend to the same server
+                sessionMapConfig.setInMemoryFormat(InMemoryFormat.OBJECT);
+                this.hazelcastConfig.addMapConfig(sessionMapConfig);
+                // setup the attribute map
+                MapConfig sessionAttrMapConfig = this.hazelcastConfig.getMapConfig("balsa.sessions.attributes");
+                // default to storing objects, as with sticky balancing 
+                // requests tend to the same server
+                sessionAttrMapConfig.setInMemoryFormat(InMemoryFormat.OBJECT);
+                this.hazelcastConfig.addMapConfig(sessionAttrMapConfig);
                 // set the instance name
                 this.hazelcastConfig.setInstanceName(this.getBalsaApplication().getInstanceName());
                 // create the instance
