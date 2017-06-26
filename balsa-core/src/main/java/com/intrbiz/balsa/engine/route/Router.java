@@ -411,6 +411,16 @@ public abstract class Router<A extends BalsaApplication>
     }
     
     /**
+     * Authenticate for the life of this request only using a single authentication factor, 
+     * this avoids creating a session, this method will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
+     */
+    protected <T extends Principal> T authenticateRequestSingleFactor(Credentials credentials)
+    {
+        return Balsa().authenticateRequestSingleFactor(credentials);
+    }
+    
+    /**
      * Try to authenticate for the life of this session, should 
      * authentication not be possible then null is returned, exceptions are thrown.
      */

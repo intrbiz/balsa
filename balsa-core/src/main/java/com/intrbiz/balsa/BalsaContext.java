@@ -953,6 +953,22 @@ public class BalsaContext
     }
     
     /**
+     * Authenticate for the life of this request only using a single authentication factor, 
+     * this avoids creating a session, this method will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Principal> T authenticateRequestSingleFactor(Credentials credentials) throws BalsaSecurityException
+    {
+        // use the security engine to authenticate the user
+        Principal principal = this.app().getSecurityEngine().authenticateRequest(credentials, true);
+        if (principal == null) throw new BalsaSecurityException("Failed to authenticate user");
+        // store the principal
+        this.currentPrincipal = principal;
+        return (T) principal;
+    }
+    
+    /**
      * Authenticate for the life of this request only, this avoids creating a session, 
      * this method will always return with a valid, authenticated user.
      * @throws BalsaSecurityException should there be any issues authenticating the user.
@@ -960,6 +976,16 @@ public class BalsaContext
     public <T extends Principal> T authenticateRequest(String username, String password) throws BalsaSecurityException
     {
         return this.authenticateRequest(new PasswordCredentials.Simple(username, password));
+    }
+    
+    /**
+     * Authenticate for the life of this request only using a single authentication factor, 
+     * this avoids creating a session, this method will always return with a valid, authenticated user.
+     * @throws BalsaSecurityException should there be any issues authenticating the user.
+     */
+    public <T extends Principal> T authenticateRequestSingleFactor(String username, String password) throws BalsaSecurityException
+    {
+        return this.authenticateRequestSingleFactor(new PasswordCredentials.Simple(username, password));
     }
     
     /**
