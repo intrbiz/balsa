@@ -271,15 +271,19 @@ public class ToBalsaVisitor implements Visitor
 
     public void visit(HeaderNode node)
     {
-        if ((!this.sections.isEmpty()) && this.sections.peek() == node.getLevel())
+        // pop closed sections
+        if (! this.sections.isEmpty())
         {
-            this.sections.pop();
-            this.pop("div");
+            while (this.sections.peek() >= node.getLevel())
+            {
+                this.sections.pop();
+                this.pop("div");
+            }
         }
-        //
+        // push open section
         this.push(this.addAttribute(this.genericComponent("div"), "class", "section-" + node.getLevel()));
         this.sections.push(node.getLevel());
-        //
+        // header
         Component header = this.genericComponent("h" + node.getLevel());
         if (this.title == null) this.title = header;
         this.push(header);
