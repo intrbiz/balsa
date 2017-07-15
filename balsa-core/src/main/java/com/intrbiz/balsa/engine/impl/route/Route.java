@@ -20,6 +20,7 @@ import com.intrbiz.metadata.Delete;
 import com.intrbiz.metadata.Get;
 import com.intrbiz.metadata.IsRoute;
 import com.intrbiz.metadata.IsRoutePredicate;
+import com.intrbiz.metadata.Options;
 import com.intrbiz.metadata.Order;
 import com.intrbiz.metadata.Post;
 import com.intrbiz.metadata.Put;
@@ -486,6 +487,16 @@ public class Route implements Comparable<Route>
         {
             Post url = (Post) a;
             return new Route(prefix, "POST", url.value(), url.regex(), url.as(), method, router, filter);
+        }
+    }
+    
+    public static class OptionsRouteBuilder implements RouteBuilder
+    {
+        @Override
+        public Route build(String prefix, Router<?> router, Method method, Annotation a, Filter filter)
+        {
+            Options url = (Options) a;
+            return new Route(prefix, "OPTIONS", url.value(), url.regex(), url.as(), method, router, filter);
         }
     }
 
