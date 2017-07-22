@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.engine.route.Router;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.metadata.After;
@@ -557,7 +558,7 @@ public class Route implements Comparable<Route>
             return Integer.compare(this.order, o.order);
         }
 
-        public abstract PredicateAction apply(BalsaRequest request);
+        public abstract PredicateAction apply(BalsaContext context, BalsaRequest request);
     }
     
     /**

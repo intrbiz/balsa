@@ -61,7 +61,7 @@ public class RouteEntry implements Comparable<RouteEntry>
         return this.route.getFilter();
     }
 
-    public boolean match(BalsaRequest request)
+    public boolean match(BalsaContext context, BalsaRequest request)
     {
         if ("ANY".equals(this.route.getMethod()) || this.route.getMethod().equals(request.getRequestMethod()))
         {
@@ -73,7 +73,7 @@ public class RouteEntry implements Comparable<RouteEntry>
                 {
                     for (RoutePredicate predicate : this.route.getPredicates())
                     {
-                        PredicateAction action = predicate.apply(request);
+                        PredicateAction action = predicate.apply(context, request);
                         if (action == PredicateAction.ACCEPT) break;
                         if (action == PredicateAction.REJECT) return false;
                     }
@@ -92,13 +92,23 @@ public class RouteEntry implements Comparable<RouteEntry>
         return false;
     }
 
-    public boolean matchException(BalsaRequest request, Throwable t)
+    public boolean matchException(BalsaContext context, BalsaRequest request, Throwable t)
     {
         if ("ANY".equals(this.route.getMethod()) || this.route.getMethod().equals(request.getRequestMethod()))
         {
             Matcher m = this.route.getCompiledPattern().pattern.matcher(request.getPathInfo());
             if (m.matches())
             {
+                // assert any predicates
+                if (this.route.hasPredicates())
+                {
+                    for (RoutePredicate predicate : this.route.getPredicates())
+                    {
+                        PredicateAction action = predicate.apply(context, request);
+                        if (action == PredicateAction.ACCEPT) break;
+                        if (action == PredicateAction.REJECT) return false;
+                    }
+                }
                 // do we have an exception match
                 for (Class<? extends Throwable> exception : this.route.getExceptions())
                 {

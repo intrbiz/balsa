@@ -3,6 +3,7 @@ package com.intrbiz.balsa.engine.impl.route.predicate;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.engine.impl.route.Route.Filter;
 import com.intrbiz.balsa.engine.impl.route.Route.RoutePredicate;
 import com.intrbiz.balsa.engine.impl.route.Route.RoutePredicateBuilder;
@@ -21,7 +22,7 @@ public class IgnoreMethodsPredicate extends RoutePredicate
     }
     
     @Override
-    public PredicateAction apply(BalsaRequest request)
+    public PredicateAction apply(BalsaContext context, BalsaRequest request)
     {
         for (String method : this.methods)
         {

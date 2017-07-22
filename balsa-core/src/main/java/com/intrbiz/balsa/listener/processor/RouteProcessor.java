@@ -44,27 +44,7 @@ public final class RouteProcessor implements BalsaProcessor
                 }
                 catch (Throwable t)
                 {
-                    try
-                    {
-                        // Process the exception
-                        context.setException(t);
-                        logger.debug("Caught exception, applying exception routing", t);
-                        this.engine.routeException(context, t);
-                    }
-                    catch (Error e)
-                    {
-                        // We should not trap VM errors!
-                        throw e;
-                    }
-                    catch (BalsaInternalError | BalsaIOError | IOException error)
-                    {
-                        // errors which cannot be handled
-                        throw error;
-                    }
-                    catch (Throwable tt)
-                    {
-                        throw new BalsaInternalError("Error while processing exception handler", tt);
-                    }
+                    this.processException(context, t, 1);
                 }
             }
             catch (BalsaInternalError | BalsaIOError | IOException error)
@@ -80,6 +60,33 @@ public final class RouteProcessor implements BalsaProcessor
         {
             // ensure the response is flushed
             context.response().flush();
+        }
+    }
+    
+    private void processException(BalsaContext context, Throwable t, int count) throws Throwable
+    {
+        if (count > 10) throw new BalsaInternalError("Exception processing is recusing to deeply");
+        try
+        {
+            // Process the exception
+            context.setException(t);
+            logger.debug("Caught exception, applying exception routing", t);
+            this.engine.routeException(context, t);
+        }
+        catch (Error e)
+        {
+            // We should not trap VM errors!
+            throw e;
+        }
+        catch (BalsaInternalError | BalsaIOError | IOException error)
+        {
+            // errors which cannot be handled
+            throw error;
+        }
+        catch (Throwable tt)
+        {
+            // recusrively process the exception
+            this.processException(context, tt, count + 1);
         }
     }
     

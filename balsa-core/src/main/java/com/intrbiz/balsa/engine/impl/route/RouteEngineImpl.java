@@ -130,17 +130,17 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
         // try all prefixes
         for (PrefixContainer prefix : this.prefixes)
         {
-            if (prefix.match(request))
+            if (prefix.match(context, request))
             {
-                RouteEntry handler = prefix.getHandler(request);
+                RouteEntry handler = prefix.getHandler(context, request);
                 if (handler != null)
                 {
                     // before filter
                     for (PrefixContainer filterPrefix : this.prefixes)
                     {
-                        if (filterPrefix.match(request))
+                        if (filterPrefix.match(context, request))
                         {
-                            List<RouteEntry> filters = filterPrefix.getFilters(request, Filter.BEFORE);
+                            List<RouteEntry> filters = filterPrefix.getFilters(context, request, Filter.BEFORE);
                             if (filters != null)
                             {
                                 for (RouteEntry filter : filters)
@@ -155,9 +155,9 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
                     // before filter
                     for (PrefixContainer filterPrefix : this.prefixes)
                     {
-                        if (filterPrefix.match(request))
+                        if (filterPrefix.match(context, request))
                         {
-                            List<RouteEntry> filters = filterPrefix.getFilters(request, Filter.AFTER);
+                            List<RouteEntry> filters = filterPrefix.getFilters(context, request, Filter.AFTER);
                             if (filters != null)
                             {
                                 for (RouteEntry filter : filters)
@@ -184,22 +184,22 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
         // try all prefixes
         for (PrefixContainer prefix : this.prefixes)
         {
-            if (prefix.match(request))
+            if (prefix.match(context, request))
             {
-                RouteEntry handler = prefix.getExceptionHandler(request, t);
+                RouteEntry handler = prefix.getExceptionHandler(context, request, t);
                 if (handler != null)
                 {
                     // before filter
                     for (PrefixContainer filterPrefix : this.prefixes)
                     {
-                        if (filterPrefix.match(request))
+                        if (filterPrefix.match(context, request))
                         {
-                            List<RouteEntry> filters = filterPrefix.getExceptionFilters(request, Filter.BEFORE);
+                            List<RouteEntry> filters = filterPrefix.getExceptionFilters(context, request, Filter.BEFORE);
                             if (filters != null)
                             {
                                 for (RouteEntry filter : filters)
                                 {
-                                    filter.execute(context);
+                                    filter.executeException(context);
                                 }
                             }
                         }
@@ -209,14 +209,14 @@ public class RouteEngineImpl extends AbstractBalsaEngine implements RouteEngine
                     // after filter
                     for (PrefixContainer filterPrefix : this.prefixes)
                     {
-                        if (filterPrefix.match(request))
+                        if (filterPrefix.match(context, request))
                         {
-                            List<RouteEntry> filters = filterPrefix.getExceptionFilters(request, Filter.AFTER);
+                            List<RouteEntry> filters = filterPrefix.getExceptionFilters(context, request, Filter.AFTER);
                             if (filters != null)
                             {
                                 for (RouteEntry filter : filters)
                                 {
-                                    filter.execute(context);
+                                    filter.executeException(context);
                                 }
                             }
                         }

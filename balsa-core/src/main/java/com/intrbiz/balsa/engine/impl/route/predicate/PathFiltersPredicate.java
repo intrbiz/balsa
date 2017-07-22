@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.engine.impl.route.Route.Filter;
 import com.intrbiz.balsa.engine.impl.route.Route.RoutePredicate;
 import com.intrbiz.balsa.engine.impl.route.Route.RoutePredicateBuilder;
@@ -27,11 +28,11 @@ public class PathFiltersPredicate extends RoutePredicate
     }
     
     @Override
-    public PredicateAction apply(BalsaRequest request)
+    public PredicateAction apply(BalsaContext context, BalsaRequest request)
     {
         for (PathFilterPredicate predicate : this.predicates)
         {
-            PredicateAction action = predicate.apply(request);
+            PredicateAction action = predicate.apply(context, request);
             if (action != PredicateAction.NEXT) return action;
         }
         return this.defaultAction;

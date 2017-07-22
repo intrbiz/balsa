@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.regex.Matcher;
 
+import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.engine.impl.route.Route;
 import com.intrbiz.balsa.engine.impl.route.Route.CompiledPattern;
 import com.intrbiz.balsa.engine.impl.route.Route.Filter;
@@ -24,7 +25,7 @@ public class IgnorePathsPredicate extends RoutePredicate
     }
     
     @Override
-    public PredicateAction apply(BalsaRequest request)
+    public PredicateAction apply(BalsaContext context, BalsaRequest request)
     {
         for (CompiledPattern pattern : this.patterns)
         {
