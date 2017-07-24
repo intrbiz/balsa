@@ -95,8 +95,9 @@ public class BalsaContext
             @Override
             public Object getEntity(String name, Object source)
             {
-                if ("balsa".equals(name)) return this;
+                if ("balsa".equals(name)) return BalsaContext.this;
                 if ("currentPrincipal".equals(name)) return BalsaContext.this.currentPrincipal();
+                if ("authenticationInfo".equals(name)) return BalsaContext.this.authenticationInfo();
                 return BalsaContext.this.getEntity(name);
             }
 
