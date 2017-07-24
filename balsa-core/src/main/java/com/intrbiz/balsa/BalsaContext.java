@@ -905,10 +905,18 @@ public class BalsaContext
      */
     public AuthenticationResponse authenticate(Credentials credentials) throws BalsaSecurityException
     {
-        // use the security engine to authenticate the user
-        AuthenticationResponse response = this.app().getSecurityEngine().authenticate(this.session().authenticationState(), credentials, false);
-        // update the authentication state
-        return this.session().authenticationState().update(response);
+        try
+        {
+            // use the security engine to authenticate the user
+            AuthenticationResponse response = this.app().getSecurityEngine().authenticate(this.session().authenticationState(), credentials, false);
+            // update the authentication state
+            return this.session().authenticationState().update(response);
+        }
+        catch (BalsaSecurityException e)
+        {
+            this.session().authenticationState().reset();
+            throw e;
+        }
     }
 
     /**
@@ -919,11 +927,19 @@ public class BalsaContext
     @SuppressWarnings("unchecked")
     public <T extends Principal> T authenticateSingleFactor(Credentials credentials, boolean force) throws BalsaSecurityException
     {
-        // use the security engine to authenticate the user
-        AuthenticationResponse response = this.app().getSecurityEngine().authenticate(this.session().authenticationState(), credentials, force);
-        if (! (force || response.isComplete())) throw new BalsaSecurityException("Failed to authenticate user using single factor");
-        // update the authentication state
-        return (T) this.session().authenticationState().update(response).getPrincipal();
+        try
+        {
+            // use the security engine to authenticate the user
+            AuthenticationResponse response = this.app().getSecurityEngine().authenticate(this.session().authenticationState(), credentials, force);
+            if (! (force || response.isComplete())) throw new BalsaSecurityException("Failed to authenticate user using single factor");
+            // update the authentication state
+            return (T) this.session().authenticationState().update(response).getPrincipal();
+        }
+        catch (BalsaSecurityException e)
+        {
+            this.session().authenticationState().reset();
+            throw e;
+        }
     }
 
     /**
