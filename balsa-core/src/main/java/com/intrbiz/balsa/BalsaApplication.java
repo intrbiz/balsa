@@ -679,6 +679,8 @@ public abstract class BalsaApplication
         this.getViewEngine().start();
         // Application specific start up
         this.startApplication();
+        // start the routers
+        this.getRoutingEngine().start();
         // Start the listeners
         for (BalsaListener listener : this.getListeners())
         {
