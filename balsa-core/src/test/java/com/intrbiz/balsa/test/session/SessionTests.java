@@ -1,10 +1,6 @@
 package com.intrbiz.balsa.test.session;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
@@ -32,6 +28,11 @@ public class SessionTests
         //
         this.application = new BalsaApplication()
         {
+            @Override
+            protected void setupListeners() throws Exception
+            {
+            }
+            
             @Override
             protected void setupEngines() throws Exception
             {

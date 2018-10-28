@@ -584,6 +584,8 @@ public abstract class BalsaApplication
      */
     protected void setup() throws Exception
     {
+        // setup application listeners
+        this.setupListeners();
         // setup application engines
         this.setupEngines();
         // setup the application functions
@@ -595,22 +597,36 @@ public abstract class BalsaApplication
     }
     
     /**
+     * Setup the application listeners
+     * @throws Exception
+     */
+    protected void setupListeners() throws Exception
+    {
+    }
+    
+    /**
      * Setup the application engines
      * @throws Exception
      */
-    protected abstract void setupEngines() throws Exception;
+    protected void setupEngines() throws Exception
+    {
+    }
     
     /**
      * Setup the application Express functions
      * @throws Exception
      */
-    protected abstract void setupFunctions() throws Exception;
+    protected void setupFunctions() throws Exception
+    {
+    }
     
     /**
      * Setup the application actions
      * @throws Exception
      */
-    protected abstract void setupActions() throws Exception;
+    protected void setupActions() throws Exception
+    {
+    }
     
     /**
      * Setup the application routers
@@ -715,7 +731,9 @@ public abstract class BalsaApplication
      * Any application specific startup actions, before the listeners are started
      * @throws Exception
      */
-    protected abstract void startApplication() throws Exception;
+    protected void startApplication() throws Exception
+    {
+    }
 
     protected BalsaProcessor constructProcessingChain()
     {

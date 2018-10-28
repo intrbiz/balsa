@@ -15,6 +15,8 @@ import com.intrbiz.balsa.http.HTTP.HTTPStatus;
 @IsArgument(JSONArgument.class)
 public @interface JSON
 {
+    Class<?>[] value() default {};
+    
     /**
      * The HTTP response status
      * @return

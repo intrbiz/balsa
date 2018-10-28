@@ -12,6 +12,8 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.apache.log4j.Logger;
 
@@ -192,9 +194,9 @@ public class BalsaContext
     }
 
     /**
-     * Get the current session
+     * Get the current session, creating one if needed.
      * 
-     * @return returns BalsaSession
+     * @return the BalsaSession for this request
      */
     public final BalsaSession session()
     {
@@ -206,7 +208,22 @@ public class BalsaContext
             if (this.response().isHeadersSent()) throw new BalsaInternalError("Cannot create session, headers have already been sent.");
             this.response().cookie().name(BalsaSession.COOKIE_NAME).value(sessionId).path(this.path("/")).httpOnly().secure(request().isSecure()).set();
         }
-        return session;
+        return this.session;
+    }
+    
+    /**
+     * Try to get the current session
+     * 
+     * @return the BalsaSession for this request if one exists or null
+     */
+    public final BalsaSession trySession()
+    {
+        return this.session;
+    }
+    
+    public final <R> R trySession(Function<BalsaSession, R> accessor)
+    {
+        return this.session == null ? null : accessor.apply(this.session);
     }
 
     /**
@@ -750,9 +767,16 @@ public class BalsaContext
      * @param permanent
      *            it the redirect permenant (301) returns void
      */
-    public void redirect(String url, boolean permanent) throws IOException
+    public void redirect(String url, boolean permanent) throws BalsaException
     {
-        this.response.redirect(this.url(url), permanent);
+        try
+        {
+            this.response.redirect(this.url(url), permanent);
+        }
+        catch (IOException e)
+        {
+            throw new BalsaIOError("Failed to send redirect", e);
+        }
     }
 
     /**
@@ -761,30 +785,52 @@ public class BalsaContext
      * @param url
      *            the URL to redirect to returns void
      */
-    public void redirect(String url) throws IOException
+    public void redirect(String url) throws BalsaException
     {
         redirect(url, false);
     }
 
     /**
-     * Require a security constraint to be met
+     * Require a security constraint to be met, throwing a BalsaSecurityException if the constraint is not met
      * 
-     * @param constraint
-     *            returns void
+     * @param constraint the constraint which needs to be met
      */
     public void require(boolean constraint) throws BalsaException
     {
         if (!constraint) throw new BalsaSecurityException("Secuirty requirement not met");
     }
 
+    /**
+     * Require a security constraint to be met, throwing a BalsaSecurityException if the constraint is not met
+     * 
+     * @param constraint the constraint which needs to be met
+     * @param message the message for the exception
+     */
     public void require(boolean constraint, String message) throws BalsaException
     {
         if (!constraint) throw new BalsaSecurityException(message);
     }
 
+    /**
+     * Require a constraint to be met, throwing the given exception if the constraint is not met
+     * 
+     * @param constraint the constraint which needs to be met
+     * @param securityException the exception to throw
+     */
     public <E extends Exception> void require(boolean constraint, E securityException) throws E
     {
         if (!constraint) throw securityException;
+    }
+    
+    /**
+     * Require a constraint to be met, creating and throwing the given exception if the constraint is not met
+     * 
+     * @param constraint the constraint which needs to be met
+     * @param securityException the supplier of the exception to throw
+     */
+    public <E extends Exception> void require(boolean constraint, Supplier<E> securityException) throws E
+    {
+        if (!constraint) throw securityException.get();
     }
     
     /**
@@ -792,7 +838,7 @@ public class BalsaContext
      */
     public boolean notAuthenticated()
     {
-        return this.session().authenticationState().isNotAuthenticated();
+        return this.session == null ? false : this.session().authenticationState().isNotAuthenticated();
     }
     
     /**
@@ -800,7 +846,7 @@ public class BalsaContext
      */
     public boolean authenticating()
     {
-        return this.session().authenticationState().isAuthenticating();
+        return this.session == null ? false : this.session().authenticationState().isAuthenticating();
     }
     
     /**
@@ -808,7 +854,7 @@ public class BalsaContext
      */
     public boolean authenticated()
     {
-        return this.session().authenticationState().isAuthenticated();
+        return this.session == null ? false : this.session().authenticationState().isAuthenticated();
     }
     
     /**
@@ -816,7 +862,7 @@ public class BalsaContext
      */
     public AuthenticationState authenticationState()
     {
-        return this.session().authenticationState();
+        return this.session == null ? null : this.session().authenticationState();
     }
     
     /**
@@ -824,7 +870,7 @@ public class BalsaContext
      */
     public AuthenticationInfo authenticationInfo()
     {
-        return this.session().authenticationState().info();
+        return this.session == null ? null : this.session().authenticationState().info();
     }
 
     /**
@@ -858,7 +904,9 @@ public class BalsaContext
     @SuppressWarnings("unchecked")
     public <T extends Principal> T currentPrincipal()
     {
-        return this.currentPrincipal != null ? (T) this.currentPrincipal : this.session().authenticationState().currentPrincipal();
+        if (this.currentPrincipal != null)
+            return (T) this.currentPrincipal;
+        return this.session == null ? null : this.session().authenticationState().currentPrincipal();
     }
 
     /**
@@ -1167,7 +1215,7 @@ public class BalsaContext
     @SuppressWarnings("unchecked")
     public <T> T sessionVar(String name)
     {
-        return (T) this.session().getVar(name);
+        return (T) this.session == null ? null : this.session().getVar(name);
     }
 
     /**

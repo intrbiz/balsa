@@ -72,11 +72,6 @@ public class BalsaSCGIListener extends BalsaListener
         return "Balsa-SCGI-Listener";
     }
     
-    public int getDefaultPort()
-    {
-        return DEFAULT_PORT;
-    }
-    
     public String getListenerType()
     {
         return "scgi";

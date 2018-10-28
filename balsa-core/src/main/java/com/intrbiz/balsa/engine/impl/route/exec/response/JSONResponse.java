@@ -1,6 +1,8 @@
 package com.intrbiz.balsa.engine.impl.route.exec.response;
 
 import java.lang.annotation.Annotation;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +18,8 @@ public class JSONResponse extends ResponseBuilder
     private HTTPStatus status = HTTPStatus.OK;
 
     private boolean notFoundIfNull = false;
+    
+    protected List<Class<?>> subTypes = new LinkedList<Class<?>>();
 
     public JSONResponse()
     {
@@ -25,6 +29,15 @@ public class JSONResponse extends ResponseBuilder
     public JSONResponse type(Class<?> type)
     {
         this.type = type;
+        return this;
+    }
+    
+    public JSONResponse subTypes(Class<?>... subTypes)
+    {
+        for (Class<?> subType : subTypes)
+        {
+            this.subTypes.add(subType);
+        }
         return this;
     }
 
@@ -37,12 +50,15 @@ public class JSONResponse extends ResponseBuilder
         cls.addImport(this.type.getCanonicalName());
         cls.addImport(Iterable.class.getCanonicalName());
         if (this.notFoundIfNull) cls.addImport(BalsaNotFound.class.getCanonicalName());
-        //
+        // setup the object mapper
         cls.addField(ObjectMapper.class.getSimpleName(), "jsonResMapper");
-        //
-        // TODO thread safe?
         StringBuilder csb = cls.getConstructorLogic();
         csb.append("    this.jsonResMapper = new ObjectMapper();\r\n");
+        for (Class<?> subType : this.subTypes)
+        {
+            cls.addImport(subType.getCanonicalName());
+            csb.append("    this.jsonResMapper.registerSubtypes(").append(subType.getSimpleName()).append(".class);\r\n");
+        }
         //
         StringBuilder sb = cls.getExecutorLogic();
         sb.append("    // encode the response to JSON\r\n");
@@ -73,6 +89,7 @@ public class JSONResponse extends ResponseBuilder
         // what should the status be?
         this.status = ((JSON) a).status();
         this.notFoundIfNull = ((JSON) a).notFoundIfNull();
+        this.subTypes(((JSON) a).value());
     }
 
     public boolean isNotFoundIfNull()

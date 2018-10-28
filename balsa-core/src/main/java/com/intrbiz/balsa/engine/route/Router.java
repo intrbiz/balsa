@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.BalsaContext;
@@ -290,22 +291,44 @@ public abstract class Router<A extends BalsaApplication>
     }
 
     /**
-     * Require a security constraint to be met
+     * Require a security constraint to be met, throwing a BalsaSecurityException if the constraint is not met
      * 
-     * @param constraint
-     *            returns void
+     * @param constraint the constraint which needs to be met
      */
     protected final void require(boolean constraint) throws BalsaException
     {
         Balsa().require(constraint);
     }
 
+    /**
+     * Require a security constraint to be met, throwing a BalsaSecurityException if the constraint is not met
+     * 
+     * @param constraint the constraint which needs to be met
+     * @param message the message for the exception
+     */
     protected final void require(boolean constraint, String message) throws BalsaException
     {
         Balsa().require(constraint, message);
     }
 
+    /**
+     * Require a constraint to be met, throwing the given exception if the constraint is not met
+     * 
+     * @param constraint the constraint which needs to be met
+     * @param securityException the exception to throw
+     */
     protected final <E extends Exception> void require(boolean constraint, E securityException) throws E
+    {
+        Balsa().require(constraint, securityException);
+    }
+    
+    /**
+     * Require a constraint to be met, creating and throwing the given exception if the constraint is not met
+     * 
+     * @param constraint the constraint which needs to be met
+     * @param securityException the supplier of the exception to throw
+     */
+    protected final <E extends Exception> void require(boolean constraint, Supplier<E> securityException) throws E
     {
         Balsa().require(constraint, securityException);
     }
@@ -727,15 +750,47 @@ public abstract class Router<A extends BalsaApplication>
        return Balsa().app(); 
     }
     
+    // helpers useful for routers
+    
+    /**
+     * Ensure the given reference is not null, throwing a BalsaNotFound exception if the reference is null
+     */
     protected <T> T notNull(T o) throws BalsaNotFound
     {
         if (o == null) throw new BalsaNotFound();
         return o;
     }
     
+    /**
+     * Ensure the given reference is not null, throwing a BalsaNotFound exception if the reference is null
+     * 
+     * @param message the message for the BalsaNotFound exception
+     */
     protected <T> T notNull(T o, String message) throws BalsaNotFound
     {
         if (o == null) throw new BalsaNotFound(message);
+        return o;
+    }
+    
+    /**
+     * Ensure the given reference is not null, throwing an exception if the reference is null
+     * 
+     * @param exception the exception to throw
+     */
+    protected <E extends Exception, T> T notNull(T o, E exception) throws E
+    {
+        if (o == null) throw exception;
+        return o;
+    }
+    
+    /**
+     * Ensure the given reference is not null, creating and throwing an exception if the reference is null
+     * 
+     * @param exception the supplier for the exception to throw
+     */
+    protected <E extends Exception, T> T notNull(T o, Supplier<E> exception) throws E
+    {
+        if (o == null) throw exception.get();
         return o;
     }
     

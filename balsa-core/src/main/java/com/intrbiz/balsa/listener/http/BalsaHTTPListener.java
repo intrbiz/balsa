@@ -22,6 +22,8 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 public class BalsaHTTPListener extends BalsaListener
 {
     public static final int DEFAULT_PORT = 8080;
+    
+    public static final int MAX_REQUEST_BODY = 10 * 1024 * 1024; /* 10 MiB */
 
     private EventLoopGroup acceptGroup;
 
@@ -54,11 +56,6 @@ public class BalsaHTTPListener extends BalsaListener
         return "Balsa-HTTP-Listener";
     }
     
-    public int getDefaultPort()
-    {
-        return DEFAULT_PORT;
-    }
-    
     public String getListenerType()
     {
         return "http";
@@ -84,15 +81,15 @@ public class BalsaHTTPListener extends BalsaListener
                 {
                     ChannelPipeline p = ch.pipeline();
                     p.addLast("decoder", new HttpRequestDecoder());
-                    p.addLast("aggregator", new HttpObjectAggregator(10 * 1024 * 1024));
+                    // p.addLast("aggregator", new HttpObjectAggregator(MAX_REQUEST_BODY));
                     p.addLast("encoder", new HttpResponseEncoder());
                     p.addLast("handler", new BalsaHTTPHandler(BalsaHTTPListener.this.getBalsaApplication(), BalsaHTTPListener.this.getProcessor()));
                 }
             });
-            this.server.localAddress(new InetSocketAddress(8080));
+            this.server.localAddress(new InetSocketAddress(this.getPort()));
             this.serverChannel = this.server.bind().sync().channel();
             //
-            logger.trace("Listener started");
+            logger.info("Accepting HTTP requests on port " + this.getPort());
         }
         catch (Exception e)
         {

@@ -1,18 +1,23 @@
 package com.intrbiz.balsa.engine.impl.route.exec.argument;
 
 import java.lang.annotation.Annotation;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.intrbiz.balsa.engine.impl.route.exec.ExecutorClass;
 import com.intrbiz.balsa.error.http.BalsaBadRequest;
 import com.intrbiz.balsa.error.http.BalsaInternalServerError;
 import com.intrbiz.balsa.listener.BalsaRequest;
+import com.intrbiz.metadata.JSON;
 
 public final class JSONArgument extends ArgumentBuilder<JSONArgument>
 {
     protected Class<?> type;
     
     protected String variable;
+    
+    protected List<Class<?>> subTypes = new LinkedList<Class<?>>();
     
     public JSONArgument()
     {
@@ -25,6 +30,15 @@ public final class JSONArgument extends ArgumentBuilder<JSONArgument>
         return this;
     }
     
+    public JSONArgument subTypes(Class<?>... subTypes)
+    {
+        for (Class<?> subType : subTypes)
+        {
+            this.subTypes.add(subType);
+        }
+        return this;
+    }
+    
     public String getVariable()
     {
         return this.variable;
@@ -33,15 +47,19 @@ public final class JSONArgument extends ArgumentBuilder<JSONArgument>
     public void compile(ExecutorClass cls)
     {
         cls.addImport(ObjectMapper.class.getCanonicalName());
-        cls.addImport(this.type.getCanonicalName());
         cls.addImport(BalsaRequest.class.getCanonicalName());
         cls.addImport(BalsaBadRequest.class.getCanonicalName());
         cls.addImport(BalsaInternalServerError.class.getCanonicalName());
-        //
+        cls.addImport(this.type.getCanonicalName());
+        // setup the object mapper
         cls.addField(ObjectMapper.class.getSimpleName(), "jsonInCtx");
-        //
         StringBuilder csb = cls.getConstructorLogic();
         csb.append("    this.jsonInCtx = new ObjectMapper();\r\n");
+        for (Class<?> subType : this.subTypes)
+        {
+            cls.addImport(subType.getCanonicalName());
+            csb.append("    this.jsonInCtx.registerSubtypes(").append(subType.getSimpleName()).append(".class);\r\n");
+        }
         // allocate the variable we are going to use
         this.variable = cls.allocateExecutorVariable(this.type.getSimpleName(), "model");
         // write the code
@@ -69,5 +87,6 @@ public final class JSONArgument extends ArgumentBuilder<JSONArgument>
     public void fromAnnotation(Annotation a, Annotation[] parameterAnnotations, Class<?> parameterType)
     {
         this.type(parameterType);
+        this.subTypes(((JSON) a).value());
     }
 }
