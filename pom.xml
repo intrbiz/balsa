@@ -24,7 +24,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<intrbiz.util.version>1.4.0-SNAPSHOT</intrbiz.util.version>
 		<jackson.version>2.8.5</jackson.version>
-		<u2f.version>0.16.0</u2f.version>
+		<u2f.version>0.19.2</u2f.version>
 		<express.version>4.1.0-SNAPSHOT</express.version>
 	</properties>
 
