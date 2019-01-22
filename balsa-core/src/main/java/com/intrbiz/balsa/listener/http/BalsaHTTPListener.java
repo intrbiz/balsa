@@ -81,8 +81,8 @@ public class BalsaHTTPListener extends BalsaListener
                 {
                     ChannelPipeline p = ch.pipeline();
                     p.addLast("decoder", new HttpRequestDecoder());
-                    // p.addLast("aggregator", new HttpObjectAggregator(MAX_REQUEST_BODY));
                     p.addLast("encoder", new HttpResponseEncoder());
+                    p.addLast("aggregator", new HttpObjectAggregator(MAX_REQUEST_BODY));
                     p.addLast("handler", new BalsaHTTPHandler(BalsaHTTPListener.this.getBalsaApplication(), BalsaHTTPListener.this.getProcessor()));
                 }
             });

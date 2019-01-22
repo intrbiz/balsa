@@ -7,6 +7,8 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
 import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.BalsaContext;
 import com.intrbiz.balsa.BalsaException;
@@ -41,6 +43,8 @@ public class BalsaSCGIListener extends BalsaListener
     private final Timer duration;
     
     private JsonFactory jsonFactory = new JsonFactory();
+    
+    private YAMLFactory yamlFactory = new YAMLFactory().disable(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID).enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
     
     private XMLOutputFactory xmlOutFactory = XMLOutputFactory.newFactory();
     
@@ -91,8 +95,8 @@ public class BalsaSCGIListener extends BalsaListener
             public void process(SCGIRequest request, SCGIResponse response) throws Throwable
             {
                 // bridge
-                BalsaRequest req = new BalsaSCGIRequest(request, jsonFactory, xmlInFactory);
-                BalsaResponse res = new BalsaSCGIResponse(response, req, jsonFactory, xmlOutFactory);
+                BalsaRequest req = new BalsaSCGIRequest(request, jsonFactory, xmlInFactory, yamlFactory);
+                BalsaResponse res = new BalsaSCGIResponse(response, req, jsonFactory, xmlOutFactory, yamlFactory);
                 //
                 BalsaContext ctx = new BalsaContext(app, req, res);
                 BalsaContext.set(ctx);

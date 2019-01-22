@@ -15,6 +15,8 @@ import javax.xml.stream.XMLStreamReader;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
 import com.intrbiz.balsa.http.HTTP;
 import com.intrbiz.balsa.listener.BalsaRequest;
 import com.intrbiz.balsa.parameter.Parameter;
@@ -26,19 +28,24 @@ public final class BalsaSCGIRequest implements BalsaRequest
     
     private final JsonFactory jsonFactory;
     
+    private final YAMLFactory yamlFactory;
+    
     private final XMLInputFactory xmlFactory;
     
     private Reader reader;
     
     private JsonParser jsonReader;
     
+    private YAMLParser yamlReader;
+    
     private XMLStreamReader xmlReader;
     
-    public BalsaSCGIRequest(SCGIRequest req, JsonFactory jsonFactory, XMLInputFactory xmlFactory)
+    public BalsaSCGIRequest(SCGIRequest req, JsonFactory jsonFactory, XMLInputFactory xmlFactory, YAMLFactory yamlFactory)
     {
         this.req = req;
         this.jsonFactory = jsonFactory;
         this.xmlFactory = xmlFactory;
+        this.yamlFactory = yamlFactory;
     }
 
     @Override
@@ -69,6 +76,12 @@ public final class BalsaSCGIRequest implements BalsaRequest
     public boolean isJson()
     {
         return HTTP.ContentTypes.APPLICATION_JSON.equalsIgnoreCase(this.getContentType());
+    }
+    
+    @Override
+    public boolean isYaml()
+    {
+        return HTTP.ContentTypes.TEXT_YAML.equalsIgnoreCase(this.getContentType());
     }
 
     @Override
@@ -283,6 +296,7 @@ public final class BalsaSCGIRequest implements BalsaRequest
         return this.req.getInput();
     }
     
+    @Override
     public Reader getReader()
     {
         // TODO
@@ -293,15 +307,27 @@ public final class BalsaSCGIRequest implements BalsaRequest
         return this.reader;
     }
     
+    @Override
     public JsonParser getJsonReader() throws IOException
     {
         if (this.jsonReader == null)
         {
-            this.jsonReader = this.jsonFactory.createJsonParser(this.getReader());
+            this.jsonReader = this.jsonFactory.createParser(this.getReader());
         }
         return this.jsonReader;
     }
     
+    @Override
+    public YAMLParser getYamlReader() throws IOException
+    {
+        if (this.yamlReader == null)
+        {
+            this.yamlReader = this.yamlFactory.createParser(this.getReader());
+        }
+        return this.yamlReader;
+    }
+    
+    @Override
     public XMLStreamReader getXMLReader() throws IOException, XMLStreamException
     {
         if (this.xmlReader == null)

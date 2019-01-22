@@ -29,7 +29,10 @@ public class GenericRenderer extends HTMLRenderer
     {
         for (Entry<String, ValueExpression> attribute : component.getAttributes().entrySet())
         {
-            this.encodeAttribute(component, context, out, attribute.getKey(), attribute.getValue());
+            if (! Component.RENDERED.equals(attribute.getKey()))
+            {
+                this.encodeAttribute(component, context, out, attribute.getKey(), attribute.getValue());
+            }
         }
     }
 

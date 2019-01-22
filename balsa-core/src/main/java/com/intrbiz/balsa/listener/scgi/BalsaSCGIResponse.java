@@ -14,6 +14,8 @@ import javax.xml.stream.XMLStreamWriter;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.intrbiz.balsa.error.BalsaInternalError;
 import com.intrbiz.balsa.http.HTTP;
 import com.intrbiz.balsa.http.HTTP.HTTPStatus;
@@ -41,19 +43,24 @@ public final class BalsaSCGIResponse implements BalsaResponse
     private final BalsaRequest req;
 
     private final JsonFactory jsonFactory;
+    
+    private final YAMLFactory yamlFactory;
 
     private final XMLOutputFactory xmlFactory;
 
     private JsonGenerator jsonGenerator = null;
+    
+    private YAMLGenerator yamlGenerator = null;
 
     private XMLStreamWriter xmlWriter = null;
 
-    public BalsaSCGIResponse(SCGIResponse res, BalsaRequest req, JsonFactory jsonFactory, XMLOutputFactory xmlFactory)
+    public BalsaSCGIResponse(SCGIResponse res, BalsaRequest req, JsonFactory jsonFactory, XMLOutputFactory xmlFactory, YAMLFactory yamlFactory)
     {
         this.res = res;
         this.req = req;
         this.jsonFactory = jsonFactory;
         this.xmlFactory = xmlFactory;
+        this.yamlFactory = yamlFactory;
     }
 
     @Override
@@ -154,6 +161,13 @@ public final class BalsaSCGIResponse implements BalsaResponse
     public BalsaResponse json()
     {
         this.res.json();
+        return this;
+    }
+    
+    @Override
+    public BalsaResponse yaml()
+    {
+        this.res.yaml();
         return this;
     }
     
@@ -302,6 +316,17 @@ public final class BalsaSCGIResponse implements BalsaResponse
             this.jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
         }
         return this.jsonGenerator;
+    }
+    
+    @Override
+    public YAMLGenerator getYamlWriter() throws IOException
+    {
+        if (this.yamlGenerator == null)
+        {
+            this.yamlGenerator = this.yamlFactory.createGenerator(this.getWriter());
+            this.yamlGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
+        }
+        return this.yamlGenerator;
     }
 
     @Override

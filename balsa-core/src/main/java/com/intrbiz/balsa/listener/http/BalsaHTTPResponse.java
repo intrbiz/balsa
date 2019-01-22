@@ -2,12 +2,6 @@ package com.intrbiz.balsa.listener.http;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.*;
 import static io.netty.handler.codec.http.HttpVersion.*;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -31,6 +25,8 @@ import javax.xml.stream.XMLStreamWriter;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.intrbiz.balsa.error.BalsaInternalError;
 import com.intrbiz.balsa.http.HTTP.CacheControl;
 import com.intrbiz.balsa.http.HTTP.Charsets;
@@ -41,6 +37,13 @@ import com.intrbiz.balsa.listener.BalsaResponse;
 import com.intrbiz.balsa.util.BalsaWriter;
 import com.intrbiz.balsa.util.CookieBuilder;
 import com.intrbiz.balsa.util.HTMLWriter;
+
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
 
 public class BalsaHTTPResponse implements BalsaResponse
 {
@@ -68,18 +71,23 @@ public class BalsaHTTPResponse implements BalsaResponse
     private HTMLWriter htmlWriter = null;
 
     private final JsonFactory jsonFactory;
+    
+    private final YAMLFactory yamlFactory;
 
     private final XMLOutputFactory xmlFactory;
 
     private JsonGenerator jsonGenerator = null;
+    
+    private YAMLGenerator yamlGenerator = null;
 
     private XMLStreamWriter xmlWriter = null;
     
-    public BalsaHTTPResponse(JsonFactory jsonFactory, XMLOutputFactory xmlFactory)
+    public BalsaHTTPResponse(JsonFactory jsonFactory, XMLOutputFactory xmlFactory, YAMLFactory yamlFactory)
     {
         super();
         this.jsonFactory = jsonFactory;
         this.xmlFactory = xmlFactory;
+        this.yamlFactory = yamlFactory;
     }
     
     @Override
@@ -194,6 +202,13 @@ public class BalsaHTTPResponse implements BalsaResponse
     public BalsaResponse json()
     {
         this.contentType(ContentTypes.APPLICATION_JSON);
+        return this;
+    }
+    
+    @Override
+    public BalsaResponse yaml()
+    {
+        this.contentType(ContentTypes.TEXT_YAML);
         return this;
     }
     
@@ -337,6 +352,17 @@ public class BalsaHTTPResponse implements BalsaResponse
             this.jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
         }
         return this.jsonGenerator;
+    }
+    
+    @Override
+    public YAMLGenerator getYamlWriter() throws IOException
+    {
+        if (this.yamlGenerator == null)
+        {
+            this.yamlGenerator = this.yamlFactory.createGenerator(this.getWriter());
+            this.yamlGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
+        }
+        return this.yamlGenerator;
     }
 
     @Override

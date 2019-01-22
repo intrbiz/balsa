@@ -11,6 +11,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
 import com.intrbiz.balsa.parameter.Parameter;
 import com.intrbiz.balsa.util.CookieSet;
 import com.intrbiz.balsa.util.ParameterSet;
@@ -48,6 +49,8 @@ public interface BalsaRequest extends ParameterSet, CookieSet
     boolean isXml();
     
     boolean isJson();
+    
+    boolean isYaml();
 
     /**
      * The protocol version of the request
@@ -321,6 +324,8 @@ public interface BalsaRequest extends ParameterSet, CookieSet
     Reader getReader();
     
     JsonParser getJsonReader() throws IOException;
+    
+    YAMLParser getYamlReader() throws IOException;
     
     XMLStreamReader getXMLReader() throws IOException, XMLStreamException;
 

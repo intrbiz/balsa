@@ -23,7 +23,10 @@ import javax.xml.stream.XMLStreamReader;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
 import com.intrbiz.Util;
+import com.intrbiz.balsa.http.HTTP;
 import com.intrbiz.balsa.http.HTTP.Charsets;
 import com.intrbiz.balsa.http.HTTP.SCGI;
 import com.intrbiz.balsa.listener.BalsaRequest;
@@ -48,6 +51,8 @@ public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
     private final FullHttpRequest req;
     
     private final JsonFactory jsonFactory;
+    
+    private final YAMLFactory yamlFactory;
     
     private final XMLInputFactory xmlFactory;
     
@@ -79,17 +84,20 @@ public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
     
     private JsonParser jsonReader;
     
+    private YAMLParser yamlReader;
+    
     private XMLStreamReader xmlReader;
     
     private Object body;
     
-    public BalsaHTTPRequest(ChannelHandlerContext ctx, FullHttpRequest req, JsonFactory jsonFactory, XMLInputFactory xmlFactory)
+    public BalsaHTTPRequest(ChannelHandlerContext ctx, FullHttpRequest req, JsonFactory jsonFactory, XMLInputFactory xmlFactory, YAMLFactory yamlFactory)
     {
         super();
         this.ctx = ctx;
         this.req = req;
         this.jsonFactory = jsonFactory;
         this.xmlFactory = xmlFactory;
+        this.yamlFactory = yamlFactory;
         // parse the request
         this.uri = this.req.getUri();
         // process the uri
@@ -209,13 +217,19 @@ public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
     @Override
     public boolean isXml()
     {
-        return "text/xml".equals(this.contentType);
+        return HTTP.ContentTypes.APPLICATION_XML.equals(this.contentType);
     }
 
     @Override
     public boolean isJson()
     {
-        return "application/json".equals(this.contentType);
+        return HTTP.ContentTypes.APPLICATION_JSON.equals(this.contentType);
+    }
+    
+    @Override
+    public boolean isYaml()
+    {
+        return HTTP.ContentTypes.TEXT_YAML.equals(this.contentType);
     }
 
     @Override
@@ -451,9 +465,18 @@ public class BalsaHTTPRequest implements BalsaRequest, ParameterSet, CookieSet
     {
         if (this.jsonReader == null)
         {
-            this.jsonReader = this.jsonFactory.createJsonParser(this.getReader());
+            this.jsonReader = this.jsonFactory.createParser(this.getReader());
         }
         return this.jsonReader;
+    }
+    
+    public YAMLParser getYamlReader() throws IOException
+    {
+        if (this.yamlReader == null)
+        {
+            this.yamlReader = this.yamlFactory.createParser(this.getReader());
+        }
+        return this.yamlReader;
     }
     
     public XMLStreamReader getXMLReader() throws IOException, XMLStreamException

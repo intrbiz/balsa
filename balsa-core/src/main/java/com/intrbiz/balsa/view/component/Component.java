@@ -31,6 +31,8 @@ import com.intrbiz.express.value.ValueExpression;
  */
 public abstract class Component
 {
+    public static final String RENDERED = "rendered";
+    
     protected BalsaView view;
 
     /**
@@ -364,7 +366,7 @@ public abstract class Component
      */
     public boolean isRendered()
     {
-        ValueExpression rend = this.getAttribute("rendered");
+        ValueExpression rend = this.getAttribute(RENDERED);
         if (rend != null)
         {
             try

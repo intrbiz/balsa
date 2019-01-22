@@ -11,6 +11,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.intrbiz.balsa.error.BalsaInternalError;
 import com.intrbiz.balsa.http.HTTP.HTTPStatus;
 import com.intrbiz.balsa.util.BalsaWriter;
@@ -116,6 +117,11 @@ public interface BalsaResponse
      * Set the response content type to: application/json
      */
     public BalsaResponse json();
+    
+    /**
+     * Set the response content type to: text/yaml
+     */
+    public BalsaResponse yaml();
     
     /**
      * Set the response content type to: application/xml
@@ -238,9 +244,18 @@ public interface BalsaResponse
      * 
      * @return
      * @throws IOException
-     *             returns JSONWriter
+     *             returns JsonGenerator
      */
     public JsonGenerator getJsonWriter() throws IOException;
+    
+    /**
+     * Get the response YAML writer
+     * 
+     * @return
+     * @throws IOException
+     *             returns YAMLGenerator
+     */
+    public YAMLGenerator getYamlWriter() throws IOException;
     
     /**
      * Get the response HTML writer
