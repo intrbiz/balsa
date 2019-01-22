@@ -333,6 +333,30 @@ public class BalsaSink implements Sink
     {
         this.sectionTitle_(5);
     }
+    
+    @Override
+    public void section6()
+    {
+        this.section(6, null);
+    }
+
+    @Override
+    public void section6_()
+    {
+        this.section_(6);
+    }
+
+    @Override
+    public void sectionTitle6()
+    {
+        this.sectionTitle(6, null);
+    }
+
+    @Override
+    public void sectionTitle6_()
+    {
+        this.sectionTitle_(6);
+    }
 
     @Override
     public void section(int level, SinkEventAttributes attributes)
