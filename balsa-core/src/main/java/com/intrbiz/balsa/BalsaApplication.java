@@ -770,7 +770,7 @@ public abstract class BalsaApplication
         {
             // configure logging to terminal
             BasicConfigurator.configure();
-            Logger.getRootLogger().setLevel(Level.toLevel(System.getProperty("balsa.logging.level", "trace").toUpperCase()));
+            Logger.getRootLogger().setLevel(Level.toLevel(System.getProperty("balsa.logging.level", this.isProdEnv() ? "info" : "trace").toUpperCase()));
         }
         else
         {
