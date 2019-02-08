@@ -22,11 +22,14 @@
 	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<intrbiz.util.version>1.4.0-SNAPSHOT</intrbiz.util.version>
 		<jackson.version>2.9.8</jackson.version>
 		<u2f.version>0.16.0</u2f.version>
-		<express.version>4.1.0-SNAPSHOT</express.version>
-		<scgi.version>4.0.0-SNAPSHOT</scgi.version>
+		<intrbiz.util.version>1.4.0</intrbiz.util.version>
+		<express.version>4.1.0</express.version>
+		<scgi.version>4.1.0</scgi.version>
+        <netty.version>4.0.40.Final</netty.version>
+        <gerald.version>1.2.1</gerald.version>
+        <hazelcast.version>3.11.1</hazelcast.version>
 	</properties>
 
 	<dependencyManagement>
@@ -107,12 +110,12 @@
 			<dependency>
 				<groupId>io.netty</groupId>
 				<artifactId>netty-all</artifactId>
-				<version>4.0.40.Final</version>
+				<version>${netty.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.intrbiz.gerald</groupId>
 				<artifactId>gerald-witchcraft</artifactId>
-				<version>[1.1,)</version>
+				<version>${gerald.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.hamcrest</groupId>
@@ -147,7 +150,7 @@
 			<dependency>
 				<groupId>com.hazelcast</groupId>
 				<artifactId>hazelcast</artifactId>
-				<version>3.8.2</version>
+				<version>${hazelcast.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.pegdown</groupId>
@@ -230,6 +233,7 @@
 						</goals>
 						<configuration>
 						    <additionalparam>-Xdoclint:none</additionalparam>
+                            <source>8</source>
 						</configuration>
 					</execution>
 				</executions>
