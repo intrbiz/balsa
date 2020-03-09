@@ -27,7 +27,7 @@
 		<intrbiz.util.version>1.4.1</intrbiz.util.version>
 		<express.version>4.1.0</express.version>
 		<scgi.version>4.1.0</scgi.version>
-        <netty.version>4.0.40.Final</netty.version>
+        <netty.version>4.1.44.Final</netty.version>
         <gerald.version>1.2.1</gerald.version>
         <hazelcast.version>3.11.1</hazelcast.version>
 	</properties>
