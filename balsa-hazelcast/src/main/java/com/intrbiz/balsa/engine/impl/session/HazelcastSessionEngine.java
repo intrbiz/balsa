@@ -10,6 +10,7 @@ import com.hazelcast.config.EvictionConfig;
 import com.hazelcast.config.EvictionPolicy;
 import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.MaxSizePolicy;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
@@ -63,7 +64,7 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
         MapConfig sessionMapConfig = hazelcastConfig.getMapConfig(BALSA_SESSION_MAP_NAME);
         // session lifetime is in minutes
         sessionMapConfig.setMaxIdleSeconds(this.getSessionLifetime() * 60);
-        sessionMapConfig.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU));
+        sessionMapConfig.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU).setSize(10).setMaxSizePolicy(MaxSizePolicy.USED_HEAP_PERCENTAGE));
         // default to storing objects, as with sticky balancing 
         // requests tend to the same server
         sessionMapConfig.setInMemoryFormat(InMemoryFormat.OBJECT);
