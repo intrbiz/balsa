@@ -51,8 +51,8 @@ public final class RouteProcessor implements BalsaProcessor
             {
                 // We have encountered an error this application cannot handle
                 // Log
-                logger.debug("An exception was encountered which the application cannot deal with:", error);
-                logger.debug("Request info:\r\n" + context.request().dump());
+                logger.error("An exception was encountered which the application cannot deal with:", error);
+                logger.error("Request info:\r\n" + context.request().dump());
                 // Don't output anything, let the web server handle the error
             }
         }

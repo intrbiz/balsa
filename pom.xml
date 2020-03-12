@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
 	<modelVersion>4.0.0</modelVersion>
-	
+
 	<groupId>com.intrbiz.balsa</groupId>
 	<artifactId>balsa</artifactId>
-	<version>5.0.1-SNAPSHOT</version>
+	<version>5.0.2-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	
+
 	<name>Balsa Web Framework</name>
-	<url>http://balsa-framework.org/</url>
-	
+	<url>https://balsa-framework.org/</url>
+
 	<organization>
 		<name>Intrbiz</name>
-		<url>http://intrbiz.com</url>
+		<url>https://intrbiz.com</url>
 	</organization>
-	
+
 	<scm>
-		<url>http://github.com/intrbiz/balsa</url>
+		<url>https://github.com/intrbiz/balsa</url>
 	</scm>
-	
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jackson.version>2.9.8</jackson.version>
@@ -27,9 +29,9 @@
 		<intrbiz.util.version>1.4.1</intrbiz.util.version>
 		<express.version>4.1.0</express.version>
 		<scgi.version>4.1.0</scgi.version>
-        <netty.version>4.0.40.Final</netty.version>
-        <gerald.version>1.2.1</gerald.version>
-        <hazelcast.version>3.11.1</hazelcast.version>
+		<netty.version>4.1.44.Final</netty.version>
+		<gerald.version>1.2.2</gerald.version>
+		<hazelcast.version>4.0</hazelcast.version>
 	</properties>
 
 	<dependencyManagement>
@@ -93,10 +95,10 @@
 				<version>${jackson.version}</version>
 			</dependency>
 			<dependency>
-            	<groupId>com.fasterxml.jackson.dataformat</groupId>
-            	<artifactId>jackson-dataformat-yaml</artifactId>
-            	<version>${jackson.version}</version>
-        	</dependency>
+				<groupId>com.fasterxml.jackson.dataformat</groupId>
+				<artifactId>jackson-dataformat-yaml</artifactId>
+				<version>${jackson.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>commons-codec</groupId>
 				<artifactId>commons-codec</artifactId>
@@ -157,41 +159,41 @@
 				<artifactId>pegdown</artifactId>
 				<version>[1.4,)</version>
 			</dependency>
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-plugin-api</artifactId>
-                <version>2.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-model</artifactId>
-                <version>2.0.11</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-artifact</artifactId>
-                <version>2.0.11</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.maven</groupId>
-                <artifactId>maven-project</artifactId>
-                <version>2.0.11</version>
-            </dependency>
-            <dependency>
-            	<groupId>com.yubico</groupId>
-            	<artifactId>u2flib-server-core</artifactId>
-            	<version>${u2f.version}</version>
-            </dependency>
-            <dependency>
-            	<groupId>com.yubico</groupId>
-            	<artifactId>u2flib-server-attestation</artifactId>
-            	<version>${u2f.version}</version>
-            </dependency>
-            <dependency>
-            	<groupId>com.hazelcast</groupId>
-            	<artifactId>hazelcast-aws</artifactId>
-            	<version>[1.1,)</version>
-            </dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-plugin-api</artifactId>
+				<version>2.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-model</artifactId>
+				<version>2.0.11</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-artifact</artifactId>
+				<version>2.0.11</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-project</artifactId>
+				<version>2.0.11</version>
+			</dependency>
+			<dependency>
+				<groupId>com.yubico</groupId>
+				<artifactId>u2flib-server-core</artifactId>
+				<version>${u2f.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.yubico</groupId>
+				<artifactId>u2flib-server-attestation</artifactId>
+				<version>${u2f.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.hazelcast</groupId>
+				<artifactId>hazelcast-aws</artifactId>
+				<version>[1.1,)</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -232,8 +234,8 @@
 							<goal>jar</goal>
 						</goals>
 						<configuration>
-						    <additionalparam>-Xdoclint:none</additionalparam>
-                            <source>8</source>
+							<additionalparam>-Xdoclint:none</additionalparam>
+							<source>8</source>
 						</configuration>
 					</execution>
 				</executions>
@@ -241,22 +243,22 @@
 		</plugins>
 	</build>
 
-  <modules>
-    <module>balsa-core</module>
-	<module>balsa-archetype</module>
-	<module>balsa-apt</module>
-    <module>balsa-data</module>
-    <module>balsa-pegdown</module>
-    <module>balsa-test</module>
-    <module>balsa-hazelcast</module>
-    <module>balsa-executor-compiler-plugin</module>
-    <module>balsa-2fa</module>
-  </modules>
+	<modules>
+		<module>balsa-core</module>
+		<module>balsa-archetype</module>
+		<module>balsa-apt</module>
+		<module>balsa-data</module>
+		<module>balsa-pegdown</module>
+		<module>balsa-test</module>
+		<module>balsa-hazelcast</module>
+		<module>balsa-executor-compiler-plugin</module>
+		<module>balsa-2fa</module>
+	</modules>
 
 	<repositories>
 		<repository>
 			<id>snapshots</id>
-			<url>http://nexus.intrbiz.net/nexus/content/repositories/snapshots</url>
+			<url>https://nexus.intrbiz.net/repository/intrbiz-snapshot</url>
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
@@ -264,20 +266,35 @@
 		<repository>
 			<id>intrbiz</id>
 			<name>Intrbiz</name>
-			<url>http://nexus.intrbiz.net/nexus/content/repositories/releases</url>
+			<url>https://nexus.intrbiz.net/repository/intrbiz-release</url>
 		</repository>
 	</repositories>
-	
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>snapshots</id>
+			<url>https://nexus.intrbiz.net/repository/intrbiz-snapshot</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<id>intrbiz</id>
+			<name>Intrbiz</name>
+			<url>https://nexus.intrbiz.net/repository/intrbiz-release</url>
+		</pluginRepository>
+	</pluginRepositories>
+
 	<distributionManagement>
 		<snapshotRepository>
 			<id>snapshots</id>
-			<url>http://nexus.intrbiz.net/nexus/content/repositories/snapshots</url>
+			<url>https://nexus.intrbiz.net/repository/intrbiz-snapshot</url>
 		</snapshotRepository>
 		<repository>
 			<id>intrbiz</id>
 			<name>Intrbiz</name>
-			<url>http://nexus.intrbiz.net/nexus/content/repositories/releases</url>
+			<url>https://nexus.intrbiz.net/repository/intrbiz-release</url>
 		</repository>
 	</distributionManagement>
-  
+
 </project>

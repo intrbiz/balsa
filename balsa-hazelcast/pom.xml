@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.intrbiz.balsa</groupId>
 		<artifactId>balsa</artifactId>
-		<version>5.0.1-SNAPSHOT</version>
+		<version>5.0.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>balsa-hazelcast</artifactId>
 	<name>balsa-hazelcast</name>

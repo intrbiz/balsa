@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.security.Principal;
 import java.util.Map;
 
-import com.hazelcast.core.IMap;
+import com.hazelcast.map.IMap;
 import com.intrbiz.balsa.BalsaApplication;
 import com.intrbiz.balsa.engine.security.AuthenticationResponse;
 import com.intrbiz.balsa.engine.security.AuthenticationState;

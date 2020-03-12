@@ -2,34 +2,39 @@ package com.intrbiz.balsa.engine.impl.task;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 
-import com.hazelcast.config.Config;
-import com.hazelcast.config.XmlConfigBuilder;
-import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IExecutorService;
-import com.intrbiz.Util;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.TaskEngine;
 import com.intrbiz.balsa.engine.impl.AbstractBalsaEngine;
+import com.intrbiz.balsa.engine.impl.util.DefaultHazelcastFactory;
 
 public class HazelcastTaskEngine extends AbstractBalsaEngine implements TaskEngine
 {
-    private HazelcastInstance hazelcastInstance;
+    public static final String BALSA_TASK_EXECUTOR = "balsa.executor.task";
     
-    private Config hazelcastConfig;
+    private final Function<String, HazelcastInstance> hazelcastInstanceSupplier;
+    
+    private HazelcastInstance hazelcastInstance;
     
     private IExecutorService executor;
     
-    public HazelcastTaskEngine()
+    public HazelcastTaskEngine(Function<String, HazelcastInstance> hazelcastInstanceSupplier)
     {
         super();
+        this.hazelcastInstanceSupplier = hazelcastInstanceSupplier;
     }
     
     public HazelcastTaskEngine(HazelcastInstance hazelcastInstance)
     {
-        super();
-        this.hazelcastInstance = hazelcastInstance;
+        this((instanceName) -> hazelcastInstance);
+    }
+    
+    public HazelcastTaskEngine()
+    {
+        this(new DefaultHazelcastFactory());
     }
 
     @Override
@@ -38,46 +43,22 @@ public class HazelcastTaskEngine extends AbstractBalsaEngine implements TaskEngi
         return "Hazelcast-Balsa-Task-Engine";
     }
     
-    public HazelcastInstance getHazelcastInstance()
-    {
-        return this.hazelcastInstance;
-    }
-    
     @Override
     public void start() throws BalsaException
     {
         super.start();
         try
         {
-            if (this.hazelcastInstance == null)
-            {
-                // setup hazelcast
-                String hazelcastConfigFile = Util.coalesceEmpty(System.getProperty("hazelcast.config"), System.getenv("hazelcast_config"));
-                if (hazelcastConfigFile != null)
-                {
-                    // when using a config file, you must configure the balsa.sessions map
-                    this.hazelcastConfig = new XmlConfigBuilder(hazelcastConfigFile).build();
-                }
-                else
-                {
-                    // setup the default configuration
-                    this.hazelcastConfig = new Config();
-                }
-                // set the instance name
-                this.hazelcastConfig.setInstanceName(this.getBalsaApplication().getInstanceName());
-                // create the instance
-                this.hazelcastInstance = Hazelcast.getOrCreateHazelcastInstance(this.hazelcastConfig);
-            }
+            // Get our hazelcast instance
+            this.hazelcastInstance = this.hazelcastInstanceSupplier.apply(this.getBalsaApplication().getInstanceName());
             // create the executor
-            this.executor = this.hazelcastInstance.getExecutorService("balsa-task");
+            this.executor = this.hazelcastInstance.getExecutorService(BALSA_TASK_EXECUTOR);
         }
         catch (Exception e)
         {
             throw new BalsaException("Failed to start Hazelcast Task Engine", e);
         }
     }
-    
-    //
 
     @Override
     public void execute(Runnable task)

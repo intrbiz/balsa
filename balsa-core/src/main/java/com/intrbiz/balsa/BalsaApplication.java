@@ -66,7 +66,7 @@ public abstract class BalsaApplication
         return INSTANCE;
     }
     
-    private Logger logger = Logger.getLogger(BalsaApplication.class);
+    private static final Logger logger = Logger.getLogger(BalsaApplication.class);
 
     /**
      * Bean providers
@@ -480,7 +480,7 @@ public abstract class BalsaApplication
     {
         if (action != null)
         {
-            if (this.logger.isTraceEnabled()) logger.trace("Registered action handler " + action.getName() + " => " + action);
+            if (logger.isTraceEnabled()) logger.trace("Registered action handler " + action.getName() + " => " + action);
             this.actions.put(action.getName(), action);
         }
     }
@@ -687,6 +687,8 @@ public abstract class BalsaApplication
         {
             listener.setProcessor(proc);
         }
+        // Application specific pre-start
+        this.startApplicationEarly();
         // Start the task engine
         if (this.getTaskEngine() != null) this.getTaskEngine().start();
         // Start the session engine
@@ -703,6 +705,8 @@ public abstract class BalsaApplication
             logger.info("Starting listener: " + listener.getEngineName() + " on port " + listener.getPort());
             listener.start();
         }
+        // Application specific post-start
+        this.startApplicationLate();
     }
     
     // config resolvers
@@ -728,10 +732,26 @@ public abstract class BalsaApplication
     }
     
     /**
+     * Any application specific startup actions, before any Balsa engines are started
+     * @throws Exception
+     */
+    protected void startApplicationEarly() throws Exception
+    {
+    }
+    
+    /**
      * Any application specific startup actions, before the listeners are started
      * @throws Exception
      */
     protected void startApplication() throws Exception
+    {
+    }
+    
+    /**
+     * Any application specific startup actions, after the listeners are started
+     * @throws Exception
+     */
+    protected void startApplicationLate() throws Exception
     {
     }
 

@@ -9,7 +9,7 @@
 	<name>${artifactId}</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <balsa.version>5.0.0-SNAPSHOT</balsa.version>
+        <balsa.version>${version}</balsa.version>
         <util.version>1.4.0</util.version>
 	</properties>
 	
@@ -17,7 +17,7 @@
 	<repositories>
 		<repository>
 			<id>snapshots</id>
-			<url>http://nexus.intrbiz.net/nexus/content/repositories/snapshots</url>
+			<url>https://nexus.intrbiz.net/repository/intrbiz-snapshot</url>
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
@@ -25,14 +25,14 @@
 		<repository>
 			<id>intrbiz</id>
 			<name>Intrbiz</name>
-			<url>http://nexus.intrbiz.net/nexus/content/repositories/releases</url>
+			<url>https://nexus.intrbiz.net/repository/intrbiz-release</url>
 		</repository>
 	</repositories>
 	
 	<pluginRepositories>
 		<pluginRepository>
 			<id>snapshots</id>
-			<url>http://nexus.intrbiz.net/nexus/content/repositories/snapshots</url>
+			<url>https://nexus.intrbiz.net/repository/intrbiz-snapshot</url>
 			<snapshots>
 				<enabled>true</enabled>
 			</snapshots>
@@ -40,7 +40,7 @@
 		<pluginRepository>
 			<id>intrbiz</id>
 			<name>Intrbiz</name>
-			<url>http://nexus.intrbiz.net/nexus/content/repositories/releases</url>
+			<url>https://nexus.intrbiz.net/repository/intrbiz-release</url>
 		</pluginRepository>
 	</pluginRepositories>
 	

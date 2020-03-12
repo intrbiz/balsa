@@ -1,27 +1,31 @@
 package com.intrbiz.balsa.engine.impl.session;
 
 import java.util.Set;
+import java.util.function.Function;
 
 import org.apache.log4j.Logger;
 
 import com.hazelcast.config.Config;
+import com.hazelcast.config.EvictionConfig;
 import com.hazelcast.config.EvictionPolicy;
 import com.hazelcast.config.InMemoryFormat;
 import com.hazelcast.config.MapConfig;
-import com.hazelcast.config.XmlConfigBuilder;
 import com.hazelcast.core.EntryEvent;
-import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
+import com.hazelcast.map.IMap;
 import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
-import com.intrbiz.Util;
 import com.intrbiz.balsa.BalsaException;
+import com.intrbiz.balsa.engine.impl.util.DefaultHazelcastFactory;
 
 public class HazelcastSessionEngine extends AbstractSessionEngine
 {
-    private Config hazelcastConfig;
-
+    public static final String BALSA_SESSION_MAP_NAME = "balsa.sessions";
+    
+    public static final String BALSA_SESSION_ATTRIBUTE_MAP_NAME = "balsa.sessions.attributes";
+    
+    private final Function<String, HazelcastInstance> hazelcastInstanceSupplier;
+    
     private HazelcastInstance hazelcastInstance;
 
     private IMap<String, HazelcastSession> sessionMap;
@@ -30,15 +34,20 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
     
     private Logger logger = Logger.getLogger(HazelcastSessionEngine.class);
 
-    public HazelcastSessionEngine()
+    public HazelcastSessionEngine(Function<String, HazelcastInstance> hazelcastInstanceSupplier)
     {
         super();
+        this.hazelcastInstanceSupplier = hazelcastInstanceSupplier;
     }
     
     public HazelcastSessionEngine(HazelcastInstance hazelcastInstance)
     {
-        super();
-        this.hazelcastInstance = hazelcastInstance;
+        this((instanceName) -> hazelcastInstance);
+    }
+    
+    public HazelcastSessionEngine()
+    {
+        this(new DefaultHazelcastFactory());
     }
 
     @Override
@@ -47,21 +56,24 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
         return "Hazelcast-Balsa-Session-Engine";
     }
     
-    public HazelcastInstance getHazelcastInstance()
+    private void applyHazelcastConfiguration(Config hazelcastConfig)
     {
-        return this.hazelcastInstance;
-    }
-
-    @Override
-    public HazelcastSession getSession(String sessionId)
-    {
-        HazelcastSession session = this.getSessionMap().get(sessionId);
-        if (session == null)
-        {
-            session = new HazelcastSession(sessionId);
-            this.getSessionMap().put(session.id(), session);
-        }
-        return session;
+        // inject our configuration
+        // add update configuration for our maps
+        MapConfig sessionMapConfig = hazelcastConfig.getMapConfig(BALSA_SESSION_MAP_NAME);
+        // session lifetime is in minutes
+        sessionMapConfig.setMaxIdleSeconds(this.getSessionLifetime() * 60);
+        sessionMapConfig.setEvictionConfig(new EvictionConfig().setEvictionPolicy(EvictionPolicy.LRU));
+        // default to storing objects, as with sticky balancing 
+        // requests tend to the same server
+        sessionMapConfig.setInMemoryFormat(InMemoryFormat.OBJECT);
+        hazelcastConfig.addMapConfig(sessionMapConfig);
+        // setup the attribute map
+        MapConfig sessionAttrMapConfig = hazelcastConfig.getMapConfig(BALSA_SESSION_ATTRIBUTE_MAP_NAME);
+        // default to storing objects, as with sticky balancing 
+        // requests tend to the same server
+        sessionAttrMapConfig.setInMemoryFormat(InMemoryFormat.OBJECT);
+        hazelcastConfig.addMapConfig(sessionAttrMapConfig);
     }
 
     @Override
@@ -70,42 +82,13 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
         super.start();
         try
         {
-            if (this.hazelcastInstance == null)
-            {
-                // setup hazelcast
-                String hazelcastConfigFile = Util.coalesceEmpty(System.getProperty("hazelcast.config"), System.getenv("hazelcast_config"));
-                if (hazelcastConfigFile != null)
-                {
-                    this.hazelcastConfig = new XmlConfigBuilder(hazelcastConfigFile).build();
-                }
-                else
-                {
-                    this.hazelcastConfig = new Config();
-                }
-                // inject our configuration
-                // add update configuration for our maps
-                MapConfig sessionMapConfig = this.hazelcastConfig.getMapConfig("balsa.sessions");
-                // session lifetime is in minutes
-                sessionMapConfig.setMaxIdleSeconds(this.getSessionLifetime() * 60);
-                sessionMapConfig.setEvictionPolicy(EvictionPolicy.LRU);
-                // default to storing objects, as with sticky balancing 
-                // requests tend to the same server
-                sessionMapConfig.setInMemoryFormat(InMemoryFormat.OBJECT);
-                this.hazelcastConfig.addMapConfig(sessionMapConfig);
-                // setup the attribute map
-                MapConfig sessionAttrMapConfig = this.hazelcastConfig.getMapConfig("balsa.sessions.attributes");
-                // default to storing objects, as with sticky balancing 
-                // requests tend to the same server
-                sessionAttrMapConfig.setInMemoryFormat(InMemoryFormat.OBJECT);
-                this.hazelcastConfig.addMapConfig(sessionAttrMapConfig);
-                // set the instance name
-                this.hazelcastConfig.setInstanceName(this.getBalsaApplication().getInstanceName());
-                // create the instance
-                this.hazelcastInstance = Hazelcast.getOrCreateHazelcastInstance(this.hazelcastConfig);
-            }
+            // Get our hazelcast instance
+            this.hazelcastInstance = this.hazelcastInstanceSupplier.apply(this.getBalsaApplication().getInstanceName());
+            // Inject our HZ config
+            this.applyHazelcastConfiguration(this.hazelcastInstance.getConfig());
             // create the maps
-            this.sessionMap   = this.hazelcastInstance.getMap("balsa.sessions");
-            this.attributeMap = this.hazelcastInstance.getMap("balsa.sessions.attributes");
+            this.sessionMap   = this.hazelcastInstance.getMap(BALSA_SESSION_MAP_NAME);
+            this.attributeMap = this.hazelcastInstance.getMap(BALSA_SESSION_ATTRIBUTE_MAP_NAME);
             // eviction listener
             // this will remove attributes when a session is removed / evicted
             this.sessionMap.addLocalEntryListener(new EntryAddedListener<String, HazelcastSession>() {
@@ -135,6 +118,18 @@ public class HazelcastSessionEngine extends AbstractSessionEngine
         {
             throw new BalsaException("Failed to start Hazelcast Session Engine", e);
         }
+    }
+    
+    @Override
+    public HazelcastSession getSession(String sessionId)
+    {
+        HazelcastSession session = this.getSessionMap().get(sessionId);
+        if (session == null)
+        {
+            session = new HazelcastSession(sessionId);
+            this.getSessionMap().put(session.id(), session);
+        }
+        return session;
     }
 
     IMap<String, HazelcastSession> getSessionMap()
