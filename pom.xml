@@ -7,7 +7,7 @@
 
 	<groupId>com.intrbiz.balsa</groupId>
 	<artifactId>balsa</artifactId>
-	<version>5.0.2-SNAPSHOT</version>
+	<version>5.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>Balsa Web Framework</name>
@@ -26,8 +26,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jackson.version>2.9.8</jackson.version>
 		<u2f.version>0.16.0</u2f.version>
-		<intrbiz.util.version>1.4.1</intrbiz.util.version>
-		<express.version>4.1.0</express.version>
+		<intrbiz.util.version>1.5.0</intrbiz.util.version>
+		<express.version>4.1.2</express.version>
 		<scgi.version>4.1.0</scgi.version>
 		<netty.version>4.1.44.Final</netty.version>
 		<gerald.version>1.2.2</gerald.version>
