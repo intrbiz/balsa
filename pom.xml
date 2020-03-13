@@ -32,6 +32,7 @@
 		<netty.version>4.1.44.Final</netty.version>
 		<gerald.version>1.2.2</gerald.version>
 		<hazelcast.version>4.0</hazelcast.version>
+		<bouncycastle.version>1.64</bouncycastle.version>
 	</properties>
 
 	<dependencyManagement>
@@ -189,6 +190,11 @@
 				<artifactId>u2flib-server-attestation</artifactId>
 				<version>${u2f.version}</version>
 			</dependency>
+			<dependency>
+	            <groupId>org.bouncycastle</groupId>
+	            <artifactId>bcpkix-jdk15on</artifactId>
+	            <version>${bouncycastle.version}</version>
+	        </dependency>
 			<dependency>
 				<groupId>com.hazelcast</groupId>
 				<artifactId>hazelcast-aws</artifactId>

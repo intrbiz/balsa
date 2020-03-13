@@ -11,11 +11,27 @@
 		<dependency>
 			<groupId>com.yubico</groupId>
 			<artifactId>u2flib-server-core</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.projectlombok</groupId>
+					<artifactId>lombok</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.yubico</groupId>
 			<artifactId>u2flib-server-attestation</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.projectlombok</groupId>
+					<artifactId>lombok</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
+		<dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>com.intrbiz.balsa</groupId>
 			<artifactId>balsa-core</artifactId>
