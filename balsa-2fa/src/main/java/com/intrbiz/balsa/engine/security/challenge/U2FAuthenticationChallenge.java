@@ -2,8 +2,7 @@ package com.intrbiz.balsa.engine.security.challenge;
 
 import java.io.Serializable;
 
-import com.intrbiz.balsa.engine.security.challenge.AuthenticationChallenge;
-import com.yubico.u2f.data.messages.AuthenticateRequestData;
+import com.yubico.u2f.data.messages.SignRequestData;
 
 /**
  * A U2F authentication challenge to start the second factor authentication process
@@ -12,15 +11,15 @@ public class U2FAuthenticationChallenge implements AuthenticationChallenge, Seri
 {
     private static final long serialVersionUID = 1L;
     
-    private final AuthenticateRequestData challenge;
+    private final SignRequestData challenge;
 
-    public U2FAuthenticationChallenge(AuthenticateRequestData challenge)
+    public U2FAuthenticationChallenge(SignRequestData challenge)
     {
         super();
         this.challenge = challenge;
     }
 
-    public AuthenticateRequestData getChallenge()
+    public SignRequestData getChallenge()
     {
         return challenge;
     }

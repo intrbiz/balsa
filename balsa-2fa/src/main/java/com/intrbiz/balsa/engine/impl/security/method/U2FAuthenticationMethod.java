@@ -7,7 +7,6 @@ import java.util.Map;
 import com.intrbiz.Util;
 import com.intrbiz.balsa.BalsaException;
 import com.intrbiz.balsa.engine.SecurityEngine;
-import com.intrbiz.balsa.engine.impl.security.method.BaseAuthenticationMethod;
 import com.intrbiz.balsa.engine.security.AuthenticationState;
 import com.intrbiz.balsa.engine.security.U2FSecurityEngine;
 import com.intrbiz.balsa.engine.security.challenge.AuthenticationChallenge;
@@ -20,10 +19,10 @@ import com.intrbiz.balsa.error.BalsaSecurityException;
 import com.yubico.u2f.U2F;
 import com.yubico.u2f.attestation.MetadataService;
 import com.yubico.u2f.data.DeviceRegistration;
-import com.yubico.u2f.data.messages.AuthenticateRequestData;
-import com.yubico.u2f.exceptions.DeviceCompromisedException;
+import com.yubico.u2f.data.messages.SignRequestData;
 import com.yubico.u2f.exceptions.NoEligibleDevicesException;
-import com.yubico.u2f.exceptions.U2fBadInputException;
+import com.yubico.u2f.exceptions.U2fAuthenticationException;
+import com.yubico.u2f.exceptions.U2fBadConfigurationException;
 
 /**
  * A U2F authentication method which needs to be registered against a SecurityEngine which implements U2FSecurityEngine
@@ -58,7 +57,7 @@ public class U2FAuthenticationMethod extends BaseAuthenticationMethod<U2FAuthent
         List<DeviceRegistration> devices = this.securityEngine.getDeviceRegistrationsForPrincipal(principal);
         if (devices == null || devices.isEmpty()) throw new BalsaSecurityException("The principal does not have any U2F devices");
         // get the authentication challenge
-        AuthenticateRequestData challenge = credentials.getChallenge();
+        SignRequestData challenge = credentials.getChallenge();
         // fall back to the challenge in the state
         if (challenge == null)
         {
@@ -78,7 +77,7 @@ public class U2FAuthenticationMethod extends BaseAuthenticationMethod<U2FAuthent
         try
         {
             // execute the U2f authentication
-            DeviceRegistration device = this.u2f.finishAuthentication(challenge, credentials.getResponse(), devices);
+            DeviceRegistration device = this.u2f.finishSignature(challenge, credentials.getResponse(), devices);
             // apply any additional validations to the U2F device
             this.securityEngine.validateDeviceRegistration(principal, device);
             // update the device registration with the new counter value
@@ -86,9 +85,9 @@ public class U2FAuthenticationMethod extends BaseAuthenticationMethod<U2FAuthent
             // all done
             return new AuthenticatedPrincipal(principal, this.name, this.createAuthenticationInfoDetail(principal, device));
         }
-        catch (U2fBadInputException | DeviceCompromisedException e)
+        catch (U2fAuthenticationException e)
         {
-            throw new BalsaSecurityException("U2F authentication failed");
+            throw new BalsaSecurityException("U2F authentication failed", e);
         }
         
     }
@@ -106,9 +105,9 @@ public class U2FAuthenticationMethod extends BaseAuthenticationMethod<U2FAuthent
             // start the U2F login
             try
             {
-                return new U2FAuthenticationChallenge(this.u2f.startAuthentication(appId, devices));
+                return new U2FAuthenticationChallenge(this.u2f.startSignature(appId, devices));
             }
-            catch (U2fBadInputException | NoEligibleDevicesException e)
+            catch (NoEligibleDevicesException | U2fBadConfigurationException e)
             {
                 throw new BalsaSecurityException("Failed to create U2F challenge", e);
             }
