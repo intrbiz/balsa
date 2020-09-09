@@ -25,7 +25,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jackson.version>[2.10,)</jackson.version>
-		<u2f.version>0.19.9</u2f.version>
+		<u2f.version>0.19.11</u2f.version>
 		<intrbiz.util.version>1.5.0</intrbiz.util.version>
 		<express.version>4.1.2</express.version>
 		<scgi.version>4.1.0</scgi.version>
