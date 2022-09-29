@@ -25,14 +25,14 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<jackson.version>[2.10,)</jackson.version>
-		<u2f.version>0.19.9</u2f.version>
+		<u2f.version>0.19.11</u2f.version>
 		<intrbiz.util.version>1.5.0</intrbiz.util.version>
 		<express.version>4.1.2</express.version>
 		<scgi.version>4.1.0</scgi.version>
 		<netty.version>4.1.44.Final</netty.version>
 		<gerald.version>1.2.2</gerald.version>
 		<hazelcast.version>4.0</hazelcast.version>
-		<bouncycastle.version>1.64</bouncycastle.version>
+		<bouncycastle.version>1.69</bouncycastle.version>
 	</properties>
 
 	<dependencyManagement>
