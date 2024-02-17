@@ -31,7 +31,7 @@
 		<scgi.version>4.1.0</scgi.version>
 		<netty.version>4.1.44.Final</netty.version>
 		<gerald.version>1.2.2</gerald.version>
-		<hazelcast.version>4.0</hazelcast.version>
+		<hazelcast.version>5.3.5</hazelcast.version>
 		<bouncycastle.version>1.64</bouncycastle.version>
 	</properties>
 
